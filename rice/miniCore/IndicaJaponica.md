@@ -111,10 +111,8 @@ OTU表分为三类：高氮HN，低氮LN，高氮 与低氮之差比例(HN-LN)/H
 
     # 准备makefile文件
     cp ../HN/ma* ./
-
     # 修改工作目录，然后
     make init
-
     # 准备预分析结果: 实验设计，OTU表和代表序列
     cp $wd/LN/otutab.txt temp/otu_table_raw.txt
     cp $wd/result/rep_seqs.fa result/rep_seqs.fa
