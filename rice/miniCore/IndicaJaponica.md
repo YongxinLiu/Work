@@ -95,10 +95,13 @@ OTU表分为三类：高氮HN，低氮LN，高氮 与低氮之差比例(HN-LN)/H
 按组分别进行T-test/Wilcoxon检查所有氮相关功能，DAKO_egr_boxplot.r中。
 发现11个氮相关功能中，Indica的nitrate_ammonification和nitrite_ammonification显著高，nitrogen_respiration, nitrite_respiration, nitrate_respiration，且在HN和LN中一致。而nitrogen_fixation更低。
     
-查看相关菌
+查看相关菌  
     
     grep -P -A 14 '^# nitrate_ammonification' ../../faprotax/report
-    # 最要是OTU_9, OTU_102等，但在差异OTU中没有显著。但查看原始数据比较结果的均值差异明显。改用wilcoxon检验，其为上调的第 1/2 个。
+
+最要是OTU_9, OTU_102等，但在差异OTU中没有显著。但查看原始数据比较结果的均值差异明显。改用wilcoxon检验，其为上调的第 1/2 个。
+    
+秩合检验更靠谱，负二项在菌群 研究中经常出现异常结果
     
 ## 1.2. LN
 
