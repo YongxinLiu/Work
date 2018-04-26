@@ -1,23 +1,28 @@
-<<<<<<< HEAD
 
 
 
-=======
->>>>>>> 34d92731a8ffa07fa81ce57d5ad73d4a2635164c
 # 0 准备工作
 
-# 准备流程配置文件
-cp ~/github/Amplicon/16Sv2/makefile.sh makefile
-cp ~/github/Amplicon/16Sv2/manual.sh ./
+## 准备流程配置文件
 
-# 建立初始目录
-make init
+    cd ~/github/Work/rice/xianGeng
+    # 复制标准参数模板和操作指南至项目代码区：方便同步
+    cp ~/github/Amplicon/16Sv2/makefile.sh makefile.md
+    cp ~/github/Amplicon/16Sv2/manual.sh manual.md
+    # 链接代码至工作区
+    ln -s `pwd`/makefile.md ~/rice/xianGeng/makefile
+    ln -s `pwd`/manual.md ~/rice/xianGeng/manual.sh
+
+## 初始化工作区
+
+    ~/rice/xianGeng
+    make init
 
 
 
 # 1 原始序列预处理
 
-# 1.1 准备lane测序文件及文库实验设计
+## 1.1 准备lane测序文件及文库实验设计
 ln ~/seq/180210.lane9.ath3T/Clean/CWHPEPI00001683/lane_* ./
 cp ~/ath/jt.HuangAC/batch3/doc/library.txt doc/
 head -n3 doc/library.txt
