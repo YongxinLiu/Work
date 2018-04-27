@@ -42,7 +42,7 @@ fastq_maxee_rate=0.01
 
 # 1.6 fa_unqiue 序列去冗余 Remove redundancy
 # 最小序列频率miniuniqusize默认为8，去除低丰度，增加计算速度，整lane的序列可更改为30，甚至100
-minuniquesize=30
+minuniquesize=100
 
 # 1.7 otu_pick 挑选OTU Pick OTUs
 # 可选97% cluster_otus 和 unoise3 ，默认unoise3
