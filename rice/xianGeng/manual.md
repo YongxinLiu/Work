@@ -448,6 +448,11 @@ beta_pcoa.sh -i result/beta/ -m '"bray_curtis","weighted_unifrac"' \
 	10m21759092,10,21759092,0.962618742911769,0.46,50,0.856299549567109,0.85630648832468,1
 	# 可能从样本量、数据波动程度、SNP背景均无法满足
 
+## 2018/5/28 筛选HN/LN下可高丰度菌及是否可培养
+	# core_microbiome_culture.R筛选中位数并排序 
+	awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print $0,a[$1]}' result/41culture/otu.txt culture/core.txt > culture/core_culture.txt
+
+
 
 # 5. 图表整理 Figures and legends
 
@@ -536,12 +541,10 @@ tax_stackplot.sh -i `pwd`/result/tax/sum_ -m '"pc"' -n 10 \
 	# plot_heatmap_timecourse.R 绘制时间序列的图
 	# 筛选HL/LN下TEJ-IND共同下调的菌
 	cat result/compare/?TEJ-?IND_sig.txt | grep 'Depleted' | cut -f 1 | sort | uniq -d > fig/2/otu_IND_common_specific.txt
+	cat result/compare/?TEJ-?IND_sig.txt | grep 'Enriched' | cut -f 1 | sort | uniq -d > fig/2/otu_TEJ_common_specific.txt
+	# 并用faprotax注释
 
-
-	
-## 图3. 亚种差异与氮相关
-	
-	1. 差异菌存在氮代谢通路差异
+	5. 差异菌功能有无热图 plot_heatmap_timecourse.R
 	filter_otus_by_sample.sh -f result/faprotax/element_tab.txt -o result/faprotax/xiaogeng -d doc/design.txt -A groupID -B '"HTEJ","HIND","HSoil1","LTEJ","LIND","LSoil1"'
 	# 结果可用STAMP进一步探索
 	
@@ -568,13 +571,92 @@ tax_stackplot.sh -i `pwd`/result/tax/sum_ -m '"pc"' -n 10 \
 	#OTU功能注释列表：result/faprotax/report.otu_func
 	#功能包含OTU列表：result/faprotax/report.func_otu
 	#OTU功能有无矩阵：result/faprotax/report.mat
+	# plot_heatmap_timecourse.R 绘制时间序列的图，再添加相应菌的主要功能，
+	# 同时对时间序列中不表达的也可视化功能:IND的功能绘制于 fig/2/otu_IND_common_specific_time_faprotax_noabundance.txt，TEJ单一条目录为 fig/2/otu_TEJ_common_specific_time_faprotax_noabundance.txt"
+	# 再对时间序列中0点去掉重新计算，发现分为了4组，在原文件基础上添加-0标志
+
+	# 用family水平建模，用HN数据training，用LN验证。randomForest_family.R
+
+	
+## 图3. 亚种差异与氮相关
+	
+
+	# 菌种功能注释整体差异
+	rm result/compare_far/diff.list
+	compare.sh -i `pwd`/result/faprotax/element_tab.txt -c `pwd`/doc/compare.txt -m "wilcox" \
+	-p 0.01 -q 0.05 -F 1.2 -t 0.0005 \
+	-d `pwd`/doc/design.txt -A groupID -B '"HTEJ","HIND","HSoil1","LTEJ","LIND","LSoil1"' \
+	-o `pwd`/result/compare_far/ -N FALSE
+	batch_venn.pl -i doc/venn.txt -d result/compare_far/diff.list
+	# 注释比较结果
+	rm result/compare_far/diff.list.venn*.xls.*
+	batch2.pl -i 'result/compare_far/diff.list.venn*.xls' -d result/compare_far/database.txt -o result/compare_far/ -p vennNumAnno.pl
+	# 绘制箱线图
+	# 确定要展示的Features，两组共有
+	tail -n 39 result/compare_far/diff.list.vennHTEJ_HIND_DLTEJ_LIND_D.xls.xls|cut -f 1 > result/compare_far/IND.list
+	tail -n 9 result/compare_far/diff.list.vennHTEJ_HIND_ELTEJ_LIND_E.xls.xls|cut -f 1 > result/compare_far/TEJ.list
+	make plot_fa_barplot # 绘制单个功能的箱线图
+	# 修改alpha_boxplot.R为alpha_boxplot_far.R
 
 
 	2. 差异菌与氮相关基因显著相关
+	# 来自胡斌整理的氮相关基因doc/N-related genes in rice.docx共9个基因，先在doc/rice_nitrogen_list.xlsx中惠惠相关ID，保存为doc/rice_nitrogen_list.txt, 其中第5列RAP_SNP的ID与SNP注释文件对应
+	dos2unix doc/rice_nitrogen_list.txt # windows转换为linux
+	# 整理出SNP数据中对应的基因型、提取相应的位点
+	mkdir -p result/nitrogen_cor
+	cut -f 5 doc/rice_nitrogen_list.txt | tail -n+2 | tr '\n' '|' # 提取ID并替换为|分隔
+	grep -P 'OS10G0554200|OS08G0155400|OS02G0112100|OS02G0595900|OS01G0704100|OS01G0547600|OS03G0687000|OS04G0509600|OS06G0706400|OS06G0706500' /mnt/bai/yongxin/rice/miniCore/180319/gemma/snp.anno > result/nitrogen_cor/all_snp.list # 筛选到10个基因在miniCore中存在502个相关位点
+	cut -f 3 result/nitrogen_cor/all_snp.list | sort | uniq -c # 8个MODERATE，467个MODIFIER和27个LOW
+	grep -P 'HIGH|MODERATE' result/nitrogen_cor/all_snp.list > result/nitrogen_cor/good_snp.list # 其中重要SNP仅有8个，来自4个基因
+	# 提SNP对应基因型
+	cat /mnt/bai/xiaoning/past/software/tassel-5-standalone/sum_geno_*.hmp.txt > /tmp/temp
+	cut -f 1 result/nitrogen_cor/good_snp.list|tr '\n' '|' # 获取列表
+	grep -P '2m655515\t|2m657013|6m29839102|6m29839240|8m3183208|10m21759092|10m21761740|10m21761997' /tmp/temp > /tmp/temp1
+	cat <(head -n1 /mnt/bai/xiaoning/past/software/tassel-5-standalone/sum_geno_1.hmp.txt) /tmp/temp1 > result/nitrogen_cor/good_snp.geno # 添加标题
+	# 统计SNP基因型作为分组信息，来统计氮功能丰度组间P值
+	nitrogen_cor.r # 保存实验设计+基因型，方便识别SNP不同基因型在籼粳稻中区别
+	# 整理这4个重要SNP信息表，见SNP_list.xlsx
+	# 统计基因型与亚种分布
+	sed -i '1 s/^/SampleID\t/' result/nitrogen_cor/design.txt
+	head -n1 result/nitrogen_cor/design.txt|tr '\t' '\n'|awk '{print NR,$1}'
+	# NRT2.1 - 17; 1.1A - 21; 1.1B - 14，统计每个亚种内基因型的数量，可看到亚种内主要的SNP类型
+	cut -f 2,8,20 result/nitrogen_cor/design.txt|sort|uniq|cut -f 2,3|sort|uniq -c
+	grep -P '10m21759092|2m655515\t|8m3183208' /mnt/bai/yongxin/rice/miniCore/180319/gemma/T2.ann.vcf # 查询SNP变化位置、碱基和AA详细
+
 
 	3. 关键氮高效基因不同形态、突变体可部分解析亚种差异
+	"A50LnCp6","A56LnCp6","A50LnCp7","A56LnCp7","A50LnSz7","A56LnSz7","A50HnCp6","A56HnCp6","A50HnCp7","A56HnCp7","A50HnSz7","A56HnSz7","V3703HnCp6","ZH11HnCp6","V3703LnCp6","ZH11LnCp6","nrtHnCp7","ZH11HnCp7","ZH11LnCp7","nrtLnCp7","nrtHnSz7","ZH11HnSz7","nrtLnSz7","ZH11LnSz7"
+	# nrt vs ZH11(TEJ): 主图："V3703HnCp6","ZH11HnCp6", 附图："V3703LnCp6","ZH11LnCp6",
+	# 近等基因系：主图："A50LnCp7","A56LnCp7", 附图："A50LnCp6","A56LnCp6",
+	# 主图/附图各分析一次：alpha, beta, 差异OTUs, venn: HTEJ_HIND_D LTEJ_LIND_D V3703HnCp6_ZH11HnCp6; HTEJ_HIND_D LTEJ_LIND_D A50HnCp7_A56HnCp7
+	# 主图4组，xiangeng_wilcoxon_main
+	# 附图4组，xiangeng_wilcoxon_supp
 
 
-## 微生物与表型关联
+## 图4. 微生物与表型关联
 
 	1. 微生物、多样性、PCoA主轴与表型相关分析
+	# 先使用胡斌整理表型数据+faprotax中氮通路相关
+	# 方法1：script/phenotype_cor.R直接关联，spearman相关系数只有0-0.2，但能看到nitrogen_amonification正相关，而固
+	
+	# 方法2. 采用分组协变量关联，需要基因型的聚类/PCA信息
+	# PCA信息 /mnt/bai/yongxin/rice/miniCore/180319/gemma/pca4.txt
+	# 行名 head -n1 /mnt/bai/xiaoning/past/software/tassel-5-standalone/sum_geno_1.hmp.txt
+	head -n1 /mnt/bai/xiaoning/past/software/tassel-5-standalone/sum_geno_1.hmp.txt|cut -f 12-|tr '\t' '\n' > temp.txt
+	paste temp.txt /mnt/bai/yongxin/rice/miniCore/180319/gemma/pca4.txt | cut -f 1,3- | sed '1 i variety\tPC1\tPC2\tPC3\tPC4' | less > fig/4cor/genotype_pca4.txt
+	
+	# OTU/属水平(比OTU数量少至有描述)与张小宁整理表型关联(品种对应): HN/LN分开关联phenotype_cor.Rmd
+	cp ~/rice/miniCore/mwas/phenotype/minicore?NPhenotype.txt doc/ # 准备miniCore中HN/LN表型
+	
+	# 表型-faprotax相关 phenotype_cor_faprotax.Rmd
+
+	# 2018/6/5 相关热图+注释
+	# LN条件下OTUs与表型关联，筛选>0.4相关的值进行注释物种，差异OTUs，和功能 phenotype_cor2.Rmd ；表型数据重新整理minicore低氮下为单株，excel整理
+	sed -i '/\t0\t0\t0/d' doc/phenotype_sample_raw.txt # 删除缺失样品
+	# 株的OTU对应株的表型，OTU_11与tiller相关仅为0.33(可能植株波动大，或不对应，会规律只有平均才能看出来)，而OTU_11与分均值还有0.44的相关。那OTUs的均值对应是否会更高呢？改为均值结果更好。
+
+
+
+## 恢复某一版本重分析
+	version=xiangengwilcox1
+	

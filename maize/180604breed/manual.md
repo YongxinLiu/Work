@@ -37,17 +37,26 @@
 ## 1.1. 准备流程配置文件
 
     # Prepare config file of pipeline
-	mkdir ~/medicago/AMF
-    cd ~/medicago/AMF
+	# 设置工作目录并准备流程文件
+	wd=maize/180604breed
+	cd # 切换至家目录
+	mkdir -p $wd # 创建工作目录
+	mkdir -p github/Work/$wd # 创建脚本备份目录
+	cp /mnt/bai/yongxin/github/Amplicon/16Sv2/parameter.md github/Work/$wd # 复制参数文件至同步备份目录
+	ln -s `pwd`/github/Work/$wd/parameter.md $wd/makefile # 建立工作目录软链
+	cp /mnt/bai/yongxin/github/Amplicon/16Sv2/manual.md github/Work/$wd # 复制帮助和实验记录文件至同步备份目录
+	ln -s `pwd`/github/Work/$wd/manual.md $wd/manual.sh # 建立工作目录软链
+
+cp ~/github/Amplicon/16Sv2/parameter.md manual.md
+
+
+    cd ~/ath/jt.HuangAC/batch3v2
     
     # 复制标准参数模板和操作指南至项目代码区：方便同步
-	mkdir ~/github/Work/medicago/AMF
-    cp ~/github/Amplicon/16Sv2/parameter.md ~/github/Work/medicago/AMF/
-    cp ~/github/Amplicon/16Sv2/manual.md ~/github/Work/medicago/AMF/
    
     # 链接代码至工作区
-    ln -sf ~/github/Work/medicago/AMF/parameter.md makefile
-    ln -sf ~/github/Work/medicago/AMF/manual.md manual.sh
+    ln -s `pwd`/makefile.md ~/rice/xianGeng/makefile
+    ln -s `pwd`/manual.md ~/rice/xianGeng/manual.sh
 
 ## 1.2. 初始化工作区
 
@@ -55,9 +64,9 @@
     make init
 
 	# 标准多文库实验设计拆分
-	# split_design.pl -i doc/design_raw.txt
+	split_design.pl -i doc/design_raw.txt
 	# 从其它处复制实验设计
-	cp ~/medicago/zjj170823/doc/L*.txt doc/
+	cp ~/ath/jt.HuangAC/batch3/doc/L?.txt doc/
 	# 删除多余空格，windows换行符等
 	sed -i 's/ //g;s/\r/\n/' doc/*.txt 
 	head -n3 doc/L1.txt
@@ -65,12 +74,11 @@
 ## 1.3. 准备原始数据
 
     # Prepare raw data
-    ln ~/medicago/zjj170823/clean_data/*.gz seq/
-    cp ~/medicago/zjj170823/doc/library.txt doc/
+    ln ~/seq/180210.lane9.ath3T/Clean/CWHPEPI00001683/lane_* ./
+    cp ~/ath/jt.HuangAC/batch3/doc/library.txt doc/
     
     # 检查数据质量，转换为33
-    # determine_phred-score.pl seq/lane_1.fq.gz
-    determine_phred-score.pl seq/L1_1.fq.gz
+    determine_phred-score.pl seq/lane_1.fq.gz
     # 如果为64，改原始数据为33
     rename 's/lane/lane_33/' seq/lane_*
     # 关闭质量控制，主要目的是格式转换64至33，不然usearch无法合并
@@ -256,9 +264,20 @@
     # 可选负二项分布，或wilcoxon秩和检验
     make DA_compare
 
-# 手工比较
-wd=/mnt/bai/yongxin/medicago/AMF
-/mnt/bai/yongxin/github/Amplicon/16Sv2/script/compare.sh -i $wd/result/otutab.txt -c doc/compare.txt -m "edgeR" \
-	-p 0.01 -q 0.05 -F 1.3 -t 0.0001 \
-	-d $wd/doc/design.txt -A groupID -B '"A17b1rs","Anfpb1rs","dmi2b1rs","dmi3b1rs","lyk3b1rs","lyk9b1rs","lyk9nfpb1rs","lyr4b1rs","R108b1rs","Rnfpb1rs","A17b1r","Anfpb1r","dmi2b1r","dmi3b1r","lyk3b1r","lyk9b1r","lyk9nfpb1r","lyr4b1r","R108b1r","Rnfpb1r","soilB1S","A17b2rs","Anfpb2rs","dmi2b2rs","dmi3b2rs","lyk3b2rs","lyk9b2rs","lyk9nfpb2rs","lyr4b2rs","R108b2rs","Rnfpb2rs","A17b2r","Anfpb2r","dmi2b2r","dmi3b2r","lyk3b2r","lyk9b2r","lyk9nfpb2r","lyr4b2r","R108b2r","Rnfpb2r","soilB2S","A17b3rs","Anfpb3rs","dmi2b3rs","dmi3b3rs","lyk3b3rs","lyk9b3rs","lyk9nfpb3rs","lyr4b3rs","R108b3rs","Rnfpb3rs","A17b3r","Anfpb3r","dmi2b3r","dmi3b3r","lyk3b3r","lyk9b3r","lyk9nfpb3r","lyr4b3r","R108b3r","Rnfpb3r","soilB3S"' \
-	-o compare/
+
+# 4. 自定义
+
+## 4.1 修改多组添加形状
+	
+	# 重新设置分组分析
+	rm alpha_boxplot # 删除绘图第一步
+	make tax_stackplot # 绘制alpha, beta, taxonomy
+
+	# 存在比较组 
+	make plot_manhattan
+
+	# 存在进一步比较
+	make plot_venn
+
+	# 分析报告
+	make rmd

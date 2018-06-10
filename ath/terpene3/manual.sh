@@ -293,6 +293,7 @@ paste temp/temp.* > manual/DA_otu_all.xls
 beta_cpcoa.sh -i `pwd`/result/otu_table.txt -m '"bray","jaccard"' \
 	-d `pwd`/doc/design.txt -A groupID -B '"b3Col","b3ThasKO2","b3ThahKO","b3ThadKO","b3ACT2KO"' -E TRUE \
 	-o `pwd`/fig/1/ -w 5 -h 3 -s 7
+# 基此基础上修改script/beta_cpcoa_batch.R，添修改design.txt中添加batch2/3两种分组方案，其中batch3的结果更好。
 
 ### b. stackplot of taxonomy 门纲
 修改为6组，重复计算taxonom并保存文件"b3Col","b3ThasKO2","b3ThahKO","b3ThadKO","b3ACT2KO","b3BS"，修改sub中的b3_5，为b3_2为4组
@@ -314,6 +315,17 @@ http://bailab.genetics.ac.cn/report/16s/AC_b3_all_KO_b3_2 # 5组，选择 phylum
 
 http://bailab.genetics.ac.cn/report/16s/AC_b3_all_b3_3_lrt_soil # 维恩部分
 
+	# 共有部分再添加饼形图，注释是否要根中特异的
+	# 1. 四组共同上调
+	cd ~/ath/jt.HuangAC/batch3all
+	tail -n 28 AC_b3_all_b3_3_lrt_soil/result_k1-c/otu.txt.vennb3ThasKO2vsb3Col_enrichedb3ThahKOvsb3Col_enrichedb3ThadKOvsb3Col_enrichedb3ACT2KOvsb3Col_enriched.xls.xls > fig/3/venn_pie/enriched.txt # 共有上调OTU列表，无表头
+
+	tail -n 11 AC_b3_all_b3_3_lrt_soil/result_k1-c/otu.txt.vennb3ThasKO2vsb3Col_depletedb3ThahKOvsb3Col_depletedb3ThadKOvsb3Col_depletedb3ACT2KOvsb3Col_depleted.xls.xls> fig/3/venn_pie/depleted.txt # 共有上调OTU列表，无表头
+
+	cat AC_b3_all_b3_3_lrt_soil/result_k1-c/otu_b3Colvsb3BS_enriched.xls <(tail -n+2 AC_b3_all_b3_3_lrt_soil/result_k1-c/otu_b3Colvsb3BS_depleted.xls) > fig/3/venn_pie/colvsroot.txt # 标注类型的
+	
+
+
 ## Fig4. 抑菌实验
 
 	cd ~/ath/jt.HuangAC/batch3all/fig/4
@@ -327,6 +339,14 @@ http://bailab.genetics.ac.cn/report/16s/AC_b3_all_b3_3_lrt_soil # 维恩部分
 	alpha_boxplot.sh -i `pwd`/result/otu_table_norm.txt -m '"OTU_311","OTU_103","OTU_231","OTU_501","OTU_69","OTU_584","OTU_422","OTU_324","OTU_172","OTU_70","OTU_239","OTU_365","OTU_21","OTU_179","OTU_16","OTU_345","OTU_177","OTU_125","OTU_561","OTU_112","OTU_25","OTU_479","OTU_323","OTU_232","OTU_66","OTU_556","OTU_166","OTU_205","OTU_163","OTU_80","OTU_46","OTU_200","OTU_578","OTU_229","OTU_804","OTU_264","OTU_116","OTU_1073","OTU_262","OTU_24","OTU_521","OTU_215","OTU_775","OTU_44","OTU_1532"' \
 	-d `pwd`/doc/design.txt -A groupID -B '"b3BS","b3Col","b3ThasKO2","b3ThahKO","b3ThadKO","b3ACT2KO"' \
 	-o `pwd`/fig/4/box  -w 5 -h 3 -s 7 -t TRUE -n FALSE
+	# 2018/6/4 绘制OTU_136
+	alpha_boxplot.sh -i `pwd`/result/otu_table_norm.txt -m '"OTU_136"' \
+	-d `pwd`/doc/design.txt -A groupID -B '"b3BS","b3Col","b3ThasKO2","b3ThahKO","b3ThadKO","b3ACT2KO"' \
+	-o `pwd`/fig/4/box  -w 5 -h 3 -s 7 -t TRUE -n FALSE
+	# 绘制OTU_136所有基因型
+	alpha_boxplot.sh -i `pwd`/result/otu_table_norm.txt -m '"OTU_136"' \
+	-d `pwd`/doc/design.txt -A groupID -B '"b3ACT1KD","b3ACT2CR","b3ACT2KO","b3ACT2ThahDK","b3ACT3GK","b3ACT3KO","b3ALDHKO","b3Col","b3ThadKO","b3ThahKO","b3ThasKO1","b3ThasKO2","b3TL1KO","b3BS"' \
+	-o `pwd`/fig/4/box_all  -w 10 -h 6 -s 7 -t TRUE -n FALSE
 	
 
 

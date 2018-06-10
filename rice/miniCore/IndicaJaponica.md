@@ -149,6 +149,12 @@ OTU表分为三类：高氮HN，低氮LN，高氮 与低氮之差比例(HN-LN)/H
     Rscript scripts/beta_pcoa_group.r -i LN/bray_curtis.txt -d doc/design.txt -n GroupID -o LN/pcoa_bray
     Rscript scripts/otutab_sample_subset.r -i LN/otutab0.txt -d LN/pcoa_bray_samples_top3.txt -o LN/otutab1.txt
 
+    # 输出排序列表
+    cp scripts/beta_pcoa_group.r scripts/beta_pcoa_group_order.r
+    # 修改为输出所有6个样品距离由小到大
+    Rscript scripts/beta_pcoa_group_order.r -i LN/bray_curtis.txt -d doc/design.txt -n GroupID -o LN/pcoa_bray
+    Rscript scripts/beta_pcoa_group_order.r -i HN/bray_curtis.txt -d doc/design.txt -n GroupID -o HN/pcoa_bray
+
     # c. 按组合并
     paste <(tail -n+2 LN/pcoa_bray_samples_top3.txt|cut -f 1) <(tail -n+2 LN/pcoa_bray_samples_top3.txt|cut -c1-5) > LN/pcoa_bray_samples_top3.group
     usearch10 -otutab_group LN/otutab1.txt -labels LN/pcoa_bray_samples_top3.group -output LN/otutab2.txt
