@@ -266,7 +266,7 @@
 
 	# 准备相关输入文件
 	cd ~/rice/miniCore/180718
-	ln -s ~/rice/xianGeng/doc/phenotype_sample_raw.txt doc/
+	ln ~/rice/xianGeng/doc/phenotype_sample_raw.txt doc/
 	mkdir -p cor/LN
 	
 	# 统计见script/cor_tiller_LN.Rmd
