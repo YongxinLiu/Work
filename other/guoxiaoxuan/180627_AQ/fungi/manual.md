@@ -1,135 +1,52 @@
-<!-- TOC -->
-
-- [1. 标准流程 Standard pipeline](#1-标准流程-standard-pipeline)
-    - [1.1. 按实验设计拆分lane为文库](#11-按实验设计拆分lane为文库)
-    - [1.2. 按实验设计拆分文库为样品](#12-按实验设计拆分文库为样品)
-    - [1.3. 样品双端合并、重命名、合并为单一文件](#13-样品双端合并重命名合并为单一文件)
-    - [1.4. 切除引物与标签](#14-切除引物与标签)
-    - [1.5. 质量控制](#15-质量控制)
-    - [1.6. 序列去冗余](#16-序列去冗余)
-    - [1.7. 挑选OTU](#17-挑选otu)
-    - [1.8. 有参去嵌合体](#18-有参去嵌合体)
-    - [1.9. 去除宿主](#19-去除宿主)
-    - [1.10. 生成OTU表](#110-生成otu表)
-    - [1.11. 过滤样本和OTUs](#111-过滤样本和otus)
-    - [1.12. 物种注释](#112-物种注释)
-    - [1.13. 物种统计](#113-物种统计)
-    - [1.14. 多序列比对和进化树](#114-多序列比对和进化树)
-    - [1.15. Alpha多样性指数计算](#115-alpha多样性指数计算)
-    - [1.16. Beta多样性距离矩阵计算](#116-beta多样性距离矩阵计算)
-    - [1.17. 有参考构建OTU表](#117-有参考构建otu表)
-- [2. 统计绘图 Statistics and plot](#2-统计绘图-statistics-and-plot)
-    - [2.1. Alpha多样性指数箱线图](#21-alpha多样性指数箱线图)
-    - [2.2. Alpha丰富度稀释曲线](#22-alpha丰富度稀释曲线)
-    - [2.3. 主坐标轴分析距离矩阵](#23-主坐标轴分析距离矩阵)
-    - [2.4. 限制性主坐标轴分析](#24-限制性主坐标轴分析)
-    - [2.5. 样品和组各级分类学堆叠柱状图](#25-样品和组各级分类学堆叠柱状图)
-    - [2.6. 组间差异比较](#26-组间差异比较)
-- [3. 高级分析 Advanced analysis](#3-高级分析-advanced-analysis)
-    - [3.1. 添加可培养菌](#31-添加可培养菌)
-    - [3.2. 查看Venn 4者共有菌，其中三者共有45，95，1，5](#32-查看venn-4者共有菌其中三者共有459515)
-    - [3.3. 整理faprotax中菌的功能列表](#33-整理faprotax中菌的功能列表)
-    - [3.4. 绘制网络](#34-绘制网络)
-    - [3.5. /5/14 随机森林属水平区分籼粳稻](#35-514-随机森林属水平区分籼粳稻)
-- [4. 个性化分析 Custom analysis](#4-个性化分析-custom-analysis)
-    - [4.1. 低氮条件下挑选30个IND品种测宏基因组](#41-低氮条件下挑选30个ind品种测宏基因组)
-    - [4.2. 挑选NRT样品测宏基因组](#42-挑选nrt样品测宏基因组)
-    - [4.3. 新发现OTU_8的物种很像OTU_11](#43-新发现otu_8的物种很像otu_11)
-    - [4.4. 筛选各品种最好的3个样品](#44-筛选各品种最好的3个样品)
-    - [4.5. OTU或分类与PCoA轴的差异](#45-otu或分类与pcoa轴的差异)
-    - [4.6. 检查GWAS是否可以发现Anaeromyxobacter与SNP的关联](#46-检查gwas是否可以发现anaeromyxobacter与snp的关联)
-- [5. 图表整理 Figures and legends](#5-图表整理-figures-and-legends)
-    - [籼粳稻分型](#籼粳稻分型)
-        - [模式图](#模式图)
-        - [alpha多样性](#alpha多样性)
-        - [beta多样性](#beta多样性)
-        - [门及纲水平差异](#门及纲水平差异)
-    - [随机森林分类](#随机森林分类)
-        - [纲水平建模](#纲水平建模)
-        - [展示Top feature](#展示top-feature)
-        - [在nrt和时间序列中验证](#在nrt和时间序列中验证)
-        - [差异OTUs](#差异otus)
-    - [亚种差异与氮相关](#亚种差异与氮相关)
-    - [微生物与表型关联](#微生物与表型关联)
-
-<!-- /TOC -->
-
 # 1. 标准流程 Standard pipeline
 
-	处理序列 Processing sequencing data
-
-	# 1. 准备工作 Preparation
-
-	## 1.1. 准备流程配置文件
-
-	# Prepare config file of pipeline
-	cd ~/github/Work/rice/xianGeng
+	# 处理序列 Processing sequencing data
 	
-	# 复制标准参数模板和操作指南至项目代码区：方便同步
-	cp ~/github/Amplicon/16Sv2/parameter.md ./
-	cp ~/github/Amplicon/16Sv2/manual.md ./
-   
-	# 链接代码至工作区
-	ln -fs `pwd`/parameter.md ~/rice/xianGeng/makefile
-	ln -fs `pwd`/manual.md ~/rice/xianGeng/manual.sh
-
-	## 1.2. 初始化工作区
-
-	# Initialize the working directory
-	cd ~/rice/xianGeng
+	# 目录中起始包括makefile参数文件，和manual.sh操作记录文件
+	# 建立常用目录
 	make init
-
-	## 1.3. 准备原始数据
-
-	# Prepare raw data
-	# 数据来自三个课题：miniCore + timecourse + nrt
 	
-	# 合并实验设计
-	# 合并三个项目的实验设计，检查样品是否有重名
-	cp ~/rice/miniCore/doc/design.txt doc/design_minicore.txt
-	cp ~/rice/timecourse/doc/design.txt doc/design_timecourse.txt
-	cp ~/rice/zjj.nitrogen/180116/doc/design.txt doc/design_nrt.txt
-	# 统计实验样品行和唯一行，确实样品名唯一
-	cat doc/design_* | grep -v 'SampleID'|wc -l
-	cat doc/design_* | grep -v 'SampleID'|cut -f 1| sort|uniq|wc -l
-	# 合并实验设计，前7列共有，只保留前7列
-	cat <(head -n1 doc/design_nrt.txt) <(cat doc/design_* | grep -v 'SampleID') | cut -f 1-7 > doc/design.txt
-
-	# 添加miniCore亚种
-	mv doc/design.txt doc/design0.txt
-	awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$2} NR>FNR{print $0,a[$6]}' ~/rice/miniCore/180319/doc/design_group.txt doc/design0.txt|sed 's/\t$/\tsubspecies/'|less -S > doc/design1.txt # 添加亚种
-	awk 'BEGIN{FS=OFS="\t"} {print $0,$7$8}' doc/design1.txt|less -S>doc/design2.txt # 合并土壤类型和亚种
-	cp doc/design2.txt doc/design.txt
-
-
-	# 原始数据合并
-	cat ~/rice/miniCore/temp/seqs_usearch.fa ~/rice/timecourse/temp/seqs_usearch.fa ~/rice/zjj.nitrogen/180116/temp/seqs_usearch.fa | cut -f 1 -d ';' | sed 's/_/./g' > temp/filtered.fa
-	# 从2.7 fa_unqiue 开始
+	## 原始测序数据
 	
-	
-## 1.1. 按实验设计拆分lane为文库
-
-	# Split lane into libraries
-	# lane文件一般为seq/lane_1/2.fq.gz
-	# lane文库信息doc/library.txt：至少包括编号、Index和样品数量三列和标题
+	# 文件1. lane文库信息doc/library.txt：至少包括编号、Index和样品数量三列和标题
 	head -n3 doc/library.txt
 	#LibraryID	IndexRC	Samples
 	#L1	CTCAGA	60
 	
-	# 按library.txt拆分lane为library
-	make lane_split
-
-
-## 1.2. 按实验设计拆分文库为样品
+	# 复制/移动/链接文件到工作目录
+	for i in `tail -n+2 doc/library.txt|cut -f 3`; do ln -sf `pwd`/../bac/seq/${i}_?.fq seq/ ; done
+	# 确定序列质量格式33/64:以第一个文库例
+	determine_phred-score.pl seq/`tail -n+2 doc/library.txt|cut -f 3|head -n1`_1.fq
+	# 如果33批量改名
+	awk 'BEGIN{OFS=FS="\t"}{system("mv seq/"$3"_1.fq seq/"$1"_1.fq")}' <(grep -v '^$$' doc/library.txt|tail -n+2)
+	awk 'BEGIN{OFS=FS="\t"}{system("mv seq/"$3"_2.fq seq/"$1"_2.fq")}' <(grep -v '^$$' doc/library.txt|tail -n+2)
+	# 如果数据是64，转换为33并改名
+	parallel --xapply -j 32 \
+	"fastp -i seq/{1}_1.fq -I seq/{1}_2.fq -o seq/{2}_1.fq -O seq/{2}_2.fq -6 -A -G -Q -L -w 9" \
+	::: `tail -n+2 doc/library.txt | cut -f 3` ::: `tail -n+2 doc/library.txt | cut -f 1`
 
 	# Prepare design of libraries
-	
+	# 文件2. 实验设计表
+
 	# 情况1. 多文库实验设计拆分文库设计
 	split_design.pl -i doc/design_raw.txt
  
 	# 情况2. 从其它项目复制文库实验设计
-	cp ~/ath/jt.HuangAC/batch3/doc/L?.txt doc/
-	sed -i 's/ //g;s/\r/\n/' doc/*.txt # 删除多余空格
+	#cp ~/ath/jt.HuangAC/batch3/doc/L?.txt doc/
+	#sed -i 's/ //g;s/\r/\n/' doc/*.txt # 删除多余空格
+
+	# 依据各文库L*.txt文件生成实验设计
+	cat <(head -n1 doc/L1.txt) <(cat doc/L* |grep -v -P '^SampleID') > doc/design.txt
+
+## 1.1. 按实验设计拆分lane为文库
+
+	# Split lane into libraries
+	# lane文件一般为seq/lane_1/2.fq.gz
+	# 按library.txt拆分lane为library # 如果无输入，应该不运行，而不是生成零字节
+	# make lane_split
+
+
+## 1.2. 按实验设计拆分文库为样品
 
 	# 拆分样品
 	# 预览文库实验设计
@@ -141,9 +58,6 @@
 ## 1.3. 样品双端合并、重命名、合并为单一文件
 
 	# Merge paired reads, renames and merge all samples
-	# 依据各文库L*.txt文件生成实验设计
-	cat <(head -n1 doc/L1.txt) <(cat doc/L* |grep -v '#') > doc/design.txt
-
 	# 样品双端合并、重命名、合并为单一文件, 注意fastq为33格式，64位采用fastp转换
 	make sample_merge
 
@@ -166,7 +80,7 @@
 ## 1.6. 序列去冗余
 	
 	# 从这里开始
-	ln ~/medicago/zjj170823/temp/seqs_usearch.fa temp/filtered.fa
+	# ln ~/medicago/zjj170823/temp/seqs_usearch.fa temp/filtered.fa
 
 	# Remove redundancy, get unique reads
 	make fa_unqiue
@@ -184,6 +98,8 @@
 	# Remove chimiras by silva database
 	# 基于SILVA数据库去除
 	make chimera_ref
+	# 用水稻基因组去宿主
+	cp temp/otus_no_host.id temp/otus_no_host.id.rice # 保留水稻
 
 
 ## 1.9. 去除宿主
@@ -191,7 +107,6 @@
 	# Remove host
 	# 根据SILVA注释去除线粒体、叶绿体、真核生物18S和未知序列(非rRNA)
 	make host_rm
-
 
 ## 1.10. 生成OTU表
 	
@@ -205,9 +120,8 @@
 	# OTU table filter samples and OTU
 	# 推荐过滤低测序量<5000的样本，筛选大于1RPM的OTU
 	make otutab_filter 
-	# 此处结果统计只有3441个样品，而实验设计有3898个样品，少了哪些样品种？
+	# 检查是否有样品缺失
 	cat <(head -n1 result/otutab.txt|cut -f 2-|tr '\t' '\n') <(tail -n+2 doc/design.txt | cut -f 1) | sort | uniq -u > doc/missing_samples.txt 
-	# 缺失 482样，主要是没有时间序列
 
 
 ## 1.12. 物种注释
@@ -250,9 +164,11 @@
 
 	# Reference based OTU table
 	# otutab_gg 有参比对，如Greengenes，可用于picurst, bugbase分析
-	make otutab_gg
+	# make otutab_gg
 
 
+# 比较相关文件
+sed 's/Bac/Fun/g' ../bac/doc/compare.txt > doc/compare.txt
 
 # 2. 统计绘图 Statistics and plot
 
@@ -287,7 +203,7 @@
 	# Group compareing by edgeR or wilcox
 	# 可选负二项分布，或wilcoxon秩和检验
 	make DA_compare
-
+	make DA_compare_tax
 
 # 3. 高级分析 Advanced analysis
 
@@ -303,8 +219,6 @@
 	awk 'NR==FNR{a[$1]=$0} NR>FNR{print a[$1]}' result/41culture/otu.txt result/venn/3_45.txt |sort -k3,3nr|less -S
 	awk 'NR==FNR{a[$1]=$0} NR>FNR{print a[$1]}' result/41culture/otu.txt result/venn/3_95.txt |sort -k3,3nr|less -S
 
-	# 制作有平均丰度，和物种注释的表
-	awk 'BEGIN{OFS=FS="\t"} NR==FNR {a[$1]=$2} NR>FNR {print $1,$5,a[$1]}' result/taxonomy_2.txt result/41culture/otu.txt > result/41culture/otu_mean_tax.txt
 
 ## 3.3. 整理faprotax中菌的功能列表
 	grep -v '^#' /mnt/bai/yongxin/software/FAPROTAX_1.1/FAPROTAX.txt|sed 's/\*/_/g' > culture/faprotax.tax
@@ -531,17 +445,13 @@ tax_stackplot.sh -i `pwd`/result/tax/sum_ -m '"pc"' -n 10 \
 	-m '"Deltaproteobacteria","Actinobacteria","Alphaproteobacteria","Clostridia","Betaproteobacteria","Nitrospira"' -t TRUE -o result/randomForest/time_ -n TRUE # 42以后没有数据呢？改用alpha_boxplot.sh
 
 	3. 绘制维恩图的共有饼图
-	# fig1/3compare.rmd 绘制时间序列的图，最后添加共有的成份
+	# plot_heatmap_timecourse.R 绘制时间序列的图
 	# 筛选HL/LN下TEJ-IND共同下调的菌
 	cat result/compare/?TEJ-?IND_sig.txt | grep 'Depleted' | cut -f 1 | sort | uniq -d > fig1/3compare/otu_IND_common_specific.txt
 	cat result/compare/?TEJ-?IND_sig.txt | grep 'Enriched' | cut -f 1 | sort | uniq -d > fig1/3compare/otu_TEJ_common_specific.txt
 	# 两块地保守上调、下调的OTUs
 	cat fig1/3compare/otu_IND_common_specific.txt fig1/3compare/otu_TEJ_common_specific.txt > fig1/3compare/otu_common.txt
 	# 并用faprotax注释
-	# 绘制nrt和A50差异与籼粳稻共有
-	tail -n 70 ~/rice/xianGeng/fig1/ST/07.vennHTEJ_HIND_DLTEJ_LIND_DV3703HnCp6_ZH11HnCp6_D.txt | cut -f 1 > fig1/4nrt/venn_nrt_indiaHL.txt
-	tail -n 6 ~/rice/xianGeng/fig1/ST/07.vennHTEJ_HIND_DLTEJ_LIND_DA50LnCp7_A56LnCp7_D.txt | cut -f 1 > fig1/4nrt/venn_NRTsnp_indiaHL.txt
-
 
 	5. 差异菌功能有无热图 plot_heatmap_timecourse.R
 	filter_otus_by_sample.sh -f result/faprotax/element_tab.txt -o result/faprotax/xiaogeng -d doc/design.txt -A groupID -B '"HTEJ","HIND","HSoil1","LTEJ","LIND","LSoil1"'
@@ -716,43 +626,9 @@ awk '$2<0.05' fig1/ST/09.tiller_cor_p.txt|wc -l # 381个有214个显著P<0.05
 cd fig1/ST
 paste 09.tiller_cor.txt 09.tiller_cor_p.txt | cut -f 1,2,4> 09.tiller_cor_pr.txt
 
-
-
 # 上传数据 PRJNA478068
-# 整理的最终上传实验设计 fig1/metadata.txt
-cut -f 16 fig1/metadata.txt|sort|uniq -c # 587个亚种数据来自miniCore，127+114=241来自nrt
-wc -l fig1/metadata.txt # 检查是否有样品重名
-cut -f 1 fig1/metadata.txt|sort|uniq|wc -l 
-mkdir -p seq/submit # 创建提交数据目录
-
-# 1. 籼粳稻样本，587个
-for RPM in `grep 'minicore' fig1/ST/02.design.txt|cut -f 1`; do
-	cp ../miniCore/clean_data/sample/${RPM}.fq.gz seq/submit/
-done
-
-# 2. 时间序列己上传，见 https://www.ncbi.nlm.nih.gov/bioproject/?term=PRJNA435900
-for RPM in `grep 'nrt' fig1/ST/02.design.txt|cut -f 1`; do
-	cp /mnt/bai/yongxin/rice/zjj.nitrogen/180116/clean_data/sample/${RPM}.fq.gz seq/submit/
-done
+1. 籼粳稻样本，587个
 
 
 
-# 共享中间文件和分析流程代码 submit用于投稿，publish用于正式发表后共享
-
-## 在fig1中创建index.Rmd并生成网页 http://210.75.224.110/submit/rice_microbiome, username: rice, password: microbiome
-cd ~/rice/xianGeng/fig1 # 共享目录
-ln -sf `pwd` /var/www/html/submit/rice_microbiome # 链接至外网
-cp ~/github/Amplicon/16Sv2/rmd/.htaccess ./ # 加密
-htpasswd /mnt/bai/yongxin/bin/config/users rice # 添加新用户和密码
-
-
-## 获得分析流程
-pipeline=fig1/pipeline.sh
-make -n -B library_split_stat|grep -v '#' > $pipeline
-make -n -B fq_qc|grep -v '#' >> $pipeline
-make -n -B beta_calc|grep -v '#' >> $pipeline
-
-## 根据最新实验设计和OTU表整理结果
-cd fig1/
-cp /mnt/bai/yongxin/github/Amplicon/16Sv2/script/stat_plot_functions.R script/
-
+2. 时间序列己上传，见 https://www.ncbi.nlm.nih.gov/bioproject/?term=PRJNA435900

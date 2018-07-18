@@ -163,8 +163,10 @@ SHELL:=/bin/bash
 	# 绘图使用的实验组，顺序即图中显示顺序；为空时使用所有组和默认顺序"HIND","HTEJ","LIND","LTEJ" 
 	# 根据实验比对较获得实验组列表: cat doc/compare.txt|tr '\t' '\n'|sort|uniq|awk '{print "\""$1"\""}'|tr "\n" "," # ,"A50LnCp6","A56LnCp6","A50LnCp7","A56LnCp7","A50LnSz7","A56LnSz7","A50HnCp6","A56HnCp6","A50HnCp7","A56HnCp7","A50HnSz7","A56HnSz7","V3703HnCp6","ZH11HnCp6","V3703LnCp6","ZH11LnCp6","nrtHnCp7","ZH11HnCp7","ZH11LnCp7","nrtLnCp7","nrtHnSz7","ZH11HnSz7","nrtLnSz7","ZH11LnSz7"
 	# 籼粳稻："HTEJ","HIND","HSoil1","LTEJ","LIND","LSoil1"
-	# 最后确定组："HTEJ","HIND","LTEJ","LIND","V3703HnCp6","ZH11HnCp6","V3703LnCp6","ZH11LnCp6","A50LnCp7","A56LnCp7","A50LnCp6","A56LnCp6"
-	g1_list='"HTEJ","HIND","LTEJ","LIND","V3703HnCp6","ZH11HnCp6","A50LnCp7","A56LnCp7","V3703LnCp6","ZH11LnCp6","A50LnCp6","A56LnCp6"'
+	# 最后确定组："HTEJ","HIND","HSoil1","LTEJ","LIND","LSoil1","V3703HnCp6","ZH11HnCp6","V3703LnCp6","ZH11LnCp6","A50LnCp7","A56LnCp7","A50LnCp6","A56LnCp6"
+	# 主图："V3703HnCp6","ZH11HnCp6","A50LnCp7","A56LnCp7"
+	# 附图："V3703LnCp6","ZH11LnCp6","A50LnCp6","A56LnCp6"
+	g1_list='"HTEJ","HIND","HSoil1","LTEJ","LIND","LSoil1","V3703HnCp6","ZH11HnCp6","V3703LnCp6","ZH11LnCp6","A50LnCp7","A56LnCp7","A50LnCp6","A56LnCp6"'
 
 	# 组间比较列表
 	compare=${wd}/doc/compare.txt
@@ -177,11 +179,12 @@ SHELL:=/bin/bash
 	text_size=7
 
 	# 图中显示legend, 如taxonomy的数量，5，8(default)，10
-	legend_number=8
-	# 差异统计按丰度过滤 abundance filter，单位为百分比，如丰度按每组最位数大于万分之5过滤，即0.05，减少计算量，降低OTU的FDR值，可选千一，或千万
-	abundance_thre=0.05
+	legend_number=10
+	# 差异统计按丰度过滤 abundance filter，单位为百分比，如丰度按每组最位数大于万分之5过滤，即0.05，减少计算量，降低OTU的FDR值，可选千一，或万一
+	# 0.05 - 971, 0.1 - 603; 0.2 - 381, 0.3 - 271, 0.5 - 192
+	abundance_thre=0.2
 	# 差异比较方法，默认是 edgeR ，可选 wilcox 秩和检验
-	compare_method="edgeR"
+	compare_method="wilcox"
 	# 显著性P值过滤 threshold of P-value，可选0.05, 0.01, 0.001。采用FDR校正，此参数意义不大，即使0.001也没有FDR < 0.2过于严格
 	pvalue=0.01
 	# 统计检验方式fdr
@@ -193,7 +196,7 @@ SHELL:=/bin/bash
 	sub=""
 	doc=doc/${sub}
 	# 报告输出目录
-	version=xiangeng${sub}1${compare_method}
+	version=xiangeng_wilcoxon_main
 
 
 ## 2.1 alpha_boxplot Alpha多样性指数箱线图 Alpha index in boxplot
@@ -208,7 +211,7 @@ SHELL:=/bin/bash
 	ab_group_name=${g1}
 	# 默认 ab_group_list=${g1_list}
 	# 主图 ab_group_list='"V3703HnCp6","ZH11HnCp6","A50LnCp7","A56LnCp7"'
-	ab_group_list='"V3703LnCp6","ZH11LnCp6","A50LnCp6","A56LnCp6"'
+	ab_group_list=${g1_list}
 	ab_output=${wd}/result/alpha/
 	ab_width=${width}
 	ab_height=${height}
@@ -283,6 +286,8 @@ SHELL:=/bin/bash
 	Dc_design=${design}
 	Dc_group_name=${g1}
 	Dc_group_list=${g1_list}
+	# 按丰度筛选列，默认为${g1}
+	Dc_group_name2="groupID2"
 	Dc_output=${wd}/result/compare/
 
 
@@ -351,7 +356,7 @@ SHELL:=/bin/bash
 # 2.10 plot_venn 维恩图
 
 	# venn OTU注释数据库，如差异比较result/compare/database.txt、菌库result/41culture/otu.txt等
-	venn_anno=result/41culture/otu.txt
+	venn_anno=result/41culture/otu_mean_tax.txt
 
 # 3 高级分析
 

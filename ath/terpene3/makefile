@@ -77,10 +77,10 @@ batch=FALSE
 
 # 3. 报告参数
 # 报告输入信息目录 
-sub="b3_2"
+sub="b3_3"
 doc=doc/${sub}
 # 报告输出目录
-version=AC_b3_all_KO_${sub}
+version=AC_b3_all_KO_${sub}_tax_wilcox
 # 报告输出是否精简版 report elite report, if FALSE report all figure and table, TRUE report frequently used figure
 elite_report=FALSE
 # 图片长宽和字体大小，7组以下用默认，7组以上改为8x5或更大； figure size, recommend 4x2.5, 5x3(default), 8x5, 16x10, text_size 6, 7(default), 8
@@ -96,7 +96,7 @@ thre=0.0005
 taxonomy=c__Chloroplast,f__mitochondria
 # 显著性P值过滤 # threshold of filter differentially abundance OTU，结果多可选0.01, 0.001
 pvalue=0.05
-# 统计检验方式fdr, in edgeR have fdr or nonw
+# 统计检验方式fdr, in edgeR have fdr or none
 adjust_method="fdr"
 fdr=0.2
 # logFC常用1.5, 2, 4倍，对应0.585, 1, 2；此外还有1.3和1.7倍对应0.379和0.766

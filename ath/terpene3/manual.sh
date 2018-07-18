@@ -315,16 +315,15 @@ http://bailab.genetics.ac.cn/report/16s/AC_b3_all_KO_b3_2 # 5组，选择 phylum
 
 http://bailab.genetics.ac.cn/report/16s/AC_b3_all_b3_3_lrt_soil # 维恩部分
 
-	# 共有部分再添加饼形图，注释是否要根中特异的
-	# 1. 四组共同上调
+	# 1. 共有部分再添加饼形图，注释是否要根中特异的 script/venn_pie.R
+	# 四组共同上调
 	cd ~/ath/jt.HuangAC/batch3all
 	tail -n 28 AC_b3_all_b3_3_lrt_soil/result_k1-c/otu.txt.vennb3ThasKO2vsb3Col_enrichedb3ThahKOvsb3Col_enrichedb3ThadKOvsb3Col_enrichedb3ACT2KOvsb3Col_enriched.xls.xls > fig/3/venn_pie/enriched.txt # 共有上调OTU列表，无表头
 
 	tail -n 11 AC_b3_all_b3_3_lrt_soil/result_k1-c/otu.txt.vennb3ThasKO2vsb3Col_depletedb3ThahKOvsb3Col_depletedb3ThadKOvsb3Col_depletedb3ACT2KOvsb3Col_depleted.xls.xls> fig/3/venn_pie/depleted.txt # 共有上调OTU列表，无表头
 
 	cat AC_b3_all_b3_3_lrt_soil/result_k1-c/otu_b3Colvsb3BS_enriched.xls <(tail -n+2 AC_b3_all_b3_3_lrt_soil/result_k1-c/otu_b3Colvsb3BS_depleted.xls) > fig/3/venn_pie/colvsroot.txt # 标注类型的
-	
-
+	# 
 
 ## Fig4. 抑菌实验
 
@@ -368,3 +367,12 @@ cat result_k1-c/otu_b3ACT2KOvsb3Col_enriched.txt <(tail -n+2 result_k1-c/otu_b3A
 plot_heatmap.sh -i result_k1-c/otu_b3ACT2KOvsb3Col_sig.txt -o fig/S2/ -w 5 -h 3 -l 12
 
 
+## 附表1. 筛选后的实验设计和OTU表 ST/Supllement.xlsx
+# beta_cpcoa_batch.R中筛选实验设计和OTU表，再添加result_k1-c中的rep_seq.fa和rep_seq_tax.txt
+具体的差异OTUs来自 AC_b3_all_b3_3_lrt_soil 版本。
+
+
+# 差异门、门纲中数据部分完全相同，但P值差别非常大，门纲中更显著！！！ http://bailab.genetics.ac.cn/report/16s/AC_b3_all_b3_3_lrt_soil
+# 以ThadvsCol为例查看门、门纲中的区别 taxonomy_egr.r和taxonomy_phylumpro.r
+# 原始reads count比较，导出文件为count_phylu.txt和count_phylumpro.txt，除了4行proteobacteria外完全相同
+# 对比lrt统计代码：代码也完全相同！！！只是把Proteo拆成class居然会有巨大差异，如 p__Bacteroidetes, Pvalue从 e-4降为e-7次方
