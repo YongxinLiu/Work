@@ -473,11 +473,15 @@ beta_pcoa.sh -i `pwd`/result/beta/ -m '"bray_curtis","weighted_unifrac","unweigh
 	-d `pwd`/doc/design.txt -A groupID -B '"HIND","HTEJ"' -E TRUE \
 	-c `pwd`/doc/compare.txt \
 	-o `pwd`/fig1/1subspecies/beta_HN_ -h 3 -w 5
+# 匹配非注释行，输出用于发表
+grep -P '^\s*#' script/beta_pcoa.R | less
+grep -P -v '^\s*#' script/beta_pcoa.R > fig1/script/beta_pcoa_fieldII.R
 	# LN下TEJ和IND
 beta_pcoa.sh -i `pwd`/result/beta/ -m '"bray_curtis","weighted_unifrac","unweighted_unifrac"' \
 	-d `pwd`/doc/design.txt -A groupID -B '"LIND","LTEJ"' -E TRUE \
 	-c `pwd`/doc/compare.txt \
 	-o `pwd`/fig1/1subspecies/beta_LN_ -h 3 -w 5
+grep -P -v '^\s*#' script/beta_pcoa.R > fig1/script/beta_pcoa_fieldI.R
 
 
 ### alpha多样性
@@ -511,9 +515,7 @@ tax_stackplot.sh -i `pwd`/result/tax/sum_ -m '"pc"' -n 10 \
 	使用高HN和HN下籼粳稻纲水平0.3%丰度的15个Feature机器学习；保存预测结果confusion.txt，整理16.4%错误率，TEJ 37.4%错误；
 	2018/5/21 删除三个澳大亚利(纬度为负)粳稻, D4032, D4038, F4053; 标记A50/ZH11为TEJ，而IR24为IND，各分为Hn/Ln两种情况；
 	错误率降低为15.3%，TEJ为36%;Top1 feature也变为了Nitrospira，Deltaproteobacteria
-
 	2. Top feature：用各组柱状图/箱线图分类展示，再加梯度排序
-	
 	3. 在nrt和时间序列中验证
 
 	
@@ -522,9 +524,21 @@ tax_stackplot.sh -i `pwd`/result/tax/sum_ -m '"pc"' -n 10 \
 	1. 差异OTUs曼哈顿图，维恩图
 	由筛选组，改为筛选亚组(品种)中位数的OTUs: 原万5为343个OTUs，万一为942个；最终丰度为0.2%
 	compare_sub.R # 修改丰度筛选group为groupID2，接下来 rm plot_volcano ; make plot_venn; make rmd
+
+grep -P -v '^\s*#' script/compare_sub.R > fig1/script/compare.R
+
 	差异OTUs在两块地曼哈顿、韦恩图;	曼哈顿图要写标颜色为门、纲,	plot_manhattan_pc.r
 	plot_manhattan.sh -i result/compare/LTEJ-LIND_all.txt
 	# 我们重点是突出IND，大多数是IND特异的，添加IND vs TEJ的组，重画曼哈顿图，让IND为向上实心三角
+
+	# 曼哈顿图的代码和数据
+	grep -P -v '^\s*#' script/plot_manhattan_pc.r > fig1/script/plot_manhattan_pc.r
+	cp result/tax/sum_pc.txt fig1/data/
+	cp result/compare/*IND-*TEJ_all.txt fig1/data/
+
+	# 维恩图的代码和数据
+	cp result/compare/diff.list* fig1/data/
+	diff.list.vennHTEJ_HIND_DLTEJ_LIND_DCDE.r
 
 	2. 差异OTUs在时间序列中变化
 	alpha_boxplot.sh -i result/tax/sum_c.txt -d `pwd`/doc/design.txt -A groupID -B '"A50Cp0","A50Cp1","A50Cp2","A50Cp3","A50Cp7","A50Cp10","A50Cp14","A50Cp21","A50Cp28","A50Cp35","A50Cp42","A50Cp49","A50Cp63","A50Cp70","A50Cp77","A50Cp84","A50Cp91","A50Cp98","A50Cp112","A50Cp119"' \
@@ -592,6 +606,7 @@ tax_stackplot.sh -i `pwd`/result/tax/sum_ -m '"pc"' -n 10 \
 	make plot_fa_barplot # 绘制单个功能的箱线图
 	# 修改alpha_boxplot.R为alpha_boxplot_far.R
 
+grep -P -v '^\s*#' script/alpha_boxplot_far.R > fig1/script/alpha_boxplot_far.R
 
 # 图4. 菌群与nrt关系
 
@@ -622,6 +637,8 @@ tax_stackplot.sh -i `pwd`/result/tax/sum_ -m '"pc"' -n 10 \
 	# NRT2.1 - 17; 1.1A - 21; 1.1B - 14，统计每个亚种内基因型的数量，可看到亚种内主要的SNP类型
 	cut -f 2,8,20 result/nitrogen_cor/design.txt|sort|uniq|cut -f 2,3|sort|uniq -c
 	grep -P '10m21759092|2m655515\t|8m3183208' /mnt/bai/yongxin/rice/miniCore/180319/gemma/T2.ann.vcf # 查询SNP变化位置、碱基和AA详细
+
+grep -P -v '^\s*#' script/nitrogen_cor.r > fig1/script/nitrogen_cor.R
 
 
 	3. 关键氮高效基因不同形态、突变体可部分解析亚种差异 2018/5/31

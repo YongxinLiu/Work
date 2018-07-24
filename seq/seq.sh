@@ -158,3 +158,20 @@ parallel --xapply -j 32 "zcat lane_2.fq.gz | grep -A 3 '#{1}'| grep -v -P '^--$'
 	ossutil config -e oss.aliyuncs.com -i LTAIhcpcybDqnbxI -k c3oJcIIDzc9z3H7f8CENdC4taSqUoG
 	# 下载文件
 	ossutil cp oss://novo-data-nj/customer-sMIXvUoG/ $wd -r -f --jobs 3 --parallel 2
+
+
+
+# 180719华大lane12
+
+	cd /mnt/bai/yongxin/seq/180719.nrt1.1a.lane12/
+	tar xvzf upload.tar.gz
+	# 使用远程桌面查看分析报告数据量、质量评估结果
+	cd /mnt/bai/yongxin/seq/180719.nrt1.1a.lane12/Clean/AC/
+	# 简单文件名
+	rename 's/FCH7F2JBCX2_L1_CWHPE18070021-//g' *.gz
+	# 检查数据质量格式：33可以，64还需转换为33
+	determine_phred-score.pl AAAATG_1.fq.gz
+	# Qaulity access 
+	fastqc *.gz -t 99
+	# Merge all fastqc report, result in multiqc_report.html
+	multiqc .

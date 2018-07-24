@@ -378,6 +378,7 @@
 
 ## 4.2 定量差异OTU比较
 
+
 # 标准化脚本
 /mnt/bai/xiaoning/xiaoxuan/180528/bac/script/wetD_0628.R
 
@@ -449,6 +450,89 @@ done
 
 
 
+
+## 4.3 定量差异OTU比较
+
+# 2018/7/20 更新分析，在新目录中，删除ZH的组，再删除筛选的样本。
+# remove_sample_id <-c("Bac2DMH6309","Bac2DMH6310","Bac2DMH6311","Bac2DMH6303","Bac2WMH6304","Bac2WMH6308","Bac2WWYJ11","Bac2WWYJ14","Bac2WWYJ04","Bac2WWYJ10","BacWMH6301","BacWMH6307","BacDWYJ05","BacDWYJ07","BacDWYJ02","BacDWYJ10","BacWWYJ07","BacWWYJ14")
+
+# 剔除点注释design
+for i in `cat doc/discard_samples.txt`; do
+sed -i "s/$i/#$i/" doc/design.txt
+done
+
+# RA2AA标准化脚本:矩阵/qPCR定量值
+# /mnt/bai/xiaoning/xiaoxuan/180528/bac/script/wetD_0628.R
+
+wd=spikein2
+mkdir -p ${wd}
+mkdir -p RA2
+
+## 按正常分析比较，筛选共的OTU
+# otu=/mnt/bai/xiaoning/xiaoxuan/180528/180627_AQ/bac/${wd}/otutab.txt
+# 2018/7/13 # 表有问题，更新如下
+otu=/mnt/bai/xiaoning/xiaoxuan/180528/180627_AQ/bac/table/adjusted_absAbundance.txt 
+cat <(head -n1 $otu) <(awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print a[$1]}' $otu AQ1/result/compare/BacHnMH63dry-BacHnMH63wet_all.txt) | sed '/^$/d'| sed '1 s/^/OTU\t/' | less -S > ${wd}/otutab.txt
+# 原始数据也制作同样筛选和标准化的RA表
+cat <(head -n1 result/otutab_norm.txt) <(awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print a[$1]}' result/otutab_norm.txt AQ1/result/compare/BacHnMH63dry-BacHnMH63wet_all.txt) | sed '/^$/d'| less -S > RA2/otutab_norm.txt
+## 筛选AA的OTU进行PCoA分析，与报告中的一致。报告中PCoA进行筛选了吗？没有呀
+
+## 筛选AA的OTU进行PCoA分析
+	biom convert -i ${wd}/otutab.txt -o ${wd}/otutab.biom --table-type="OTU table" --to-json
+	# 计算4种距离矩阵 http://qiime.org/scripts/beta_diversity.html -s显示矩阵列表有34种距离可选
+	beta_diversity.py -i ${wd}/otutab.biom -o ${wd}/beta/ -t result/otu.tree -m bray_curtis,weighted_unifrac,unweighted_unifrac
+	# 删除文件名中多余字符，以方法.txt为文件名
+	rename 's/_otutab//' ${wd}/beta/*.txt
+	# Ah
+beta_pcoa.sh -i `pwd`/${wd}/beta/ -m '"bray_curtis","weighted_unifrac","unweighted_unifrac"' \
+        -d `pwd`/doc/design.txt -A groupID -B '"BacAhBulksoildry","BacAhBulksoilwet","BacAhMH63dry","BacAhMH63wet","BacAhWYJ7DEP1dry","BacAhWYJ7DEP1wet"' -E TRUE \
+        -c `pwd`/doc/compare.txt \
+        -o `pwd`/${wd}/beta/Ah -h 5 -w 8
+beta_pcoa.sh -i `pwd`/${wd}/beta/ -m '"bray_curtis","weighted_unifrac","unweighted_unifrac"' \
+        -d `pwd`/doc/design.txt -A groupID -B '"BacHnBulksoildry","BacHnBulksoilwet","BacHnMH63dry","BacHnMH63wet","BacHnMH63ZHdry","BacHnWYJ7DEP1wet"' -E TRUE \
+        -c `pwd`/doc/compare.txt \
+        -o `pwd`/${wd}/beta/Hn -h 5 -w 8
+
+
+# 比较RA
+compare.sh -i RA2/otutab_norm.txt -c `pwd`/doc/compare.txt -m "wilcox" \
+	-p 0.05 -q 0.05 -F 1.2 -t 0 \
+	-d `pwd`/doc/design.txt -A groupID -B '"BacAhBulksoildry","BacAhBulksoilwet","BacAhMH63dry","BacAhMH63wet","BacAhMH63ZHdry","BacAhMH63ZHwet","BacAhWYJ7DEP1dry","BacAhWYJ7DEP1wet","BacHnBulksoildry","BacHnBulksoilwet","BacHnMH63dry","BacHnMH63wet","BacHnMH63ZHdry","BacHnMH63ZHwet","BacHnWYJ7DEP1dry","BacHnWYJ7DEP1wet"' \
+	-o RA2/compare/
+
+
+# 比较AA(${wd})
+compare.sh -i ${wd}/otutab.txt -c `pwd`/doc/compare.txt -m "wilcox" \
+	-p 0.05 -q 0.05 -F 1.2 -t 0 -N FALSE \
+	-d `pwd`/doc/design.txt -A groupID -B '"BacAhBulksoildry","BacAhBulksoilwet","BacAhMH63dry","BacAhMH63wet","BacAhMH63ZHdry","BacAhMH63ZHwet","BacAhWYJ7DEP1dry","BacAhWYJ7DEP1wet","BacHnBulksoildry","BacHnBulksoilwet","BacHnMH63dry","BacHnMH63wet","BacHnMH63ZHdry","BacHnMH63ZHwet","BacHnWYJ7DEP1dry","BacHnWYJ7DEP1wet"' \
+	-o ${wd}/compare/
+
+## 4.2.2 定量下属比较
+
+# 按差异OTU使用的560个OTUs进行合并，再差异比较
+Rscript tax_summary_RA.R
+# 以属为例进行差异比较
+# i="g"
+for i in p c o f g; do
+mkdir -p RA2/compare_${i}; \
+compare.sh -i RA/${i}.txt -c `pwd`/doc/compare.txt -m "wilcox" \
+	-p 0.05 -q 0.05 -F 1.2 -t 0 -N FALSE -U 10000  \
+	-d `pwd`/doc/design.txt -A groupID -B '"BacAhBulksoildry","BacAhBulksoilwet","BacAhMH63dry","BacAhMH63wet","BacAhMH63ZHdry","BacAhMH63ZHwet","BacAhWYJ7DEP1dry","BacAhWYJ7DEP1wet","BacHnBulksoildry","BacHnBulksoilwet","BacHnMH63dry","BacHnMH63wet","BacHnMH63ZHdry","BacHnMH63ZHwet","BacHnWYJ7DEP1dry","BacHnWYJ7DEP1wet"' \
+	-o RA2/compare_${i}/
+done
+
+
+Rscript script/tax_summary_spikein.R
+# i="g"
+for i in p c o f g; do
+mkdir -p ${wd}/compare_${i}; \
+compare.sh -i spikein/${i}.txt -c `pwd`/doc/compare.txt -m "wilcox" \
+	-p 0.05 -q 0.05 -F 1.2 -t 0 -N FALSE \
+	-d `pwd`/doc/design.txt -A groupID -B '"BacAhBulksoildry","BacAhBulksoilwet","BacAhMH63dry","BacAhMH63wet","BacAhMH63ZHdry","BacAhMH63ZHwet","BacAhWYJ7DEP1dry","BacAhWYJ7DEP1wet","BacHnBulksoildry","BacHnBulksoilwet","BacHnMH63dry","BacHnMH63wet","BacHnMH63ZHdry","BacHnMH63ZHwet","BacHnWYJ7DEP1dry","BacHnWYJ7DEP1wet"' \
+	-o ${wd}/compare_${i}/
+done
+
+
 ### Reclaculate RA
 
 /mnt/bai/xiaoning/xiaoxuan/180528/180627_AQ/bac/doc/qPCR_new.txt
@@ -457,7 +541,7 @@ done
 /mnt/bai/xiaoning/xiaoxuan/180528/180627_AQ/bac/spikein/AA.txt
 
 
-师兄  我手动check了一下表  没有找到错误   需要师兄帮助 单独计算一下 用AA.txt的 OTU数 和 qPCR_new.txt 做相除  出一个 校正的表  如果咱两的一样  说明最开始给师兄的表可能是对的
+# 师兄  我手动check了一下表  没有找到错误   需要师兄帮助 单独计算一下 用AA.txt的 OTU数 和 qPCR_new.txt 做相除  出一个 校正的表  如果咱两的一样  说明最开始给师兄的表可能是对的
 
 
 

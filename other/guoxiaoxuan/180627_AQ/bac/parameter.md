@@ -163,9 +163,9 @@ SHELL:=/bin/bash
 	# 获得所有组列表：tail -n+2 doc/design.txt|cut -f 5|sort|uniq|awk '{print "\""$1"\""}'|tr "\n" ","
 	# "BacAhBulksoildry","BacAhBulksoilwet","BacAhMH63dry","BacAhMH63wet","BacAhMH63ZHdry","BacAhMH63ZHwet","BacAhWYJ7DEP1dry","BacAhWYJ7DEP1wet","BacHnBulksoildry","BacHnBulksoilwet","BacHnMH63dry","BacHnMH63wet","BacHnMH63ZHdry","BacHnMH63ZHwet","BacHnWYJ7DEP1dry","BacHnWYJ7DEP1wet"
 	# 获得比较组列表：cat <(cut -f 1 doc/compare.txt) <(cut -f 2 doc/compare.txt) | sort | uniq | awk '{print "\""$1"\""}'|tr "\n" ","
-	# "BacHnBulksoildry","BacHnBulksoilwet","BacHnMH63dry","BacHnMH63wet","BacHnMH63ZHdry","BacHnMH63ZHwet","BacHnWYJ7DEP1dry","BacHnWYJ7DEP1wet"
-	# "BacAhBulksoildry","BacAhBulksoilwet","BacAhMH63dry","BacAhMH63wet","BacAhMH63ZHdry","BacAhMH63ZHwet","BacAhWYJ7DEP1dry","BacAhWYJ7DEP1wet"
-	g1_list='"BacAhBulksoildry","BacAhBulksoilwet","BacAhMH63dry","BacAhMH63wet","BacAhMH63ZHdry","BacAhMH63ZHwet","BacAhWYJ7DEP1dry","BacAhWYJ7DEP1wet"'
+	# "BacHnBulksoildry","BacHnBulksoilwet","BacHnMH63dry","BacHnMH63wet","BacHnWYJ7DEP1dry","BacHnWYJ7DEP1wet"
+	# "BacAhBulksoildry","BacAhBulksoilwet","BacAhMH63dry","BacAhMH63wet","BacAhWYJ7DEP1dry","BacAhWYJ7DEP1wet"
+	g1_list='"BacAhBulksoildry","BacAhBulksoilwet","BacAhMH63dry","BacAhMH63wet","BacAhWYJ7DEP1dry","BacAhWYJ7DEP1wet"'
 
 	# 组间比较列表
 	compare=${wd}/doc/compare.txt

@@ -523,4 +523,6 @@ grep -P 'OS08G0155400|OS03G0203200|OS06G0110000|OS11G0104300|OS01G0746400|OS04G0
 	~/rice/miniCore/180319/IndTej/script/Indica_ammoniation_variety.R
 	筛选了每个品种氨化的品种排序
 	manual/nitrate_ammonification_IND_[HL]N.txt # 合并排序，发现HN/LN中高氨化能力的品种前30个有24个共有
-
+	
+	# 添加OTU培养注释
+	blastn -query result/otu.fa -db ${cluture_db} -out temp/culture_otu.blastn -outfmt '6 qseqid sseqid pident qcovs length mismatch gapopen qstart qend sstart send evalue bitscore' -num_alignments 1 -evalue 1 -num_threads ${p}
