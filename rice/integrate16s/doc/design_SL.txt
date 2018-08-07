@@ -1,4 +1,4 @@
-SampleID	BarcodeSequence	LinkerPrimerSequence	ReversePrimer	genotypeID	genotype1	compartment	site	batch	genotype2	pathway	species	Description
+SampleID	BarcodeSequence	LinkerPrimerSequence	ReversePrimer	groupID	genotype1	compartment	site	batch	genotype2	pathway	species	Description
 NpRsHn01	ACGCTCGACA	AACMGGATTAGATACCCKG	ACGTCATCCCCACCTTCC	NpRsHn	NP	Rhizosphere	Hainan	R3	WT	WT	rice	HNSLRS1
 NpRsHn02	ATCAGACACG	AACMGGATTAGATACCCKG	ACGTCATCCCCACCTTCC	NpRsHn	NP	Rhizosphere	Hainan	R3	WT	WT	rice	HNSLRS2
 NpRsHn03	ATATCGCGAG	AACMGGATTAGATACCCKG	ACGTCATCCCCACCTTCC	NpRsHn	NP	Rhizosphere	Hainan	R3	WT	WT	rice	HNSLRS3

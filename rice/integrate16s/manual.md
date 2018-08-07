@@ -64,7 +64,7 @@
 
 	# 创建环境代码见~/github/Work/initial_project.sh
 	# 本项目在xiangeng基础上继续
-	cp ~/github/Work/rice/xianGeng/*md ~/github/Work/rice/miniCore/180718/
+	cp ~/github/Work/rice/xianGeng/*md ~/github/Work/rice/integrate16s/
 
 	## 1.2. 初始化工作区
 
@@ -75,7 +75,7 @@
 	## 1.3. 准备原始数据
 
 	# Prepare raw data
-	# 数据来自三个课题：miniCore + timecourse + nrt + nrt1.1a + SL + epi + Gprotein
+	# 数据来自三个课题：miniCore + timecourse + nrt1.1b + nrt1.1a + SL + epi + Gprotein + CTK + SD1
 
 	
 	# 合并实验设计
@@ -87,12 +87,13 @@
 	cp ~/rice/strigolactone.LiJY/doc/design.txt doc/design_SL.txt
 	cp ~/rice/rice.epi/180409/doc/design.txt doc/design_epi.txt
 	cp ~/rice/Gprotein/doc/design.txt doc/design_Gprotein.txt
-	cp ~/rice/CTK/doc/design.txt doc/design_Gprotein.txt
-
+	cp ~/rice/gxx_CTK/doc/design.txt doc/design_CTK.txt
+	cp ~/rice/zn.sd1/doc/design.txt doc/design_sd1.txt
 
 	# 统计实验样品行和唯一行，确实样品名唯一
 	cat doc/design_* | grep -v 'SampleID'|wc -l
-	cat doc/design_* | grep -v 'SampleID'|cut -f 1| sort|uniq|wc -l
+	cat doc/design_* | grep -v 'SampleID'|cut -f 1| sort|uniq|wc -l 
+	# 9 projecct include 7253 samples
 
 	# 合并实验设计，前7列共有，只保留前7列
 	cat <(head -n1 doc/design_nrt.txt) <(cat doc/design_* | grep -v 'SampleID') | cut -f 1-7 > doc/design.txt
@@ -103,9 +104,16 @@
 	awk 'BEGIN{FS=OFS="\t"} {print $0,$7$8}' doc/design1.txt|less -S>doc/design2.txt # 合并土壤类型和亚种
 	cp doc/design2.txt doc/design.txt
 
-
 	# 原始数据合并
-	cat ~/rice/miniCore/temp/seqs_usearch.fa ~/rice/timecourse/temp/seqs_usearch.fa ~/rice/zjj.nitrogen/180116/temp/seqs_usearch.fa | cut -f 1 -d ';' | sed 's/_/./g' > temp/filtered.fa
+	cat ~/rice/miniCore/temp/seqs_usearch.fa \
+	~/rice/timecourse/temp/seqs_usearch.fa \
+	~/rice/zjj.nitrogen/180116/temp/seqs_usearch.fa \
+	~/rice/nrt1.1a/temp/filtered.fa \
+	~/rice/strigolactone.LiJY/temp/seqs_usearch.fa \
+	~/rice/rice.epi/180409/temp/seqs_usearch.fa \
+	~/rice/Gprotein/temp/seqs_usearch.fa \
+	~/rice/gxx_CTK/temp/seqs_usearch.fa \
+	~/rice/zn.sd1/temp/seqs_usearch.fa | cut -f 1 -d ';' | sed 's/_/./g' > temp/filtered.fa
 	# 从2.7 fa_unqiue 开始
 	
 	
@@ -168,10 +176,10 @@
 ## 1.6. 序列去冗余
 	
 	# 从这里开始
-	ln ~/medicago/zjj170823/temp/seqs_usearch.fa temp/filtered.fa
-
 	# Remove redundancy, get unique reads
+	ll temp/filtered.fa # 175 GB
 	make fa_unqiue
+	# 4亿条序列，100为164640条序列，97% OTU 12625；400为50167，97% OTU 6166，unoise 26756 太多
 
 
 ## 1.7. 挑选OTU
@@ -255,13 +263,39 @@
 	make otutab_gg
 
 
+# 设置实验设计 ../xianGeng/doc/design.txt，计算soildtype, H、L下IND/TEJ/TRJ、AUS/
+cp ../xianGeng/doc/design.txt doc/design_xiangeng.txt 
+# 拥用solitype x subspecies列 soiltypesubspecies，更准确的手工修正为gorupID
+
 
 # 2. 统计绘图 Statistics and plot
+
+## 比较四大亚种，实验设计位于doc/xiangeng 目录中
+	sub=xiangeng
+	mkdir -p doc/${sub}
+	cp doc/design_${sub}.txt doc/${sub}/design.txt
+	cp doc/compare.txt doc/${sub}/compare.txt
+	# 实验组改为"HIND","HTEJ","HAUS","HTRJ","LIND","LTEJ","LAUS","LTRJ"
+
+## 比较SL，实验设计位于doc/SL目录中
+	sub=SL
+	mkdir -p doc/${sub}
+	cp doc/design_${sub}.txt doc/${sub}/design.txt
+	sed -i 's/genotypeID/groupID/g' doc/${sub}/design.txt
+	cat doc/${sub}/compare.txt|tr '\t' '\n'|sort|uniq|awk '{print "\""$1"\""}'|tr "\n" ","
+	# 修改makefile中的sub和g1_list
+
+
 
 ## 2.1. Alpha多样性指数箱线图
 	
 	# Alpha index in boxplot
 	make alpha_boxplot
+
+# 绘制四大亚种，在H/L下的alpha多样性
+alpha_boxplot.sh -i `pwd`/result/alpha/index.txt -m '"chao1","richness","shannon_e"' \
+        -d `pwd`/doc/design_xiangeng.txt  -A groupID -B '"HIND","HTEJ","HAUS","HTRJ","HSoil1","LIND","LTEJ","LAUS","LTRJ","LSoil1"' \
+        -o `pwd`/result/alpha/ -h 3 -w 5
 
 ## 2.2. Alpha丰富度稀释曲线
 	
@@ -273,22 +307,55 @@
 	# PCoA of distance matrix
 	make beta_pcoa
 
+# 绘制四大亚种，在H/L下的beta多样性
+beta_pcoa.sh -i `pwd`/result/beta/ -m '"bray_curtis","weighted_unifrac","unweighted_unifrac"' \
+        -d `pwd`/doc/design_xiangeng.txt  -A groupID -B '"HIND","HTEJ","HTRJ","HAUS"' -E TRUE \
+        -c `pwd`/doc/compare.txt \
+        -o `pwd`/result/beta/H -h 3 -w 5
+beta_pcoa.sh -i `pwd`/result/beta/ -m '"bray_curtis","weighted_unifrac","unweighted_unifrac"' \
+        -d `pwd`/doc/design_xiangeng.txt  -A groupID -B '"LIND","LTEJ","LTRJ","LAUS"' -E TRUE \
+        -c `pwd`/doc/compare.txt \
+        -o `pwd`/result/beta/L -h 3 -w 5
+
 ## 2.4. 限制性主坐标轴分析
 
 	# Constrained PCoA / CCA of bray distance matrix
 	# OTU表基于bray距离和CCA，至少3个组 
 	make beta_cpcoa
 
+# 绘制四大亚种，在H/L下的限制性PCoA
+beta_cpcoa.sh -i `pwd`/result/otutab.txt -m '"bray","jaccard"' \
+        -d `pwd`/doc/design_xiangeng.txt  -A groupID -B '"HIND","HTEJ","HTRJ","HAUS"' -E TRUE \
+        -o `pwd`/result/beta/H -h 3 -w 5
+beta_cpcoa.sh -i `pwd`/result/otutab.txt -m '"bray","jaccard"' \
+        -d `pwd`/doc/design_xiangeng.txt  -A groupID -B '"LIND","LTEJ","LTRJ","LAUS"' -E TRUE \
+        -o `pwd`/result/beta/L -h 3 -w 5
+
 ## 2.5. 样品和组各级分类学堆叠柱状图
 
 	# Stackplot showing taxonomy in each level
 	make tax_stackplot
+
+# 输出命令行
+make -n -B tax_stackplot
+# 修改为需要内容，绘制H/L下亚种和土壤的各层级相对丰度,sp代表亚种subspecies
+tax_stackplot.sh -i `pwd`/result/tax/sum_ -m '"p","pc","c","o","f","g"' -n 10 \
+        -d `pwd`/doc/design_xiangeng.txt  -A groupID -B '"HIND","HTEJ","HAUS","HTRJ","HSoil1","LIND","LTEJ","LAUS","LTRJ","LSoil1"' -O FALSE \
+        -o `pwd`/result/tax/sp_ -h 3 -w 5
 
 ## 2.6. 组间差异比较 
 	
 	# Group compareing by edgeR or wilcox
 	# 可选负二项分布，或wilcoxon秩和检验
 	make DA_compare
+
+make -B -n DA_compare
+# 比对四大亚种间区别，先以LN下亚种间为例
+compare.sh -i `pwd`/result/otutab.txt -c `pwd`/doc/compare_sp.txt -m "wilcox" \
+        -p 0.01 -q 0.05 -F 1.2 -t 0.1 \
+        -d `pwd`/doc/design_xiangeng.txt  -A groupID -B '"HIND","HTEJ","HAUS","HTRJ","LIND","LTEJ","LAUS","LTRJ"' \
+        -o `pwd`/result/compare/ -C "groupID2"
+
 
 
 # 3. 高级分析 Advanced analysis
@@ -323,32 +390,158 @@
 	# 以Burkholderia 相关菌 与 Anaeromyxobacter 的小网络 co_network_genus_LIndTej_core.R
 
 
-## 3.5. /5/14 随机森林属水平区分籼粳稻
 
-	数据集 | 丰度% | 数量 |  错误率%
-	LTEJ/LIND | 0.1 | 11.7 | 11
-	LTEJ/LIND | 0.5 | 28 | 11
-	LTEJ/LIND | 1 | 12 | 13.4
 
-	HTEJ/HIND | 0.1 | 110 | 18.2
-	HTEJ/HIND | 0.5 | 28 |18.9
-	HTEJ/HIND | 1 | 13 | 18.9
+# 4. 个性分析
 
-	TEJ/IND | 0.1 | 116 | 14.1
-	TEJ/IND | 0.5 | 33 | 15 # 选择全局，features少还兼顾大多数
-	TEJ/IND | 1 | 12 | 17.4
- 
-	# 查看Top3属的分布 Geobacter Tangfeifania Anaeromyxobacter Bacillus Burkholderia
+## 4.1. 分蘖与菌相关性
 
-	for i in `tail -n+2 result/randomForest/imp.txt|cut -f 1`; do; \
-	alpha_boxplot.sh -i result/tax/sum_g.txt -d doc/design.txt -A groupID -B '"HTEJ","HIND","LTEJ","LIND"' -m \"${i}\" -t TRUE -o result/randomForest/box_ -n TRUE	
-	done
+	wd=/mnt/bai/yongxin/rice/integrate16s
+	# 准备相关输入文件
+	cd $wd
+	# 硬链数据文件，保持可同步修改和可备份
+	# miniCore分蘖数据整理
+	ln ~/rice/xianGeng/doc/phenotype_sample_raw.txt doc/
 
-	tail -n+2 result/randomForest/imp_c.txt|cut -f 1|awk '{print "\""$1"\""}'|tr "\n" ","
+	# 以miniCore 180319批次数据进行相关分析
+	# LN otu表和实验设计
+	mkdir -p data
+	cp ~/rice/miniCore/180319/LN/otutab.txt data/LN_otutab.txt
+	cp ~/rice/miniCore/180319/doc/design.txt doc/design_miniCore.txt
+	mkdir -p data/cor/LN
+	# 物种注释
+	cp ~/rice/miniCore/180319/temp/otus_no_host.tax data/
+	# 统计见script/cor_tiller_LN.Rmd
+	# 相关系数，添加物种注释
+	awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$4} NR>FNR{print $0,a[$1]}' data/otus_no_host.tax data/cor/LN/otu_mean_pheno_cor.r.txt | less -S > data/cor/LN/otu_mean_pheno_cor.r.txt.tax
+	# 再添加可培养相关菌
 
-	alpha_boxplot.sh -i result/tax/sum_c.txt -d doc/design.txt -A groupID -B '"HTEJ","HIND","LTEJ","LIND"' -m '"Flavobacteriia","Bacilli","Gammaproteobacteria","Spirochaetia","Clostridia","Alphaproteobacteria","Actinobacteria","Bacteroidia","Caldilineae","Betaproteobacteria","Ignavibacteria","Holophagae","Acidobacteria_Gp1","Nitrospira","Deltaproteobacteria"' -t TRUE -o result/randomForest/c_ -n TRUE	
+	# 以integrate16s批次数据进行相关分析
+	# 统计见script/cor_tiller_LN.Rmd，输出top300 OTUs的相关；再输出all OTUs的相关结果
+	# 相关系数，添加物种注释
+	awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$2} NR>FNR{print $0,a[$1]}' result/taxonomy_2.txt result/cor/LN/otu_mean_pheno_cor.r.txt | less -S | sed '1 s/^/OTUID\t/' | sed '1 s/$/Taxonomy/' > result/cor/LN/otu_mean_pheno_cor.r.txt.tax
+	# 再添加可培养相关菌
+	awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print $0,a[$1]}' result/39culture/otu.txt result/cor/LN/otu_mean_pheno_cor.r.txt.tax | less -S > result/cor/LN/otu_mean_pheno_cor.r.txt.tax.xls
 
-	# 发现Top feature贡献度不大。改为科、目、纲时差异较明显。尤其是丰度阈值0.3%时，Top1/2为两类氮相关菌，绘制15个features
+
+## 4.2 样品选测宏基因组
+
+	mkdir -p result/meta_select
+	sed 's/#//g' doc/design_xiangeng.txt > doc/design_xiangeng_raw.txt
+	# 添加亚种注释
+	awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$8} NR>FNR{print $0,a[$1]}' doc/design_xiangeng_raw.txt ~/rice/miniCore/180319/LN/pcoa_bray_samples_all.txt | less -S > result/meta_select/LN_sample.txt
+	awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$8} NR>FNR{print $0,a[$1]}' doc/design_xiangeng_raw.txt ~/rice/miniCore/180319/HN/pcoa_bray_samples_all.txt | less -S > result/meta_select/HN_sample.txt
+	
+
+	# AUS、TRJ品种BC距离中心性排序，用于挑选样品
+	cp ~/rice/miniCore/180319/scripts/beta_pcoa_group.r script/
+	# 详见script/beta_pcoa_group.r 
+
+## 4.3 鉴定核心OTU，100%，95%，90%，80%
+
+	# 计算序列两两距离矩阵
+	usearch10 -calc_distmx result/otu.fa -tabbedout temp/distmx.txt \
+	  -sparsemx_minid 0.9 -termid 0.8
+	# 计算核心OTUs
+#	usearch11 -otutab_core result/otutab.txt -distmxin temp/distmx.txt -sintaxin temp/otu.fa.tax -tabbedout result/core.txt
+#	usearch11 -otutab_core result/otutab.txt -distmxin temp/distmx.txt -tabbedout result/core.txt
+	# 距离矩阵存在时报错 ../otutabcore.cpp(61) assert failed: SIZE(Fields) == 3
+	# 去掉可计算频率，但缺少某些结果列，但总表受数据量影响，应该用抽平的更合理。
+    # 以OTU总表为例
+	usearch11 -otutab_core result/otutab.txt -sintaxin temp/otu.fa.tax -tabbedout result/core.txt
+	# 采用抽平1万条的序列统计
+	usearch11 -otutab_core result/otutab_norm.txt -sintaxin temp/otu.fa.tax -tabbedout result/core.txt
+	# 样品数量，7173个
+	cat result/otutab.log 
+	# 添加统计各OTU频率
+	awk '{print $0"\t"$2/7173*100}' result/core.txt > result/core_freq.txt
+	# 90%以上42个，85%以上61个，统计各比例下的数量100 95 90 85 80
+	mkdir result/core
+    for i in `seq 1 100`; do
+        echo -ne $i"\t"
+        awk -v i="$i" '$14>=i' result/core_freq.txt|wc -l
+        #awk -v i="$i" '$14>=i' result/core_freq.txt > result/core/$i.txt
+    done
+
+    # 筛选miniCore样品的OTU表，再进行计算核心OTUs
+    # 筛选miniCore中根、精选3个样筛选后的结果，result/minicore
+    Rscript script/filter_otutab_minicore.R
+	usearch10 -otutab_stats result/minicore/otutab.txt -output result/minicore/otutab.stat
+	cat result/minicore/otutab.stat
+	# 1182 samples, 4996 OTUs, med 25362
+	# 和qiime一样的抽样方式，可去年小于阈值的样品，还有抽样后为零的OTUs
+	usearch11 -otutab_rare result/minicore/otutab.txt -sample_size 10000 -output result/minicore/otutab10k.txt
+	usearch10 -otutab_stats result/minicore/otutab10k.txt -output result/minicore/otutab10k.stat
+	cat result/minicore/otutab10k.stat
+	# 抽平后，核心OTU数量下降明显，是否需要抽平？
+	# 核心OTU，为是确定是否可检测，而不需样品间比较，无须抽平
+	usearch11 -otutab_core result/minicore/otutab.txt -sintaxin temp/otu.fa.tax -tabbedout result/core/samples.txt
+	awk '{print $0"\t"$2/1182*100}' result/core/samples.txt > result/core/freq.txt
+    # 统计各比例100 95 90%下在miniCore 1182个样品中OTU数量，分别为54，276，370
+    for i in 100 95 90; do
+        echo -ne $i"\t"
+        awk -v i="$i" '$14>=i' result/core/freq.txt|wc -l
+        awk -v i="$i" '$14>=i' result/core/freq.txt > result/core/$i.txt
+    done
+
+
+
+
+
+## 4.4 缺失品种缺失原因查找 N4129-412；R4159-448
+	
+	grep 'N4129' doc/design.txt
+	# 有HN下只有2个样，LN下只有一个样，可能我选择3个样品时，只有1个样品的没有考虑而被丢弃
+	head -n1 result/otutab.txt|tr '\t' '\n'|grep 'N4129'
+	# 找到3个样
+	grep 'N4129' result/otutab.biom.sum
+	# 数据量为9488，9964，21182
+
+	grep 'R4159' doc/design.txt
+	# 有HN下只有1个样，LN下只有1个样
+	head -n1 result/otutab.txt|tr '\t' '\n'|grep 'R4159'
+	# 找到2	个样
+	grep 'R4159' result/otutab.biom.sum
+	# 数据量为43276
+
+
+
+## 4.5 SL与分蘖相关菌共有关系
+
+	# http://210.75.224.110/report/16Sv2/rice_SL_v1/result-otu.html#result-otu-sum，整理结果doc/SL/result.pptx
+	# 合成途径D27, D17, D3突变体(分蘖增加)富集菌可能与分蘖正相关，Venny比较海南根D27-23/D10-34(D17-2太少不考虑)enriched OTUs与分蘖正相关>0.2的183个OTUs比较，有4个共有，分别为OTU_29，OTU_450，OTU_49，OTU_27，均可培养，3个为Burkholderiales、1个为Actinomycetales；可进一步提高相关性为>0.35的44个OTUs，有三个高丰度共有
+	# 比较北京根的D24-/D10-, OTU_27, OTU_241, OTU_49, OTU_116, OTU_11, OTU_2405, OTU_106, OTU_29, OTU_105
+
+	# OTU_29，OTU_49，OTU_27三个高丰度共有菌的丰度分布，并使用OTU_7/9作为对照(NRT1.1b调OTU)
+	# ggpubr绘制合成差异明显的2个基因型在两地间差别
+    plot_boxplot_ggpubr.sh -i result/otutab.txt -d `pwd`/doc/"SL"/design.txt  -A groupID -B '"d10RtBj","d27RtBj","NpRtBj","d10RtHn","d27RtHn","NpRtHn"' -m '"OTU_49","OTU_29","OTU_27","OTU_7","OTU_9"' -t TRUE -o result/otu_boxplot/ -n true
+    # ggplot2绘制SL所有基因型的丰度
+	alpha_boxplot.sh -i `pwd`/result/otutab.txt -m '"OTU_49","OTU_29","OTU_27","OTU_7","OTU_9"' \
+        -d `pwd`/doc/"SL"/design.txt -A groupID -B '"d27RtBj","d17RtBj","d10RtBj","d3AHLRtBj","d3NpRtBj","d3RtBj","d14AHLRtBj","d14RtBj","d53RtBj","NpRtBj","d27RtHn","d17RtHn","d10RtHn","d3RtHn","d14RtHn","d53RtHn","NpRtHn"' \
+        -o `pwd`/result/otu_boxplot/ -h 3 -w 10 -t TRUE -n TRUE
+
+
+## 4.6 可遗传OTUs
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # 4. 个性化分析 Custom analysis
 
