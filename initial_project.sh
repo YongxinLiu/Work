@@ -25,8 +25,9 @@ ln -s `pwd`/doc ~/$wd/
 # 备份代码
 
 # 文件加入缓冲区
+cd ~/github/Work
 git add . 
 # 提交修改
-git commit -m "2018 new project June" 
+git commit -m "2018 new project Aug." 
 # 推送到github
 git push origin master
