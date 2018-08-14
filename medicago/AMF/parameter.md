@@ -161,15 +161,20 @@ SHELL:=/bin/bash
 
 	# 绘图通用参数
 	# 实验设计文件位置，全局，其它图默认调此变量，也可单独修改；并选择表中的组列和具体分组
-	design=${wd}/doc/design.txt
+	# 区域和批次分为Root_Batch1/2/3(b1r)，Rhizosphere_Batch1/2/3(b1rs)
+	sub=b1r
+	doc=doc/${sub}
+	design=${wd}/doc/design.txt 
 	g1=groupID
 	# tail -n+2 doc/design.txt|cut -f 2|sort|uniq|awk '{print "\""$1"\""}'|tr "\n" ","
 	# "A17b1rs","Anfpb1rs","dmi2b1rs","dmi3b1rs","lyk3b1rs","lyk9b1rs","lyk9nfpb1rs","lyr4b1rs","R108b1rs","Rnfpb1rs","A17b1r","Anfpb1r","dmi2b1r","dmi3b1r","lyk3b1r","lyk9b1r","lyk9nfpb1r","lyr4b1r","R108b1r","Rnfpb1r","soilB1S","A17b2rs","Anfpb2rs","dmi2b2rs","dmi3b2rs","lyk3b2rs","lyk9b2rs","lyk9nfpb2rs","lyr4b2rs","R108b2rs","Rnfpb2rs","A17b2r","Anfpb2r","dmi2b2r","dmi3b2r","lyk3b2r","lyk9b2r","lyk9nfpb2r","lyr4b2r","R108b2r","Rnfpb2r","soilB2S","A17b3rs","Anfpb3rs","dmi2b3rs","dmi3b3rs","lyk3b3rs","lyk9b3rs","lyk9nfpb3rs","lyr4b3rs","R108b3rs","Rnfpb3rs","A17b3r","Anfpb3r","dmi2b3r","dmi3b3r","lyk3b3r","lyk9b3r","lyk9nfpb3r","lyr4b3r","R108b3r","Rnfpb3r","soilB3S"
 	# 绘图使用的实验组，顺序即图中显示顺序；为空时使用所有组和默认顺序
-	g1_list='"A17b1rs","Anfpb1rs","dmi2b1rs","dmi3b1rs","lyk3b1rs","lyk9b1rs","lyk9nfpb1rs","lyr4b1rs","R108b1rs","Rnfpb1rs","A17b1r","Anfpb1r","dmi2b1r","dmi3b1r","lyk3b1r","lyk9b1r","lyk9nfpb1r","lyr4b1r","R108b1r","Rnfpb1r","soilB1S","A17b2rs","Anfpb2rs","dmi2b2rs","dmi3b2rs","lyk3b2rs","lyk9b2rs","lyk9nfpb2rs","lyr4b2rs","R108b2rs","Rnfpb2rs","A17b2r","Anfpb2r","dmi2b2r","dmi3b2r","lyk3b2r","lyk9b2r","lyk9nfpb2r","lyr4b2r","R108b2r","Rnfpb2r","soilB2S","A17b3rs","Anfpb3rs","dmi2b3rs","dmi3b3rs","lyk3b3rs","lyk9b3rs","lyk9nfpb3rs","lyr4b3rs","R108b3rs","Rnfpb3rs","A17b3r","Anfpb3r","dmi2b3r","dmi3b3r","lyk3b3r","lyk9b3r","lyk9nfpb3r","lyr4b3r","R108b3r","Rnfpb3r","soilB3S"'
+#	g1_list='"A17b1rs","Anfpb1rs","dmi2b1rs","dmi3b1rs","lyk3b1rs","lyk9b1rs","lyk9nfpb1rs","lyr4b1rs","R108b1rs","Rnfpb1rs","A17b1r","Anfpb1r","dmi2b1r","dmi3b1r","lyk3b1r","lyk9b1r","lyk9nfpb1r","lyr4b1r","R108b1r","Rnfpb1r","soilB1S","A17b2rs","Anfpb2rs","dmi2b2rs","dmi3b2rs","lyk3b2rs","lyk9b2rs","lyk9nfpb2rs","lyr4b2rs","R108b2rs","Rnfpb2rs","A17b2r","Anfpb2r","dmi2b2r","dmi3b2r","lyk3b2r","lyk9b2r","lyk9nfpb2r","lyr4b2r","R108b2r","Rnfpb2r","soilB2S","A17b3rs","Anfpb3rs","dmi2b3rs","dmi3b3rs","lyk3b3rs","lyk9b3rs","lyk9nfpb3rs","lyr4b3rs","R108b3rs","Rnfpb3rs","A17b3r","Anfpb3r","dmi2b3r","dmi3b3r","lyk3b3r","lyk9b3r","lyk9nfpb3r","lyr4b3r","R108b3r","Rnfpb3r","soilB3S"'
+	# 从实验设计比较组中提取组名，自动获得目录组
+	g1_list=`cat doc/${sub}/compare.txt|tr '\t' '\n'|sort|uniq|awk '{print "\""$$1"\""}'|tr "\n" ","|sed 's/,$$//'`
 
 	# 组间比较列表
-	compare=${wd}/doc/compare.txt
+	compare=${wd}/${doc}/compare.txt
 	# 组间共有、特有比较列表
 	venn=${wd}/doc/venn.txt
 	# 图片长宽，按nature全面版、半版页面设置
@@ -180,7 +185,7 @@ SHELL:=/bin/bash
 
 	# 图中显示legend, 如taxonomy的数量，5，8(default)，10
 	legend_number=10
-	# 差异统计按丰度过滤 abundance filter，如丰度按万分之一过滤，减少计算量，提高OTU的FDR值，可选十万/百万之一
+	# 差异统计按丰度过滤 abundance filter，如丰度按万分之一过滤，减少计算量，提高OTU的FDR值，根据组数量多少可选十万5或万分之5
 	abundance_thre=0.05
 	# 差异比较方法，默认是 edgeR ，可选 wilcox 秩和检验
 	compare_method="edgeR"
@@ -192,10 +197,7 @@ SHELL:=/bin/bash
 	FC=1.3
 
 	# 统计绘图和网页报告版本控制
-	sub=""
-	doc=doc/${sub}
-	# 报告输出目录
-	version=med_${compare_method}_v1_b1
+	version=med_${sub}_${compare_method}_v1
 
 
 ## 2.1 alpha_boxplot Alpha多样性指数箱线图 Alpha index in boxplot
@@ -207,8 +209,8 @@ SHELL:=/bin/bash
 	ab_method='"chao1","richness","shannon_e"'
 	ab_design=${design}
 	ab_group_name=${g1}
-#	ab_group_list=${g1_list}
-	ab_group_list='"A17b1rs","Anfpb1rs","dmi2b1rs","dmi3b1rs","lyk3b1rs","lyk9b1rs","lyk9nfpb1rs","lyr4b1rs","R108b1rs","Rnfpb1rs","A17b1r","Anfpb1r","dmi2b1r","dmi3b1r","lyk3b1r","lyk9b1r","lyk9nfpb1r","lyr4b1r","R108b1r","Rnfpb1r","soilB1S"'
+	ab_group_list=${g1_list}
+#	ab_group_list='"A17b1rs","Anfpb1rs","dmi2b1rs","dmi3b1rs","lyk3b1rs","lyk9b1rs","lyk9nfpb1rs","lyr4b1rs","R108b1rs","Rnfpb1rs","A17b1r","Anfpb1r","dmi2b1r","dmi3b1r","lyk3b1r","lyk9b1r","lyk9nfpb1r","lyr4b1r","R108b1r","Rnfpb1r","soilB1S"'
 #"A17b1rs","Anfpb1rs","dmi2b1rs","dmi3b1rs","lyk3b1rs","lyk9b1rs","lyk9nfpb1rs","lyr4b1rs","R108b1rs","Rnfpb1rs","A17b1r","Anfpb1r","dmi2b1r","dmi3b1r","lyk3b1r","lyk9b1r","lyk9nfpb1r","lyr4b1r","R108b1r","Rnfpb1r","soilB1S"
 #"A17b2rs","Anfpb2rs","dmi2b2rs","dmi3b2rs","lyk3b2rs","lyk9b2rs","lyk9nfpb2rs","lyr4b2rs","R108b2rs","Rnfpb2rs","A17b2r","Anfpb2r","dmi2b2r","dmi3b2r","lyk3b2r","lyk9b2r","lyk9nfpb2r","lyr4b2r","R108b2r","Rnfpb2r","soilB2S"
 #"A17b3rs","Anfpb3rs","dmi2b3rs","dmi3b3rs","lyk3b3rs","lyk9b3rs","lyk9nfpb3rs","lyr4b3rs","R108b3rs","Rnfpb3rs","A17b3r","Anfpb3r","dmi2b3r","dmi3b3r","lyk3b3r","lyk9b3r","lyk9nfpb3r","lyr4b3r","R108b3r","Rnfpb3r","soilB3S"
@@ -278,7 +280,9 @@ SHELL:=/bin/bash
 	Dc_thre=${abundance_thre}
 	Dc_design=${design}
 	Dc_group_name=${g1}
-	Dc_group_list=${g1_list}
+	#比较组变化会导致OTUs数量不同，不同批次无法比，此处可固定所有组
+	#Dc_group_list=${g1_list}
+	Dc_group_list=`tail -n+2 doc/design.txt|cut -f 2|sort|uniq|sort|uniq|awk '{print "\""$$1"\""}'|tr "\n" ","|sed 's/,$$//'`
 	Dc_output=${wd}/result/compare/
 	Dc_group_name2=${g1}
 
@@ -295,21 +299,21 @@ SHELL:=/bin/bash
 
 
 
-## 2.6.1 DA_compare_tax 组间差异比较,phylum/order/genus
+### 2.6.1 DA_compare_tax 组间差异比较,phylum/order/genus
 	# 物种分类级，p/c/o/f/g五级可选
 	#Dct_tax=g
 	#Dct_input=${wd}/result/tax/sum_${Dct_tax}.txt
-	# 差异比较方法edgeR or wilcox，默认edgeR
+	# 差异比较方法edgeR or wilcox，默认相对丰富仅能使用wilcox，只有count才能用edgeR
 	Dct_compare=${compare}
-	Dct_method=${compare_method}
+	Dct_method=wilcox
 	Dct_pvalue=${pvalue}
 	Dct_FDR=${FDR}
 	Dct_FC=${FC}
-	Dct_thre=${abundance_thre}
+	# 门-属数量不大，无须过滤丰度
+	Dct_thre=0
 	Dct_design=${design}
 	Dct_group_name=${g1}
 	Dct_group_list=${g1_list}
-	#Dct_output=${wd}/result/compare_${Dct_tax}/
 
 
 ## 2.7 plot_volcano 基于差异OTU表绘制火山图
@@ -359,8 +363,8 @@ SHELL:=/bin/bash
 
 # 2.10 维恩图
 
-	# venn OTU注释数据库，如差异比较result/compare/database.txt、菌库result/41culture/otu.txt等
-	venn_anno=result/41culture/otu.txt
+	# venn OTU注释数据库，如差异比较result/compare/database.txt、菌库result/39culture/otu.txt(需要配置并运行3.9)
+	venn_anno=result/39culture/otu.txt
 
 # 3 高级分析
 
@@ -370,17 +374,15 @@ SHELL:=/bin/bash
 
 
 
-## 3.9 culture_graphlan 可培养菌
+## 3.9 culture 可培养菌
 	 
 	# 可培养菌库类型，如组织root / rhizosphere / leaf, 品种A50 / IR24
 	type=""
 	# 指定可培养菌库位置，fa为OTU，fasta为物种如rice
-	cluture_db=/mnt/bai/yongxin/culture/rice/result/${type}culture_select.fasta
+	culture_db=/mnt/bai/yongxin/culture/medicago/result/${type}culture_select.fasta
 	# 可培养菌结果输出文件
 	# 绘制Graphlan图的筛选阈值
-	culture_db=0.0005
-	# 
-	otu_table=${wd}/${result_f}/otu_table.txt
+	culture_thre=0.0005
 
 
 include /mnt/bai/yongxin/github/Amplicon/16Sv2/pipeline.md

@@ -49,7 +49,7 @@ SHELL:=/bin/bash
 	stripleft=29
 	stripright=18
 
-## 1.5. fq_qc 质量控制
+## 1.5. **fq_qc 质量控制**
 	
 	# fastq filter
 	# 默认错误率<0.01 keep reads error rates less than 1%
@@ -141,7 +141,7 @@ SHELL:=/bin/bash
 	# 稀释梯度抽样方法 richness (observed OTUs)-method fast / with_replacement / without_replacement , 结果位于 result/alpha/rare.txt
 	rare_method=without_replacement
 
-## 1.16. beta_calc Beta多样性距离矩阵
+## 1.16. **beta_calc Beta多样性距离矩阵**
 
 	# Beta diversity tree and distance matrix
 	# 距离矩阵计算方法，34种可选： abund_jaccard, binary_chisq, binary_chord, binary_euclidean, binary_hamming, binary_jaccard, binary_lennon, binary_ochiai, binary_otu_gain, binary_pearson, binary_sorensen_dice, bray_curtis, bray_curtis_faith, bray_curtis_magurran, canberra, chisq, chord, euclidean, gower, hellinger, kulczynski, manhattan, morisita_horn, pearson, soergel, spearman_approx, specprof, unifrac, unifrac_g, unifrac_g_full_tree, unweighted_unifrac, unweighted_unifrac_full_tree, weighted_normalized_unifrac, weighted_unifrac
@@ -149,7 +149,7 @@ SHELL:=/bin/bash
 	dis_method=bray_curtis,binary_jaccard,weighted_unifrac,unweighted_unifrac
 	tree_method=qiime
 
-## 1.17. otutab_ref 有参比对生成OTU表
+## 1.17. **otutab_ref 有参比对生成OTU表**
 
 	# 如Greengenes，可用于picurst, bugbase分析
 	# 比对方法和相似度同1.10 mapping
@@ -168,7 +168,7 @@ SHELL:=/bin/bash
 	g1=groupID
 	# tail -n+2 ${doc}/design.txt|cut -f 5|sort|uniq|awk '{print "\""$1"\""}'|tr "\n" ","
 	# 绘图使用的实验组，顺序即图中显示顺序；为空时使用所有组和默认顺序
-	g1_list='"Col","ThasKO2","ThahKO","ThadKO","ACT2KO"'
+	g1_list='"bglu4546R","BulkSoilBS","ems3871R","ems541R","ugt72e1e2e3R","ugt72e2R","Wt3871R","WT541R","WtR"'
 
 	# 组间比较列表
 	compare=${wd}/${doc}/compare.txt
@@ -194,7 +194,7 @@ SHELL:=/bin/bash
 	FC=1.3
 
 	# 统计绘图和网页报告版本控制
-	version=species_${sub}_${compare_method}_v1
+	version=ath_ems_${sub}_${compare_method}_v1
 
 
 	# 2.1 alpha_boxplot Alpha多样性指数箱线图 Alpha index in boxplot

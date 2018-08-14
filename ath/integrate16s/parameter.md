@@ -120,7 +120,7 @@ SHELL:=/bin/bash
 	# Assign taxonomy
 	# 物种注释推荐使用小而准的数据库，如rdp trainset 16(由Robert整理)
 	# 可选gg, silva，分别从官网下载并shell调整格式
-	sintax_db=${usearch_silva}
+	sintax_db=${usearch_rdp}
 	# 分类准确度阈值，默认0.8，注释太少最小可改0.5，发现有明显错误可最高上升为0.95
 	sintax_cutoff=0
 
@@ -195,7 +195,7 @@ SHELL:=/bin/bash
 	FC=1.3
 
 	# 统计绘图和网页报告版本控制
-	version=ath_${sub}_${compare_method}_v1
+	version=ath_${sub}_${compare_method}_unoisev1
 
 
 	# 2.1 alpha_boxplot Alpha多样性指数箱线图 Alpha index in boxplot
@@ -354,8 +354,22 @@ SHELL:=/bin/bash
 
 # 2.10 plot_venn 维恩图
 
-	# venn OTU注释数据库，如差异比较result/compare/database.txt、菌库result/41culture/otu.txt等
-	venn_anno=result/compare/database.txt
+	# venn OTU注释数据库，如差异比较result/compare/database.txt、菌库result/39culture/otu.txt等
+	venn_anno=result/39culture/otu.txt
+
+
+
+
+## 3.9 culture_graphlan 可培养菌
+	 
+	# 可培养菌库类型，如组织root / rhizosphere / leaf, 品种A50 / IR24
+	type="Root"
+	# 指定可培养菌库位置，fa为OTU，fasta为物种如rice
+	culture_db=/mnt/bai/yongxin/culture/ath/result/${type}culture_select.fa
+	# 可培养菌结果输出文件
+	# 绘制Graphlan图的筛选阈值
+	culture_thre=0.0005
+
 
 
 include /mnt/bai/yongxin/github/Amplicon/16Sv2/pipeline.md

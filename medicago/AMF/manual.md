@@ -224,6 +224,21 @@
 
 # 3. 统计绘图 Statistics and plot
 
+    # 批量处理6个批次的分析b1r b2r b3r 
+    for sub in b1rs b2rs b3rs; do
+    sub="b3rs"
+    sed -i "s/sub=.*/sub=$sub/" makefile
+    doc=doc/${sub}
+    mkdir -p $doc
+    head -n8 doc/compare.txt | sed "s/b1r/$sub/g" > $doc/compare.txt
+    sed "s/b1r/$sub/g" doc/venn.txt > $doc/venn.txt
+    # modify sub, then report
+    rm alpha_boxplot
+    make plot_venn # DA otu
+    make DA_compare_tax # DA taxonomy
+    make rmd # report
+    done
+
 ## 3.1. Alpha多样性指数箱线图
     
     # Alpha index in boxplot

@@ -293,3 +293,8 @@
 
 # 3. 高级分析
 
+    
+## 3.9 培养菌注释
+
+    # 培养菌注释，采用ath root的菌库，COTU，目前只注释plot_veen的结果
+    make culture

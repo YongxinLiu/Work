@@ -476,16 +476,14 @@ compare.sh -i `pwd`/result/otutab.txt -c `pwd`/doc/compare_sp.txt -m "wilcox" \
 	# 抽平后，核心OTU数量下降明显，是否需要抽平？
 	# 核心OTU，为是确定是否可检测，而不需样品间比较，无须抽平
 	usearch11 -otutab_core result/minicore/otutab.txt -sintaxin temp/otu.fa.tax -tabbedout result/core/samples.txt
-	awk '{print $0"\t"$2/1182*100}' result/core/samples.txt > result/core/freq.txt
+	awk '{print $0"\t"$2/1182*100}' result/core/samples.txt | sed '1 s/OTU/OTUID/;1 s/0/Core/' > result/core/freq.txt
     # 统计各比例100 95 90%下在miniCore 1182个样品中OTU数量，分别为54，276，370
     for i in 100 95 90; do
         echo -ne $i"\t"
         awk -v i="$i" '$14>=i' result/core/freq.txt|wc -l
         awk -v i="$i" '$14>=i' result/core/freq.txt > result/core/$i.txt
     done
-
-
-
+    # 添加可培养和丰度注释
 
 
 ## 4.4 缺失品种缺失原因查找 N4129-412；R4159-448
@@ -509,159 +507,137 @@ compare.sh -i `pwd`/result/otutab.txt -c `pwd`/doc/compare_sp.txt -m "wilcox" \
 ## 4.5 SL与分蘖相关菌共有关系
 
 	# http://210.75.224.110/report/16Sv2/rice_SL_v1/result-otu.html#result-otu-sum，整理结果doc/SL/result.pptx
-	# 合成途径D27, D17, D3突变体(分蘖增加)富集菌可能与分蘖正相关，Venny比较海南根D27-23/D10-34(D17-2太少不考虑)enriched OTUs与分蘖正相关>0.2的183个OTUs比较，有4个共有，分别为OTU_29，OTU_450，OTU_49，OTU_27，均可培养，3个为Burkholderiales、1个为Actinomycetales；可进一步提高相关性为>0.35的44个OTUs，有三个高丰度共有
+	# 合成途径D27, D17, D3突变体(分蘖增加)富集菌可能与分蘖正相关，Venny比较海南根D27-23/D10-34(D17-2太少不考虑)enriched OTUs与分蘖正相关>0.2(otu_top300_mean_pheno_cor.r.txt.tax.xls)的183个OTUs比较，有4个共有，分别为OTU_29，OTU_450，OTU_49，OTU_27，均可培养，3个为Burkholderiales、1个为Actinomycetales；可进一步提高相关性为>0.35的44个OTUs，有三个高丰度共有
 	# 比较北京根的D24-/D10-, OTU_27, OTU_241, OTU_49, OTU_116, OTU_11, OTU_2405, OTU_106, OTU_29, OTU_105
 
-	# OTU_29，OTU_49，OTU_27三个高丰度共有菌的丰度分布，并使用OTU_7/9作为对照(NRT1.1b调OTU)
+    # 刚才分析只用了Top300丰度OTUs，丰度可以实验时进一步选择，现在用全部正相关>0.35的菌otu_all_mean_pheno_cor.r.txt.tax.xls共102个，与D27, D17, D10上调OTUs比较，中间结果保存于result\cor\LN\otu_all_mean_pheno_cor.r.txt.tax.xlsx
+
+
+	# OTU_29，OTU_49，OTU_27，OTU_667，OTU_33，OTU_371三个高丰度共有菌的丰度分布，并使用OTU_7/9作为对照(NRT1.1b调OTU)
 	# ggpubr绘制合成差异明显的2个基因型在两地间差别
     plot_boxplot_ggpubr.sh -i result/otutab.txt -d `pwd`/doc/"SL"/design.txt  -A groupID -B '"d10RtBj","d27RtBj","NpRtBj","d10RtHn","d27RtHn","NpRtHn"' -m '"OTU_49","OTU_29","OTU_27","OTU_7","OTU_9"' -t TRUE -o result/otu_boxplot/ -n true
     # ggplot2绘制SL所有基因型的丰度
-	alpha_boxplot.sh -i `pwd`/result/otutab.txt -m '"OTU_49","OTU_29","OTU_27","OTU_7","OTU_9"' \
+	alpha_boxplot.sh -i `pwd`/result/otutab.txt -m '"OTU_667","OTU_33","OTU_371"' \
         -d `pwd`/doc/"SL"/design.txt -A groupID -B '"d27RtBj","d17RtBj","d10RtBj","d3AHLRtBj","d3NpRtBj","d3RtBj","d14AHLRtBj","d14RtBj","d53RtBj","NpRtBj","d27RtHn","d17RtHn","d10RtHn","d3RtHn","d14RtHn","d53RtHn","NpRtHn"' \
         -o `pwd`/result/otu_boxplot/ -h 3 -w 10 -t TRUE -n TRUE
 
 
 ## 4.6 可遗传OTUs
 
+    mkdir -p heritability && cd heritability
+    # 基因型数据bed文件，其中bim是SNP列表，fam是样品列表
+    cp /mnt/zhou/chulab/miniCore/snp1.5x/T2.b* ./
+    cp /mnt/zhou/chulab/miniCore/snp1.5x/T2.modi.fam ./T2.fam
+    # 构建亲源关系
+    gcta64 --bfile T2 --make-grm --out T2
+    # 可遗传OTU分析表型：三列家族、个体ID(通常一样)、表型
+    ## 获得LN下各品种OTU的均值LN_otu_mean.txt，并挑选 "OTU_49","OTU_29","OTU_27","OTU_7","OTU_9"
+    Rscript ../script/filter_otutab_minicore.R
+    # 批量计算遗传力，分别为0.19-0.93之间
+    cut -f 1 pheno_test.txt.hsq | tr '\n' '\t' | sed 's/\t$/\n/' > heritable.txt
+    for i in `seq 3 7`; do
+        cut -f 1,2,${i} pheno_5.txt>pheno_test.txt
+        gcta64 --reml --grm T2 --pheno pheno_test.txt --out pheno_test.txt
+        echo -ne $i"\t" >>heritable.txt
+        cut -f 2- pheno_test.txt.hsq|tail -n+2|sed 's/\t/+-/'|tr '\n' '\t' | sed 's/\t$/\n/' >>heritable.txt
+    done
+    # 计算所有OTU的遗传力作为属性
+    #cut -f 1 pheno_test.txt.hsq | tr '\n' '\t' | sed 's/\t$/\n/' > heritable.txt 
+    # 根据结果pheno_test.txt.hsq的行名修改为自定义的表头
+    cp ../doc/heritable.header heritable.txt
+    sed -i 's/Source/OTUID/' heritable.txt
+    otu_num=`head -n1 LN_otu_gcta.txt|tr '\t' '\n'|awk 'END{print NR}'`
+    for i in `seq 3 $otu_num`; do
+        cut -f 1,2,$i LN_otu_gcta.txt | tail -n+2 > pheno_test.txt
+        gcta64 --reml --grm T2 --pheno pheno_test.txt --out pheno_test.txt
+        j=`cut -f $i LN_otu_gcta.txt | head -n1`
+        echo -ne $j"\t" >>heritable.txt
+        cut -f 2- pheno_test.txt.hsq|tail -n+2|sed 's/\t/+-/'|tr '\n' '\t' | sed 's/\t$/\n/' >>heritable.txt
+    done
+    sed 's/+-/\t/g' heritable.txt|less -S > heritable_otu.txt
+    # 筛选显著可遗传的OTUs，基因型解析量V(G)2列，V(G)/Vp遗传力8列，Pval14列,显著性优先，再看解析率
+    cut -f 1,2,8,14 heritable_otu.txt > heritable_otu.elite
+    # 很多基因型贡献为0的值，筛选V(G)>0有1712个
+    awk '$2>0' heritable_otu.elite | less -S | wc -l
+    # 遗传力>0.15，1955个
+    awk '$3>0.15' heritable_otu.elite | less -S | wc -l
+    # 筛选Pvalue<0.05，有1328个显著
+    awk '$4<0.001' heritable_otu.elite | less -S | wc -l 
+    # 筛选以上三个条件，有943个
+    awk '$2>0 && $3>0.15 && $4<0.001' heritable_otu.elite | less -S | wc -l
+    # 按V(G)、V(G)/Vp和Pval排序查看
+    awk '$2>0 && $3>0.15 && $4<0.001' heritable_otu.elite | sort -k2,2nr |less -S
+    awk '$2>0 && $3>0.15 && $4<0.001' heritable_otu.elite | sort -k3,3nr |less -S
+    awk '$2>0 && $3>0.15 && $4<0.001' heritable_otu.elite | sort -k4,4g |less -S
 
 
+## 4.7 制作OTU注释表
 
+    mkdir -p result/anno
+    # 基于物种注释制作1_2列
+    sed '1 i OTUID\tTaxonomy' result/taxonomy_2.txt | less -S > result/anno/otu.1_2tax
+    # 添加所有样品平均丰度Mean，相似度pident，菌保ID和物种注释3——6列，无注释的OTU会为空
+    #awk 'NR==FNR{a[$1]=$5"\t"$2"\t"$3"\t"$6} NR>FNR{print $0"\t"a[$1]}' result/39culture/otu.txt result/anno/otu.1_2tax > result/anno/otu.3_6culture
+    awk 'NR==FNR{a[$1]=$5"\t"$2"\t"$3"\t"$6} NR>FNR {if(a[$1]==""){a[$1]="\t\t\t"};print $0"\t"a[$1]}' result/39culture/otu.txt result/anno/otu.1_2tax > result/anno/otu.3_6culture
+    # 添加核心比例7列
+    awk 'NR==FNR{a[$1]=$14} NR>FNR{print $0"\t"a[$1]}' result/core/freq.txt result/anno/otu.3_6culture > result/anno/otu.7core
+    # 添加可遗传解析率、比例和p值，8-10列
+    awk 'NR==FNR{a[$1]=$2"\t"$3"\t"$4} NR>FNR{print $0"\t"a[$1]}' heritability/heritable_otu.elite result/anno/otu.7core > result/anno/otu.8_10heritable
+       
 
+## 4.8 选菌验证
+    
+    date=wet/180813
+    cluture_db=/mnt/bai/yongxin/culture/rice/result/culture_select.fasta
+    format_seq2fasta.pl -i "${date}/*.seq" -o ${date}.fa 
+    # 输出13列为coverage
+    blastn -query ${date}.fa -db ${cluture_db} -out ${date}.xls -outfmt '6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qcovs' -num_alignments 1 -evalue 1 -num_threads 9 
+    sed -i '1 i qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qcovs' ${date}.xls
+    sed -i '1 s/ /\t/' ${date}.xls
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# 4. 个性化分析 Custom analysis
-
-## 4.1. 低氮条件下挑选30个IND品种测宏基因组
-
-	# 目标：挑选基于LN条件下Weighted Unifrac结果中IND与TEJ差异明显的的30个代表品种
-	# 方法：筛选LN下IND/TEJ样品，按组合并，添加标签后筛选。
-	mkdir -p pick_variety
-	cd pick_variety
-	# 筛选LN下IND/TEJ样品
-	Rscript /mnt/bai/yongxin/rice/miniCore/180319/scripts/otutab_sample_subset.r -i ../result/otutab.txt -d /mnt/bai/yongxin/rice/miniCore/180319/LN/design.txt -o LN_otutab0.txt
-	# 按品种合并
-	head -n1 LN_otutab0.txt|cut -f 2-|tr '\t' '\n'|awk '{print $1"\t"$1}'|cut -c1-13|less > LN_sample_variety.list
-	usearch10 -otutab_group LN_otutab0.txt -labels LN_sample_variety.list -output LN_otutab1.txt
-	# 计算PCoA
-	usearch10 -cluster_agg ../result/otu.fa -treeout otu.tree
-	usearch10 -beta_div LN_otutab1.txt -tree otu.tree -filename_prefix LN_ -metrics bray_curtis,unifrac
-	# 提取实验设计
-	grep -P 'soiltypesubspecies|LIND|LTEJ' ../doc/design.txt | cut -f 6- |uniq | less -S > design.txt
-	beta_pcoa.sh -i LN_ -m '"bray_curtis","unifrac"' -d design.txt -A subspecies -B '"IND","TEJ"' -o LN_pcoa_ -w 8 -h 5
-
-	Rscript /mnt/bai/yongxin/rice/miniCore/180319/scripts/beta_pcoa_group.r -i LN/bray_curtis.txt -d doc/design.txt -n GroupID -o LN/pcoa_bray
-
-	# 绘制土壤PCoA
-beta_pcoa.sh -i result/beta/ -m '"bray_curtis","weighted_unifrac"' \
--B '"HSoil1","HSoil2","LSoil1","LSoil2"' -E TRUE \
--o pick_variety/soil_ -h 5 -w 8
-
-
-
-## 4.2. 挑选NRT样品测宏基因组
-
-	# 按Anaeromyxobacter为新版OTU_11(1)，备选OTU_8(0.37)，必须 使用RDP注释，其它注释科faprotax无法识别
-	# 查看OTU_11在CP 2016年中箱线图
-	mkdir -p pick_nrt
-	alpha_boxplot.sh -i result/otutab_norm.txt -d doc/design.txt -A groupID -B '"HTEJ","HIND","LTEJ","LIND","A50LnCp6","A56LnCp6","A50LnCp7","A56LnCp7","A50LnSz7","A56LnSz7","A50HnCp6","A56HnCp6","A50HnCp7","A56HnCp7","A50HnSz7","A56HnSz7","V3703HnCp6","ZH11HnCp6","V3703LnCp6","ZH11LnCp6","nrtHnCp7","ZH11HnCp7","ZH11LnCp7","nrtLnCp7","nrtHnSz7","ZH11HnSz7","nrtLnSz7","ZH11LnSz7","HSoil1","HSoil2","LSoil1","LSoil2","soilHnCp7","soilLnCp7","soilHnCp6","soilLnCp6","soilLnSz7","soilHnSz7"' -m '"OTU_8"' -t TRUE -o temp/all_ -n TRUE
-	alpha_boxplot.sh -i result/otutab_norm.txt -d doc/design.txt -A groupID -B '"A50HnCp6","A56HnCp6","A58HnCp6","IR24HnCp6","V3703HnCp6","ZH11HnCp6","A50LnCp6","A56LnCp6","A58LnCp6","IR24LnCp6","V3703LnCp6","ZH11LnCp6"' -m '"OTU_8"' -t TRUE -o pick_nrt/CP6_ -n true
-	# OTU_8/11在CP7中变化
-	alpha_boxplot.sh -i result/otutab_norm.txt -d doc/design.txt -A groupID -B '"HTEJ","HIND","LTEJ","LIND","A50LnCp7","A56LnCp7","A58LnCp7","IR24LnCp7","A50HnCp7","A56HnCp7","A58HnCp7","IR24HnCp7","nrtHnCp7","ZH11HnCp7","ZH11LnCp7","nrtLnCp7","nrtHnSz7","ZH11HnSz7","nrtLnSz7","ZH11LnSz7"' -m '"OTU_11"' -t TRUE -o pick_nrt/CP7_ -n TRUE
-
-	# OTU_8在目标群体中准确度和丰度远小于OTU_11
-
-	# OTU_11在时间序列中变化
-	mkdir -p timecourse
-	alpha_boxplot.sh -i result/otutab_norm.txt -d doc/design.txt -A groupID -B '"A50Cp0","A50Cp1","A50Cp2","A50Cp3","A50Cp7","A50Cp10","A50Cp14","A50Cp21","A50Cp28","A50Cp35","A50Cp42","A50Cp49","A50Cp63","A50Cp70","A50Cp77","A50Cp84","A50Cp91","A50Cp98","A50Cp112","A50Cp119","A50Sz0","A50Sz1","A50Sz2","A50Sz3","A50Sz5","A50Sz7","A50Sz10","A50Sz13","A50Sz27","A50Sz34","A50Sz41","A50Sz48","A50Sz56","A50Sz62","A50Sz69","A50Sz76","A50Sz83","A50Sz90","A50Sz97","A50Sz118"' -m '"OTU_11"' -t TRUE -o timecourse/A50_ -n TRUE
-	alpha_boxplot.sh -i result/otutab_norm.txt -d doc/design.txt -A groupID -B '"IR24Cp0","IR24Cp1","IR24Cp2","IR24Cp3","IR24Cp7","IR24Cp10","IR24Cp14","IR24Cp21","IR24Cp28","IR24Cp35","IR24Cp42","IR24Cp49","IR24Cp63","IR24Cp70","IR24Cp77","IR24Cp84","IR24Cp91","IR24Cp98","IR24Cp112","IR24Cp119","IR24Sz0","IR24Sz1","IR24Sz2","IR24Sz3","IR24Sz5","IR24Sz7","IR24Sz10","IR24Sz13","IR24Sz27","IR24Sz34","IR24Sz41","IR24Sz48","IR24Sz56","IR24Sz62","IR24Sz69","IR24Sz76","IR24Sz83","IR24Sz90","IR24Sz97","IR24Sz118"' -m '"OTU_11"' -t TRUE -o timecourse/IR24_ -n TRUE
-
-	# 绘制土壤PCoA
-	beta_pcoa.sh -i result/beta/ -m '"bray_curtis","weighted_unifrac"' \
-	-B '"soilHnCp7","soilLnCp7","soilHnCp6","soilLnCp6","soilLnSz7","soilHnSz7"' -E TRUE \
-	-o pick_nrt/soil_ -h 5 -w 8
-	
-	# OTU_11 在土壤中组间丰度
-	alpha_boxplot.sh -i result/otutab_norm.txt -d doc/design.txt -A groupID -B '"HSoil1","HSoil2","LSoil1","LSoil2","soilHnCp7","soilLnCp7","soilHnCp6","soilLnCp6","soilLnSz7","soilHnSz7"' -m '"OTU_11"' -t TRUE -o temp/soil_ -n TRUE
-
-
-## 4.3. 新发现OTU_8的物种很像OTU_11
-	less result/faprotax/report# 但按物种注释0.6注释到科无法识别；改为0.3阈值
-
-
-## 4.4. 筛选各品种最好的3个样品
-
-	# 结果备份，并筛选3个样品看结果
-	cp -r result/ result180508/
-	# 筛选实验设计为3个样品
-	cp -r doc/design.txt doc/design.txt180508
-	# 获得所有筛选样品
-	cat ~/rice/miniCore/180319/HN/pcoa_bray_samples_top3.id <(cut -f 1 ~/rice/miniCore/180319/LN/pcoa_bray_samples_top3.group) > temp/temp1
-	# 获得删除样品
-	cat <(tail -n+2 doc/design_minicore.txt|cut -f 1) temp/temp1 | sort | uniq -u > doc/minicore_discard.id
-	# 剔除点注释design
-	for i in `cat doc/minicore_discard.id`; do;\
-		sed -i "s/$i/#$i/" doc/design.txt;done
-
-
-## 4.5. OTU或分类与PCoA轴的差异
-	
-	# 以LN的weighted unifrac PCoA1/2为例
-	# 基于PCoA轴与OTU计算相关
-	script/cor_pcao_otu.R 计算OTU与4unifrac前4轴spearman相关系数，保存为 result/cor_otu_pcoa_unifrac.txt
-	# 添加至差异OTUs，和相关系数
-	awk 'NR==FNR{a[$1]=$2"\t"$3} NR>FNR{print a[$1]"\t"$0}' result/cor_otu_pcoa_unifrac.txt result/compare/LTEJ-LIND_sig.txt | sed '1 s/^/Cor_PC1\tCor_PC2/' > result/compare/LTEJ-LIND_sig_pcoa_unifrac.txt
-	# 选择代表菌作为组的markers，我推荐按丰度选差异；可进一步结果与PCoA轴的相关性；或选3/4组共有
-
-	# 2018/5/16 国家、经纬度、地区和亚种与PCoA间关系script/beta_pcoa_location.R 发现Latitudeg与PC1相关，0.4366
-	
-	# 绘制某个分类单元的箱线图，常用绘制按丰度取上下调的top3；也可按Pvalue选择，但高丰度并不占优
-	wd=`pwd`
-	Dct_tax=g
-	mkdir -p result/otu_boxplot_${Dct_tax}
-	Dct_input=${wd}/result/tax/sum_${Dct_tax}.txt
-	plot_boxplot_ggpubr.sh -i ${wd}/result/tax/sum_${Dct_tax}.txt -d `pwd`/doc/design.txt -A groupID -B '"LTEJ","LIND"' \
-	-m '"Anaeromyxobacter","Curvibacter","Sideroxydans","Burkholderia","Bradyrhizobium","Rhizobium"' -t TRUE -o result/otu_boxplot_${Dct_tax}/ -n true
-	
-
-
-## 4.6. 检查GWAS是否可以发现Anaeromyxobacter与SNP的关联
-	# 基于LN TEJ/IND中Anaeromyxobacter最低和最高的20个品种(保证数据可分开)，与nsSNP关联，最为仅为e-3，10m21759092,10,21759092,0.643641032317718,0.475,40,0.893753744914084,0.894396427377941,1。
-	gapit_IndTej_Anaeromyxobacter_top20.R
-	# 修改为30个品种有重合，肯定无法找到差异，再改为25个品种
-	10m21759092,10,21759092,0.962618742911769,0.46,50,0.856299549567109,0.85630648832468,1
-	# 可能从样本量、数据波动程度、SNP背景均无法满足
-
-## 2018/5/28 筛选HN/LN下可高丰度菌及是否可培养
-	# core_microbiome_culture.R筛选中位数并排序 
-	awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print $0,a[$1]}' result/41culture/otu.txt culture/core.txt > culture/core_culture.txt
 
 
 
 # 5. 图表整理 Figures and legends
 
-##  图1. 籼粳稻分型
+    # 位于doc目录中，方便同步
 
-### a, b 模式图
+##  图1. 水稻miniCore品种和OTU描述 fig1.description.variety.sample.taxonomy.Rmd
+
+### 1A. 203个水稻品种全球分布
 	
 	地图，种植模式图——秦媛
 
+### 1B, 样品、品种整理多样性、OTU稀释取线 script/alpha_rare_sample.R
 
-### beta多样性
-	
+### 1C. 物种组成Taxonomy boxplot in genus and phylum
+
+### 1D. 进化树
+
+    # 选择丰度>0.1%的166个序列建树，并用iTOL注释物种门水平颜色、核心菌加粗和可遗传标为红色
+    # select OTU abundance > 0.1% 
+    awk '$3>0.1' result/anno/otu.8_10heritable | cut -f 1 > temp/otu_k1.id
+    usearch10 -fastx_getseqs result/otu.fa -labels temp/otu_k1.id -fastaout script/fig1/1d.otu_k1.fa
+    # check number
+    grep -c '>' script/fig1/1d.otu_k1.fa
+    # Multiply alignment
+    clustalo -i script/fig1/1d.otu_k1.fa -o temp/1d.otu_k1_align.fa --seqtype=DNA --full --force --threads=9
+    make_phylogeny.py -i temp/1d.otu_k1_align.fa -o script/fig1/1d.otu_k1.tree
+    sed -i "s/'//g" script/fig1/1d.otu_k1.tree
+    # 在iTOL中展示树
+    # 注释物种四大门水平颜色
+    # Phylum = c("Proteobacteria", "Actinobacteria", "Bacteroidetes", "Firmicutes", "Other"), Color = c("#85F29B", "#F58D8D", "#F7C875", "#91DBF6", "#AAAAAA" )
+    Rscript ~/github/Amplicon/16Sv2/script/tree_color_iTOL.R
+    awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$3" "$2} NR>FNR{print $0" range "a[$1]}' result/taxonomy_8_color.txt temp/otu_k1.id
+    # 标注核心OTUs $7>100% 蓝色加粗2号
+    awk '$3>0.1 && $7>=100 ' result/anno/otu.8_10heritable | cut -f 1 | awk '{print $0" label #0000ff bold 2"}'
+    # 标注可遗传OTUs枝标为红色
+    awk '$3>0.1 && $9>=0.3 ' result/anno/otu.8_10heritable | tail -n+2 | cut -f 1 | awk '{print $0"|"$0" clade #ff0000 normal 1"}'
+
+
+
+
+
 	# 不同加土，否则主要差异为土壤；不能两块地混合，否则主要差异为不同地块
 	# HN下TEJ和IND
 beta_pcoa.sh -i `pwd`/result/beta/ -m '"bray_curtis","weighted_unifrac","unweighted_unifrac"' \

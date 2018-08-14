@@ -31,6 +31,8 @@
 
 <!-- /TOC -->
 
+# 思路：采用clean reads直接比对整合序列
+
 # 1. 处理序列 Processing sequences
 
 	# 0. 准备工作 Preparation
@@ -38,7 +40,7 @@
 	## 0.1 准备流程配置文件
 
 	# 设置工作目录
-	wd=rice/miniCore
+	wd=ath/wx.16s
 	# 创建环境代码见~/github/Work/initial_project.sh
 
 	## 准备实验设计
@@ -49,18 +51,21 @@
 
 	# 保存模板中basic页中3. 测序文库列表library为doc/library.txt
 	# 按library中第二列index准备测序文库
-	awk 'BEGIN{OFS=FS="\t"}{system("ln -s /mnt/bai/yongxin/seq/180528.lane11/Clean/CWHPEPI00001823/seq/"$2"_1.fq seq/"$1"_1.fq");}' <(tail -n+2 doc/library.txt )
-	awk 'BEGIN{OFS=FS="\t"}{system("ln -s /mnt/bai/yongxin/seq/180528.lane11/Clean/CWHPEPI00001823/seq/"$2"_2.fq seq/"$1"_2.fq");}' <(tail -n+2 doc/library.txt )
+	awk 'BEGIN{OFS=FS="\t"}{system("ln -s /mnt/bai/yongxin/seq/180719.nrt1.1a.lane12/Clean/CW541/FCH7F2JBCX2_L1_CWHPE18070019_1.fq.gz seq/"$1"_1.fq.gz");}' <(tail -n+2 doc/library.txt )
+	awk 'BEGIN{OFS=FS="\t"}{system("ln -s /mnt/bai/yongxin/seq/180719.nrt1.1a.lane12/Clean/CW541/FCH7F2JBCX2_L1_CWHPE18070019_2.fq.gz seq/"$1"_2.fq.gz");}' <(tail -n+2 doc/library.txt )
+    # 如果压缩还要解压
+    gunzip -f seq/*.gz
+
 
 	# 标准多文库实验设计拆分，保存模板中design页为doc/design_raw.txt
 	split_design.pl -i doc/design_raw.txt
 	# 从其它处复制实验设计
-	cp ~/ath/jt.HuangAC/batch3/doc/L*.txt doc/
+	#cp ~/ath/jt.HuangAC/batch3/doc/L*.txt doc/
 	# 删除多余空格，windows换行符等
 	sed -i 's/ //g;s/\r/\n/' doc/*.txt 
-	head -n3 doc/L01.txt
+	head -n3 doc/L1.txt
 	# 依据各文库L*.txt文件生成实验设计
-	cat <(head -n1 doc/L01.txt | sed 's/#//g') <(cat doc/L* |grep -v '#') > doc/design.txt
+	cat <(head -n1 doc/L1.txt | sed 's/#//g') <(cat doc/L* |grep -v '#') > doc/design.txt
 	# 检查是否相等
 	wc -l doc/design.txt
 	cut -f 1 doc/design.txt|sort|uniq|wc -l
@@ -75,7 +80,7 @@
 	# 检查数据质量，转换为33
 	#determine_phred-score.pl seq/lane_1.fq.gz
 	# 如果为64，改原始数据为33
-	rename 's/lane/lane_33/' seq/lane_*
+	#rename 's/lane/lane_33/' seq/lane_*
 	# 关闭质量控制，主要目的是格式转换64至33，不然usearch无法合并
 	#time fastp -i seq/lane_64_1.fq.gz -I seq/lane_64_2.fq.gz \
 	#	-o seq/lane_1.fq.gz -O seq/lane_2.fq.gz -6 -A -G -Q -L -w 9
