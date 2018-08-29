@@ -38,9 +38,8 @@
 	## 0.1 准备流程配置文件
 
 	# 设置工作目录
-	wd=ath/integrate16s
+	wd=rice/miniCore
 	# 创建环境代码见~/github/Work/initial_project.sh
-	
 
 	## 准备实验设计
 
@@ -48,41 +47,41 @@
 	# Initialize the working directory
 	make init
 
-	## 1.3. 准备原始数据
+	# 保存模板中basic页中3. 测序文库列表library为doc/library.txt
+	# 按library中第二列index准备测序文库，如果压缩要添加.gz，并用gunzip解压
+	awk 'BEGIN{OFS=FS="\t"}{system("ln -s /mnt/bai/yongxin/seq/180528.lane11/Clean/CWHPEPI00001823/seq/"$2"_1.fq seq/"$1"_1.fq");}' <(tail -n+2 doc/library.txt )
+	awk 'BEGIN{OFS=FS="\t"}{system("ln -s /mnt/bai/yongxin/seq/180528.lane11/Clean/CWHPEPI00001823/seq/"$2"_2.fq seq/"$1"_2.fq");}' <(tail -n+2 doc/library.txt )
+	# 如果压缩文件，要强制解压链接
+	gunzip -f seq/*.gz
 
+	# 标准多文库实验设计拆分，保存模板中design页为doc/design_raw.txt
+	split_design.pl -i doc/design_raw.txt
+	# 从其它处复制实验设计
+	cp ~/ath/jt.HuangAC/batch3/doc/L*.txt doc/
+	# 删除多余空格，windows换行符等
+	sed -i 's/ //g;s/\r/\n/' doc/*.txt 
+	head -n3 doc/L1.txt
+	# 依据各文库L*.txt文件生成实验设计
+	cat <(head -n1 doc/L1.txt | sed 's/#//g') <(cat doc/L* |grep -v '#') > doc/design.txt
+	# 检查是否相等
+	wc -l doc/design.txt
+	cut -f 1 doc/design.txt|sort|uniq|wc -l
+
+	## 准备原始数据
+
+	# 拆lane和质量转换归为原始seq目录中处理
 	# Prepare raw data
-	# 数据来自三个课题：miniCore + timecourse + nrt1.1b + nrt1.1a + SL + epi + Gprotein + CTK + SD1
+	#ln ~/seq/180210.lane9.ath3T/Clean/CWHPEPI00001683/lane_* ./
+	#cp ~/ath/jt.HuangAC/batch3/doc/library.txt doc/
 	
-	# 合并实验设计
-	# 合并三个项目的实验设计，检查样品是否有重名
-	cp ~/ath/jt.terpene.16S/batch4_unoise/doc/design.txt doc/design_2.5.txt
-	cp ~/ath/jt.HuangAC/batch3all/doc/design.txt doc/design_3.txt
-
-	# 统计实验样品行和唯一行，确实样品名唯一
-	cat doc/design_* | grep -v 'SampleID'|wc -l
-	cat doc/design_* | grep -v 'SampleID'|cut -f 1| sort|uniq|wc -l 
-	# 如果不一致，检查显示重名的方法
-	cat doc/design_* | grep -v 'SampleID'|cut -f 1| sort|uniq -d
-	# 检查土壤有异常，观察原因
-	grep 'Soil' doc/design_2.5.txt
-	grep 'Soil' doc/design_3.txt
-	# 2.5中样本和数据都小，修改2.5中的土为Soil25r
-	sed -i 's/^Soil/Soil25r/' doc/design_2.5.txt
-	# Double check，序列也需要替换，再上面检查
-	grep 'Soil' doc/design_2.5.txt
-
-	# 统计各实验来源样本数量和总量
-	wc -l doc/design*
-	# 2 projecct include 915 samples (330, 585)
-
-	# 合并实验设计，前7列共有，只保留前7列
-	cat <(head -n1 doc/design_3.txt) <(cat doc/design_* | grep -v 'SampleID') | cut -f 1-11 > doc/design.txt
-
-	# 原始数据合并
-	cat <(sed 's/>Soil/>Soil25r/' ~/ath/jt.terpene.16S/batch4_unoise/temp/seqs_usearch.fa) \
-	~/ath/jt.HuangAC/batch3all/temp/seqs_usearch.fa | cut -f 1 -d ';' | sed 's/_/./g' > temp/filtered.fa
-	# 从1.6 fa_unqiue 开始
-	
+	# 检查数据质量，转换为33
+	#determine_phred-score.pl seq/lane_1.fq.gz
+	# 如果为64，改原始数据为33
+	rename 's/lane/lane_33/' seq/lane_*
+	# 关闭质量控制，主要目的是格式转换64至33，不然usearch无法合并
+	#time fastp -i seq/lane_64_1.fq.gz -I seq/lane_64_2.fq.gz \
+	#	-o seq/lane_1.fq.gz -O seq/lane_2.fq.gz -6 -A -G -Q -L -w 9
+	# 1lane 80GB, 2 threads, 102min
 
 ## 1.1. 按实验设计拆分lane为文库
 
@@ -101,17 +100,21 @@
 
 
 	# 拆分样品
-	head -n3 doc/L01.txt
+	head -n3 doc/L1.txt
 	# 按L1/2/3...txt拆分library为samples
+	# 输入为seq/L*.fq，输出为seq/sample/*.fq
 	make library_split
 	make library_split_stat
+	# 统计结果见result/split有txt/pdf/png，推荐看png方便快速查看每张位图
 
 ## 1.3. 样品双端合并、重命名、合并为单一文件
 
 	# Merge paired reads, renames and merge all samples
 	# 样品双端合并、重命名、合并为单一文件, 注意fastq为33格式，64位采用fastp转换
+	# 输入为seq/sample/*.fq，输出为seq/all.fq
 	make sample_merge
 	make sample_merge_stat
+	# result/sample_merge.log中有每个样本合并后的序列数量
 
 
 ## 1.4. 切除引物与标签
@@ -119,6 +122,7 @@
 	# Cut primers and lables
 	# 切除左端标签和引物，右端 引物
 	# Cut barcode 10bp + V5 19bp in left， and V7 18bp in right
+	# 输入为seq/all.fq，输出为temp/stripped.fq
 	make fq_trim
 
 
@@ -126,22 +130,22 @@
 
 	# Quality control
 	# 过滤序列中预期累计错误率>1%的序列
+	# 输入为temp/stripped.fq，输出为temp/filtered.fa
 	make fq_qc
 
 
 ## 1.6. 序列去冗余
 
 	# Remove redundancy, get unique reads
+	# 输入为temp/filtered.fa，输出为temp/uniques.fa
 	make fa_unqiue
-	# 143,053,957序列，>30为188654，改为143
+
 
 ## 1.7. 挑选OTU
 
 	# Pick OTUs
-	# unoise3速度比cluster_otus慢上百倍
-	# 修改culster_otus为unoise3，143阈值下97%下为5000个OTUs，unoise3下1.3万
-	cp -r result result_97
-	rm otu_pick
+	# unoise3速度比cluster_otus慢上百倍，更精细但结果也更多
+	# 输入为temp/uniques.fa，输出为temp/Zotus.fa
 	make otu_pick
 
 
@@ -219,68 +223,6 @@
 
 # 2. 统计绘图 Statistics and plot
 
-	## 比较二半萜-第二批，实验设计位于doc/2.5 目录中
-	sub=2.5
-	mkdir -p doc/${sub}
-	pwd=~/ath/jt.terpene.16S/batch4_unoise/doc
-	# 编辑2、3批组名为groupID，添加b2/b3区分
-	cp ${pwd}/design.txt doc/${sub}/design.txt
-	sed -i 's/Soil/Soil25r/' doc/${sub}/design.txt
-	# 第二批数据添加b2
-	cp ${pwd}/group_compare.txt doc/${sub}/compare.txt
-	sed -i 's/\t/b2\t/g;s/$/b2/g' doc/${sub}/compare.txt
-	cat -A doc/${sub}/compare.txt
-	cp ${pwd}/group_venn.txt doc/${sub}/venn.txt
-	sed -i 's/vs/b2vs/g;s/_/b2_/g' doc/${sub}/venn.txt
-	cat -A doc/${sub}/venn.txt
-
-	## 比较二半萜-第三批，实验设计位于doc/2.5.3 目录中
-	sub=2.5.3
-	mkdir -p doc/${sub}
-	pwd=~/ath/jt.terpene.16S/batch4_unoise/doc
-	cp doc/2.5/design.txt doc/${sub}/design.txt
-	# 获得比较和维恩文件，并添加b3与实验设计对应
-	cp ${pwd}/b3/group_compare.txt doc/${sub}/compare.txt
-	sed -i 's/\t/b3\t/g;s/$/b3/g' doc/${sub}/compare.txt
-	cat -A doc/${sub}/compare.txt
-	cp ${pwd}/b3/group_venn.txt doc/${sub}/venn.txt
-	sed -i 's/vs/b3vs/g;s/_/b3_/g;s/enriched/E/g;s/depleted/D/g;s/vs/_/g' doc/${sub}/venn.txt
-	cat -A doc/${sub}/venn.txt
-	# 获得比较组中的组名
-	cat doc/${sub}/compare.txt|tr '\t' '\n'|sort|uniq|awk '{print "\""$1"\""}'|tr "\n" ","
-
-	## 2018/8/22 比较二半萜-第三批+Soil，实验设计位于doc/2.5.3 目录中
-	sub=2.5.3soil
-	mkdir -p doc/${sub}
-	cp doc/2.5.3/* doc/${sub}
-    # 添加WT4b3 vs Soil1b3
-    head -n1 ~/ath/jt.terpene.16S/batch4_unoise/doc/b3soil/group_compare.txt|sed 's/\t/b3\t/g;s/$/b3/g' >> doc/${sub}/compare.txt
-	cat doc/${sub}/compare.txt|tr '\t' '\n'|sort|uniq|awk '{print "\""$1"\""}'|tr "\n" ","
-    rm alpha_boxplot
-    make plot_venn # DA otu
-    make DA_compare_tax # DA taxonomy
-    make rmd # report
-
-	## 比较三萜-第三批，实验设计位于doc/3.1 目录中
-	sub=3.1
-	mkdir -p doc/${sub}
-	pwd=~/ath/jt.HuangAC/batch3all/doc/b3_4
-	cp doc/design.txt doc/${sub}/design.txt
-	# 获得比较和维恩文件，并添加b3与实验设计对应
-	cp ${pwd}/group_compare.txt doc/${sub}/compare.txt
-	cp ${pwd}/group_venn.txt doc/${sub}/venn.txt
-	sed -i 's/enriched/E/g;s/depleted/D/g;s/vs/_/g' doc/${sub}/venn.txt
-	cat -A doc/${sub}/venn.txt
-	# 获得比较组中的组名
-	cat doc/${sub}/compare.txt|tr '\t' '\n'|sort|uniq|awk '{print "\""$1"\""}'|tr "\n" ","
-    # modify sub, then report
-    rm alpha_boxplot
-    make plot_venn # DA otu
-    make DA_compare_tax # DA taxonomy
-    make rmd # report
-
-
-
 ## 2.1. Alpha多样性指数箱线图
 	
 	# Alpha index in boxplot
@@ -317,14 +259,31 @@
 	make plot_heatmap
 	make plot_manhattan
 
-# 2.11 plot_venn 维恩图
-	
-	make plot_venn
-
 # 3. 高级分析
 
-    
 ## 3.9 培养菌注释
 
-    # 培养菌注释，采用ath root的菌库，COTU，目前只注释plot_veen的结果
-    make culture
+	# 默认为水稻，包括相似度、覆盖度、丰度和物种注释
+
+# 4. 个性分析
+
+## 4.1. 分蘖与菌相关性
+
+	# 准备相关输入文件
+	cd ~/rice/miniCore/180718
+	# 硬链数据文件，保持可同步修改和可备份
+	# miniCore分蘖数据整理
+	ln ~/rice/xianGeng/doc/phenotype_sample_raw.txt doc/
+	# LN otu表和实验设计
+	mkdir -p data
+	cp ~/rice/miniCore/180319/LN/otutab.txt data/LN_otutab.txt
+	cp ~/rice/miniCore/180319/doc/design.txt doc/design_miniCore.txt
+	mkdir -p data/cor/LN
+	# 物种注释
+	cp ~/rice/miniCore/180319/temp/otus_no_host.tax data/
+
+	# 统计见script/cor_tiller_LN.Rmd
+	# 相关系数，添加物种注释
+	awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$4} NR>FNR{print $0,a[$1]}' result/otus_no_host.tax data/cor/LN/otu_mean_pheno_cor.r.txt | less -S > result/cor/LN/otu_mean_pheno_cor.r.txt.tax
+	# 再添加可培养相关菌
+	awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print $0,a[$1]}' result/39culture/otu.txt data/cor/LN/otu_mean_pheno_cor.r.txt.tax | less -S > data/cor/LN/otu_mean_pheno_cor.r.txt.tax

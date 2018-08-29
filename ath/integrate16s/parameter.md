@@ -161,7 +161,7 @@ SHELL:=/bin/bash
 
 	# 绘图通用参数
 	# 实验设计文件位置，全局，其它图默认调此变量，也可单独修改；并选择表中的组列和具体分组
-	sub="2.5.3"
+	sub="2.5.3soil"
 	doc=doc/${sub}
 	design=${wd}/${doc}/design.txt 
 	g1=groupID
@@ -169,7 +169,8 @@ SHELL:=/bin/bash
 	# 绘图使用的实验组，顺序即图中显示顺序；为空时使用所有组和默认顺序
 	# b2无土无子批次: "DM1b2","DM2b2","DM3b2","DM4b2","DO1b2","DO2b2","TPS25ab2","TPS25bb2","TPS30ab2","TPS30bb2","WTb2"
 	# b3: "DM3b3","DM4b3","TPS25ab3","TPS25bb3","TPS30ab3","TPS30bb3","WT4b3","Soil2b3"
-	g1_list='"DM3b3","DM4b3","TPS25ab3","TPS25bb3","TPS30ab3","TPS30bb3","WT4b3"'
+	# g1_list='"DM3b3","DM4b3","TPS25ab3","TPS25bb3","TPS30ab3","TPS30bb3","WT4b3"'
+	g1_list=`cat doc/${sub}/compare.txt|tr '\t' '\n'|sort|uniq|awk '{print "\""$$1"\""}'|tr "\n" ","|sed 's/,$$//'`
 
 	# 组间比较列表
 	compare=${wd}/${doc}/compare.txt
@@ -282,13 +283,14 @@ SHELL:=/bin/bash
 	# 物种分类级，p/c/o/f/g五级可选
 	#Dct_tax=g
 	#Dct_input=${wd}/result/tax/sum_${Dct_tax}.txt
-	# 差异比较方法edgeR or wilcox，默认edgeR
+	# 差异比较方法edgeR or wilcox，默认相对丰富仅能使用wilcox，只有count才能用edgeR
 	Dct_compare=${compare}
-	Dct_method=${compare_method}
+	Dct_method=wilcox
 	Dct_pvalue=${pvalue}
 	Dct_FDR=${FDR}
 	Dct_FC=${FC}
-	Dct_thre=${abundance_thre}
+	# 门-属数量不大，无须过滤丰度
+	Dct_thre=0
 	Dct_design=${design}
 	Dct_group_name=${g1}
 	Dct_group_list=${g1_list}

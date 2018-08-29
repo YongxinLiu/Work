@@ -4,8 +4,9 @@
 # 2018/7/18 rice/integrate16s 重新分析miniCore类群和SL分蘖等9套水稻数据
 # 2018/7/24 rice/nrt1.1a 氮吸收利用基因nrt1.1a与菌群
 # 2018/7/24 ath/integrate16s 整理拟南芥萜类二半萜和三萜数据
-# 2018/8/7 ath/wx.16s
-wd=ath/wx.16s
+# 2018/8/7 ath/wx.16s 王鑫16S功能基因验证
+# 2018/8/29 rice/zn.sd1/b2 水稻第二批SD1
+wd=rice/zn.sd1/b2
 # 创建github目录，用于备份流程、文档
 cd 
 mkdir -p ~/github/Work/$wd

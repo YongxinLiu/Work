@@ -270,21 +270,41 @@ cp ../xianGeng/doc/design.txt doc/design_xiangeng.txt
 
 # 2. 统计绘图 Statistics and plot
 
-## 比较四大亚种，实验设计位于doc/xiangeng 目录中
+    # 不同组的版本管理
+
+    ## 比较四大亚种，实验设计位于doc/xiangeng 目录中
 	sub=xiangeng
 	mkdir -p doc/${sub}
 	cp doc/design_${sub}.txt doc/${sub}/design.txt
 	cp doc/compare.txt doc/${sub}/compare.txt
 	# 实验组改为"HIND","HTEJ","HAUS","HTRJ","LIND","LTEJ","LAUS","LTRJ"
 
-## 比较SL，实验设计位于doc/SL目录中
+    ## 比较SL，实验设计位于doc/SL目录中
 	sub=SL
 	mkdir -p doc/${sub}
 	cp doc/design_${sub}.txt doc/${sub}/design.txt
 	sed -i 's/genotypeID/groupID/g' doc/${sub}/design.txt
 	cat doc/${sub}/compare.txt|tr '\t' '\n'|sort|uniq|awk '{print "\""$1"\""}'|tr "\n" ","
 	# 修改makefile中的sub和g1_list
+	
 
+    ## 比较SL_Hn
+    sub=SL_Hn
+	mkdir -p doc/${sub}
+	grep 'Hn' doc/SL/compare.txt > doc/${sub}/compare.txt
+    # 编号比较韦恩图venn.txt
+	# 基于比较组的编号给alpha, beta小组绘图；cat doc/${sub}/compare.txt|tr '\t' '\n'|sort|uniq|awk '{print "\""$1"\""}'|tr "\n" ","|sed 's/,$//'，总体给g1_list保证不同组差异比较一致
+
+    ## 比较SL_Bj
+    sub=SL_Bj
+	mkdir -p doc/${sub}
+	grep 'Bj' doc/SL/compare.txt > doc/${sub}/compare.txt
+    sed 's/Hn/Bj/g' doc/SL_Hn/venn.txt > doc/${sub}/venn.txt
+	# 基于比较组的编号给alpha, beta小组绘图；cat doc/${sub}/compare.txt|tr '\t' '\n'|sort|uniq|awk '{print "\""$1"\""}'|tr "\n" ","|sed 's/,$//'，总体给g1_list保证不同组差异比较一致
+    rm alpha_boxplot
+    make plot_venn # DA otu
+    make DA_compare_tax2 # DA taxonomy
+    make rmd # report
 
 
 ## 2.1. Alpha多样性指数箱线图
@@ -587,14 +607,88 @@ compare.sh -i `pwd`/result/otutab.txt -c `pwd`/doc/compare_sp.txt -m "wilcox" \
 
 ## 4.8 选菌验证
     
-    date=wet/180813
+    date=wet/180815
     cluture_db=/mnt/bai/yongxin/culture/rice/result/culture_select.fasta
-    format_seq2fasta.pl -i "${date}/*.seq" -o ${date}.fa 
+    # format_seq2fasta.pl -i "${date}/*.seq" -o ${date}.fa 
+    cat ${date}/*.seq.txt | sed 's/>/\n>/' | sed '/^$/d' > ${date}.fa
     # 输出13列为coverage
     blastn -query ${date}.fa -db ${cluture_db} -out ${date}.xls -outfmt '6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qcovs' -num_alignments 1 -evalue 1 -num_threads 9 
     sed -i '1 i qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qcovs' ${date}.xls
-    sed -i '1 s/ /\t/' ${date}.xls
+    sed -i '1 s/ /\t/g' ${date}.xls
+    blastn -query ${date}.fa -db ${cluture_db} -out ${date}.txt -outfmt '6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qcovs' -num_alignments 1000 -evalue 1 -num_threads 9 
 
+
+## 4.9 基因型与Beta多样性
+
+    # PNAS-2018-多年多点5千样本鉴定玉米根际可遗传微生物
+    # 在Hapmap2中查询NAM祖先并制作NAM亲源关系，过滤在至少10个祖先中出现的点。使用TASSEL产生遗传距离矩阵。使用beta距离矩阵和kinship矩阵计算R2。
+    # gcta中计算的--make-grm(genetic relationship matrix)为二进制heritability/T2.grm.bin
+    # gemma计算过kinship矩阵 /mnt/bai/yongxin/rice/miniCore/180319/gemma/kinship.txt
+    # 计算kinship与beta_diversity相关性
+    # 详见script/fig2.diversity.genetics.rmd ## 2.C
+    # 结果相关性为-0.46-0.26，以负相关为居多，因为kinship为相关性，改为1-similarity=distance
+
+
+    # tassel计算kinship矩阵
+
+## 4.10 筛选SL使用样品
+    mkdir -p SL
+    # 按beta距离，15个重重复保留12个
+    Rscript ~/github/Amplicon/16Sv2/script/beta_pcoa_group.r -i temp/beta/bray_curtis.txt -N 12 -d doc/design_SL.txt -n groupID -o SL/pcoa_bray
+	# 备份实验设计
+	cp doc/design.txt doc/design.txt180821
+	# 获得删除样品
+    cut -f 1 SL/pcoa_bray* | sort | uniq -u > SL/discard.id
+	# 剔除点注释design
+    for i in `cat SL/discard.id`; do \
+        sed -i "s/^$i/#$i/" doc/design.txt;done
+
+## 4.10 SL 6个基因型热图展示均值或中位数 script/fig4.SL_mutant.rmd
+
+    mkdir -p script/fig4
+    # 筛选差异OTU用于展示
+    cat <(tail -n12 rice_SL_Bj_wilcox_v1/result/compare/diff.list.vennd27RtBj_NpRtBj_Dd17RtBj_NpRtBj_Dd10RtBj_NpRtBj_D.xls.xls) \
+    <(tail -n71 rice_SL_Bj_wilcox_v1/result/compare/diff.list.vennd27RtBj_NpRtBj_Ed17RtBj_NpRtBj_Ed10RtBj_NpRtBj_E.xls.xls) \
+    | cut -f 1 > script/fig4/Bj_d27_d17_d10_common.id
+    # 所有Bj共有差异OTU
+    cat rice_SL_Bj_wilcox_v3/result/compare/diff.list.vennd27RtBj_NpRtBj_Ed17RtBj_NpRtBj_Ed10RtBj_NpRtBj_E.xls.xls | grep 'OTU_' | cut -f 1 | sort| uniq | less -S > script/fig4/Bj_d27_d17_d10_common.id # rice_SL_Bj_wilcox_v3/result/compare/diff.list.vennd27RtBj_NpRtBj_Dd17RtBj_NpRtBj_Dd10RtBj_NpRtBj_D.xls.xls 
+    # ## Heatmap of genotypes 中查看mat_mean_final变量，居然有的OTU_153|OTU_440|OTU_510在所有组中为零？差异基因不可能全为零的，检查原因
+    grep -P 'OTU_153|OTU_440|OTU_510' rice_SL_Bj_wilcox_v3/result/compare/diff.list.vennd27RtBj_NpRtBj_Dd17RtBj_NpRtBj_Dd10RtBj_NpRtBj_D.xls.xls rice_SL_Bj_wilcox_v3/result/compare/diff.list.vennd27RtBj_NpRtBj_Ed17RtBj_NpRtBj_Ed10RtBj_NpRtBj_E.xls.xls 
+    # all in depleted file，如OTU_153来自d10RtBj_NpRtBj_D，发现Np中有小部分不为零，但中位数为零
+
+    # ggplot2绘制SL所有3组共有下调OTU的相对丰度"OTU_23","OTU_31","OTU_18","OTU_125","OTU_57","OTU_43","OTU_443","OTU_37","OTU_1436"
+    tail -n12 rice_SL_Bj_wilcox_v1/result/compare/diff.list.vennd27RtBj_NpRtBj_Dd17RtBj_NpRtBj_Dd10RtBj_NpRtBj_D.xls.xls|cut -f 1|awk '{print "\""$$1"\""}'|tr "\n" ","|sed 's/,$$//'
+	alpha_boxplot.sh -i `pwd`/result/otutab.txt -m '"OTU_23","OTU_31","OTU_18","OTU_125","OTU_57","OTU_43","OTU_443","OTU_37","OTU_1436"' \
+        -d `pwd`/doc/"SL"/design.txt -A groupID -B '"d27RtBj","d17RtBj","d10RtBj","d3AHLRtBj","d3NpRtBj","d3RtBj","d14AHLRtBj","d14RtBj","d53RtBj","NpRtBj","d27RtHn","d17RtHn","d10RtHn","d3RtHn","d14RtHn","d53RtHn","NpRtHn"' \
+        -o `pwd`/result/otu_boxplot/ -h 3 -w 10 -t TRUE -n TRUE
+    
+
+## 4.11 科水平差异展示台球图
+
+    # 脚本来自timecourse的plot_pie_DA_Bplylum.r
+    # 获得Top9 phylum+class，手工制作前10类Top6Phylum+Proteobacteria-4class
+    cut -f 1 result/tax/sum_p.txt | tail -n+2 | head -n6 | sort | head -n5 > result/tax/tax_pc.top9
+    cut -f 1 result/tax/sum_pc.txt | grep 'proteobacteria' | sort | grep -v 'Epsilon' >> result/tax/tax_pc.top9
+    # 以rice_SL_Bj_wilcox_v3/result/compare/d27RtBj-NpRtBj_sig.txt rice_SL_Bj_wilcox_v3/result/compare_f/d27RtBj-NpRtBj_sig.txt为例
+    awk '{if ($3!="Proteobacteria") {print $0"\t"$3} else {print $0"\t"$4}}' result/taxonomy_8.txt|less -S|sed '1 s/Phylum$/PC/' > result/taxonomy_9.txt
+    cut -f 6,9 result/taxonomy_9.txt|tail -n+2|sort|uniq|sed '1 i Family\tPC'|less > result/taxonomy_familyPC.txt
+
+    # family同名存在于多个phylum中，无法一一对应。需要使用完整门、属分类，改为多级合并式组合物种
+    wc -l result/tax/sum_?.txt
+      78 result/tax/sum_c.txt
+     276 result/tax/sum_f.txt
+     872 result/tax/sum_g.txt
+     114 result/tax/sum_o.txt
+    wc -l result/tax/count_?.txt
+     166 result/tax/count_c.txt
+     963 result/tax/count_f.txt
+    1840 result/tax/count_g.txt
+       3 result/tax/count_k.txt
+     477 result/tax/count_o.txt
+      39 result/tax/count_p.txt
+    2845 result/tax/count_s.txt
+    # 改用完整 物种时，各级都增加了2-3倍的数据
+        mkdir -p SL/pie_family
 
 
 
@@ -634,313 +728,4 @@ compare.sh -i `pwd`/result/otutab.txt -c `pwd`/doc/compare_sp.txt -m "wilcox" \
     # 标注可遗传OTUs枝标为红色
     awk '$3>0.1 && $9>=0.3 ' result/anno/otu.8_10heritable | tail -n+2 | cut -f 1 | awk '{print $0"|"$0" clade #ff0000 normal 1"}'
 
-
-
-
-
-	# 不同加土，否则主要差异为土壤；不能两块地混合，否则主要差异为不同地块
-	# HN下TEJ和IND
-beta_pcoa.sh -i `pwd`/result/beta/ -m '"bray_curtis","weighted_unifrac","unweighted_unifrac"' \
-	-d `pwd`/doc/design.txt -A groupID -B '"HIND","HTEJ"' -E TRUE \
-	-c `pwd`/doc/compare.txt \
-	-o `pwd`/fig1/1subspecies/beta_HN_ -h 3 -w 5
-# 匹配非注释行，输出用于发表
-grep -P '^\s*#' script/beta_pcoa.R | less
-grep -P -v '^\s*#' script/beta_pcoa.R > fig1/script/beta_pcoa_fieldII.R
-	# LN下TEJ和IND
-beta_pcoa.sh -i `pwd`/result/beta/ -m '"bray_curtis","weighted_unifrac","unweighted_unifrac"' \
-	-d `pwd`/doc/design.txt -A groupID -B '"LIND","LTEJ"' -E TRUE \
-	-c `pwd`/doc/compare.txt \
-	-o `pwd`/fig1/1subspecies/beta_LN_ -h 3 -w 5
-grep -P -v '^\s*#' script/beta_pcoa.R > fig1/script/beta_pcoa_fieldI.R
-
-
-### alpha多样性
-	
-	箱线图、稀释取线、样品稀释取线
-
-	alpha_boxplot.sh -i `pwd`/result/alpha/index.txt -m '"chao1","richness","shannon_e"' \
-	-d `pwd`/doc/design.txt -A groupID -B '"LTEJ","LIND","LSoil1","HTEJ","HIND","HSoil1"' \
-	-o `pwd`/fig1/1/alpha_ -h 3 -w 5
-	# 稀释曲线
-	alpha_rare.sh -i `pwd`/result/alpha/rare.txt \
-	-d `pwd`/doc/design.txt -A groupID -B '"LTEJ","LIND","LSoil1","HTEJ","HIND","HSoil1"' \
-	-o `pwd`/fig/1/alpha_ -h 3 -w 5
-
-### Taxonomy 门+变形菌纲
-	cut -f 3-4 result/taxonomy_8.txt|sort|uniq|grep 'Proteobacteria' # 为什么会有这么多结果，只选5类继续分析
-	cat <(grep -v 'Proteobacteria' result/tax/sum_p.txt) <(grep 'proteobacteria' result/tax/sum_c.txt) > result/tax/sum_pc.txt
-tax_stackplot.sh -i `pwd`/result/tax/sum_ -m '"pc"' -n 10 \
-	-d `pwd`/doc/design.txt -A groupID -B '"LTEJ","LIND","LSoil1","HTEJ","HIND","HSoil1"' -O FALSE \
-	-o `pwd`/fig1/1/tax_pc_ -h 3 -w 5
-
-
-### 门及纲水平差异
-
-
-## 图2. 随机森林分类
-	
-	# 用family水平建模，用HN数据training，用LN验证。randomForest_family.R
-	randomForest_class.R
-	1. 纲水平建模，展示贡献度，和样品中热图
-	使用高HN和HN下籼粳稻纲水平0.3%丰度的15个Feature机器学习；保存预测结果confusion.txt，整理16.4%错误率，TEJ 37.4%错误；
-	2018/5/21 删除三个澳大亚利(纬度为负)粳稻, D4032, D4038, F4053; 标记A50/ZH11为TEJ，而IR24为IND，各分为Hn/Ln两种情况；
-	错误率降低为15.3%，TEJ为36%;Top1 feature也变为了Nitrospira，Deltaproteobacteria
-	2. Top feature：用各组柱状图/箱线图分类展示，再加梯度排序
-	3. 在nrt和时间序列中验证
-
-	
-## 图3. 亚种差异与氮相关
-
-	1. 差异OTUs曼哈顿图，维恩图
-	由筛选组，改为筛选亚组(品种)中位数的OTUs: 原万5为343个OTUs，万一为942个；最终丰度为0.2%
-	compare_sub.R # 修改丰度筛选group为groupID2，接下来 rm plot_volcano ; make plot_venn; make rmd
-
-grep -P -v '^\s*#' script/compare_sub.R > fig1/script/compare.R
-
-	差异OTUs在两块地曼哈顿、韦恩图;	曼哈顿图要写标颜色为门、纲,	plot_manhattan_pc.r
-	plot_manhattan.sh -i result/compare/LTEJ-LIND_all.txt
-	# 我们重点是突出IND，大多数是IND特异的，添加IND vs TEJ的组，重画曼哈顿图，让IND为向上实心三角
-
-	# 曼哈顿图的代码和数据
-	grep -P -v '^\s*#' script/plot_manhattan_pc.r > fig1/script/plot_manhattan_pc.r
-	cp result/tax/sum_pc.txt fig1/data/
-	cp result/compare/*IND-*TEJ_all.txt fig1/data/
-
-	# 维恩图的代码和数据
-	cp result/compare/diff.list* fig1/data/
-	diff.list.vennHTEJ_HIND_DLTEJ_LIND_DCDE.r
-
-	2. 差异OTUs在时间序列中变化
-	alpha_boxplot.sh -i result/tax/sum_c.txt -d `pwd`/doc/design.txt -A groupID -B '"A50Cp0","A50Cp1","A50Cp2","A50Cp3","A50Cp7","A50Cp10","A50Cp14","A50Cp21","A50Cp28","A50Cp35","A50Cp42","A50Cp49","A50Cp63","A50Cp70","A50Cp77","A50Cp84","A50Cp91","A50Cp98","A50Cp112","A50Cp119"' \
-	-m '"Deltaproteobacteria","Actinobacteria","Alphaproteobacteria","Clostridia","Betaproteobacteria","Nitrospira"' -t TRUE -o result/randomForest/time_ -n TRUE # 42以后没有数据呢？改用alpha_boxplot.sh
-
-	3. 绘制维恩图的共有饼图
-	# fig1/3compare.rmd 绘制时间序列的图，最后添加共有的成份
-	# 筛选HL/LN下TEJ-IND共同下调的菌
-	cat result/compare/?TEJ-?IND_sig.txt | grep 'Depleted' | cut -f 1 | sort | uniq -d > fig1/3compare/otu_IND_common_specific.txt
-	cat result/compare/?TEJ-?IND_sig.txt | grep 'Enriched' | cut -f 1 | sort | uniq -d > fig1/3compare/otu_TEJ_common_specific.txt
-	# 两块地保守上调、下调的OTUs
-	cat fig1/3compare/otu_IND_common_specific.txt fig1/3compare/otu_TEJ_common_specific.txt > fig1/3compare/otu_common.txt
-	# 并用faprotax注释
-	# 绘制nrt和A50差异与籼粳稻共有
-	tail -n 70 ~/rice/xianGeng/fig1/ST/07.vennHTEJ_HIND_DLTEJ_LIND_DV3703HnCp6_ZH11HnCp6_D.txt | cut -f 1 > fig1/4nrt/venn_nrt_indiaHL.txt
-	tail -n 6 ~/rice/xianGeng/fig1/ST/07.vennHTEJ_HIND_DLTEJ_LIND_DA50LnCp7_A56LnCp7_D.txt | cut -f 1 > fig1/4nrt/venn_NRTsnp_indiaHL.txt
-
-
-	5. 差异菌功能有无热图 plot_heatmap_timecourse.R
-	filter_otus_by_sample.sh -f result/faprotax/element_tab.txt -o result/faprotax/xiaogeng -d doc/design.txt -A groupID -B '"HTEJ","HIND","HSoil1","LTEJ","LIND","LSoil1"'
-	# 结果可用STAMP进一步探索
-	
-	# 筛选时间序列中上/下调两大类的OTU进行功能分析
-	mkdir -p fig/3
-	awk '$2>0' fig/2/otu_IND_common_specific_time_cor6.txt | cut -f 1 > fig/3/timecournse_increase.id
-	awk '$2<0' fig/2/otu_IND_common_specific_time_cor6.txt | cut -f 1 > fig/3/timecournse_decrease.id
-	# 以Incease为例, decrease
-	type=decrease
-	filter_otus_from_otu_table.py -i result/otutab_norm_tax.biom -o timecourse/${type}.biom --otu_ids_to_exclude_fp fig/3/timecournse_${type}.id --negate_ids_to_exclude
-	/usr/bin/python2.7 /mnt/bai/yongxin/software/FAPROTAX_1.1/collapse_table.py -i timecourse/${type}.biom -o timecourse/${type}.faprotax -g /mnt/bai/yongxin/software/FAPROTAX_1.1/FAPROTAX.txt --collapse_by_metadata 'taxonomy' -v --force # --out_report result/faprotax/report 
-	filter_otus_by_sample.sh -f timecourse/${type}.faprotax -o fig/3/timecournse_faprotax_${type} -d doc/design.txt -A groupID -B '"HTEJ","HIND","HSoil1","LTEJ","LIND","LSoil1"'
-	# increase的差异功能类型均为IND>TEJ>soil，且以芳香、氮 相关
-	compare.sh -i `pwd`/result/otutab.txt -c `pwd`/doc/compare.txt -m "wilcox" \
-	-p 0.01 -q 0.01 -F 1.2 -t 0.0005 \
-	-d `pwd`/doc/design.txt -A groupID -B '"HTEJ","HIND","HSoil1","LTEJ","LIND","LSoil1"' \
-	-o `pwd`/result/compare/
-	# decrease的差异，stamp打开报错，但有时成功；下调无N循环相关，有
-	
-	# 可视化菌的功能有无
-	## 筛选report为功能有无表
-	grep 'OTU_' -B 1 result/faprotax/report | grep -v -P '^--$' > result/faprotax/report.clean
-	faprotax_report_sum.pl -i result/faprotax/report.clean -o result/faprotax/report
-	#OTU功能注释列表：result/faprotax/report.otu_func
-	#功能包含OTU列表：result/faprotax/report.func_otu
-	#OTU功能有无矩阵：result/faprotax/report.mat
-	# plot_heatmap_timecourse.R 绘制时间序列的图，再添加相应菌的主要功能，
-	# 同时对时间序列中不表达的也可视化功能:IND的功能绘制于 fig/2/otu_IND_common_specific_time_faprotax_noabundance.txt，TEJ单一条目录为 fig/2/otu_TEJ_common_specific_time_faprotax_noabundance.txt"
-	# 再对时间序列中0点去掉重新计算，发现分为了4组，在原文件基础上添加-0标志
-
-
-	# 菌种功能注释整体差异
-	rm result/compare_far/diff.list
-	compare.sh -i `pwd`/result/faprotax/element_tab.txt -c `pwd`/doc/compare.txt -m "wilcox" \
-	-p 0.01 -q 0.05 -F 1.2 -t 0.0005 \
-	-d `pwd`/doc/design.txt -A groupID -B '"HTEJ","HIND","HSoil1","LTEJ","LIND","LSoil1","V3703HnCp6","ZH11HnCp6","A50LnCp7","A56LnCp7","V3703LnCp6","ZH11LnCp6","A50LnCp6","A56LnCp6"' \
-	-o `pwd`/result/compare_far/ -N FALSE
-	batch_venn.pl -i doc/venn.txt -d result/compare_far/diff.list
-	# 注释比较结果
-	rm result/compare_far/diff.list.venn*.xls.*
-	batch2.pl -i 'result/compare_far/diff.list.venn*.xls' -d result/compare_far/database.txt -o result/compare_far/ -p vennNumAnno.pl
-	# 绘制箱线图
-	# 确定要展示的Features，两组共有
-	tail -n 39 result/compare_far/diff.list.vennHTEJ_HIND_DLTEJ_LIND_D.xls.xls|cut -f 1 > result/compare_far/IND.list
-	tail -n 9 result/compare_far/diff.list.vennHTEJ_HIND_ELTEJ_LIND_E.xls.xls|cut -f 1 > result/compare_far/TEJ.list
-	make plot_fa_barplot # 绘制单个功能的箱线图
-	# 修改alpha_boxplot.R为alpha_boxplot_far.R
-
-grep -P -v '^\s*#' script/alpha_boxplot_far.R > fig1/script/alpha_boxplot_far.R
-
-# 图4. 菌群与nrt关系
-
-	## 2. 差异菌/功能与氮相关基因显著相关
-	# 来自胡斌整理的氮相关基因doc/N-related genes in rice.docx共9个基因，先在doc/rice_nitrogen_list.xlsx中惠惠相关ID，保存为doc/rice_nitrogen_list.txt, 其中第5列RAP_SNP的ID与SNP注释文件对应
-	dos2unix doc/rice_nitrogen_list.txt # windows转换为linux
-	# 整理出SNP数据中对应的基因型、提取相应的位点
-	mkdir -p result/nitrogen_cor
-	cut -f 5 doc/rice_nitrogen_list.txt | tail -n+2 | tr '\n' '|' # 提取ID并替换为|分隔
-	grep -P 'OS10G0554200|OS08G0155400|OS02G0112100|OS02G0595900|OS01G0704100|OS01G0547600|OS03G0687000|OS04G0509600|OS06G0706400|OS06G0706500' /mnt/bai/yongxin/rice/miniCore/180319/gemma/snp.anno > result/nitrogen_cor/all_snp.list # 筛选到10个基因在miniCore中存在502个相关位点
-	cut -f 3 result/nitrogen_cor/all_snp.list | sort | uniq -c # 8个MODERATE，467个MODIFIER和27个LOW
-	grep -P 'HIGH|MODERATE' result/nitrogen_cor/all_snp.list > result/nitrogen_cor/good_snp.list # 其中重要SNP仅有8个，来自4个基因
-	# 提SNP对应基因型
-	cat /mnt/bai/xiaoning/past/software/tassel-5-standalone/sum_geno_*.hmp.txt > /tmp/temp
-	cut -f 1 result/nitrogen_cor/good_snp.list|tr '\n' '|' # 获取列表
-	grep -P '2m655515\t|2m657013|6m29839102|6m29839240|8m3183208|10m21759092|10m21761740|10m21761997' /tmp/temp > /tmp/temp1
-	cat <(head -n1 /mnt/bai/xiaoning/past/software/tassel-5-standalone/sum_geno_1.hmp.txt) /tmp/temp1 > result/nitrogen_cor/good_snp.geno # 添加标题
-	# 用excel转置 result/nitrogen_cor/good_snp.geno.t，添加注释
-	awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$2]=$0} NR>FNR{print $0,a[$1]}' ../miniCore/doc/minicore_list.txt result/nitrogen_cor/good_snp.geno.t > result/nitrogen_cor/good_snp.geno.t.txt
-
-
-	# 统计SNP基因型作为分组信息，来统计氮功能丰度组间P值
-	nitrogen_cor.r # 保存实验设计+基因型，方便识别SNP不同基因型在籼粳稻中区别
-	# 整理这4个重要SNP信息表，见SNP_list.xlsx
-	# 统计基因型与亚种分布
-	sed -i '1 s/^/SampleID\t/' result/nitrogen_cor/design.txt
-	head -n1 result/nitrogen_cor/design.txt|tr '\t' '\n'|awk '{print NR,$1}'
-	# NRT2.1 - 17; 1.1A - 21; 1.1B - 14，统计每个亚种内基因型的数量，可看到亚种内主要的SNP类型
-	cut -f 2,8,20 result/nitrogen_cor/design.txt|sort|uniq|cut -f 2,3|sort|uniq -c
-	grep -P '10m21759092|2m655515\t|8m3183208' /mnt/bai/yongxin/rice/miniCore/180319/gemma/T2.ann.vcf # 查询SNP变化位置、碱基和AA详细
-
-grep -P -v '^\s*#' script/nitrogen_cor.r > fig1/script/nitrogen_cor.R
-
-
-	3. 关键氮高效基因不同形态、突变体可部分解析亚种差异 2018/5/31
-	"A50LnCp6","A56LnCp6","A50LnCp7","A56LnCp7","A50LnSz7","A56LnSz7","A50HnCp6","A56HnCp6","A50HnCp7","A56HnCp7","A50HnSz7","A56HnSz7","V3703HnCp6","ZH11HnCp6","V3703LnCp6","ZH11LnCp6","nrtHnCp7","ZH11HnCp7","ZH11LnCp7","nrtLnCp7","nrtHnSz7","ZH11HnSz7","nrtLnSz7","ZH11LnSz7"
-	# nrt vs ZH11(TEJ): 主图："V3703HnCp6","ZH11HnCp6", 附图："V3703LnCp6","ZH11LnCp6",
-	# 近等基因系：主图："A50LnCp7","A56LnCp7", 附图："A50LnCp6","A56LnCp6",
-	# 主图/附图各分析一次：alpha, beta, 差异OTUs, venn: HTEJ_HIND_D LTEJ_LIND_D V3703HnCp6_ZH11HnCp6; HTEJ_HIND_D LTEJ_LIND_D A50HnCp7_A56HnCp7
-	# 主图4组，xiangeng_wilcoxon_main
-	# 附图4组，xiangeng_wilcoxon_supp
-
-
-## 图4.e宏基因组KO注释
-
-	从金桃处获得KO表和丰度，获取KO的功能描述；在kegg中没找到，picurst中没找到(输出结果有注释但不完整)，google搜索KO description download，找到biostar解答；https://www.genome.jp/kegg-bin/get_htext?ko00001.keg 中的Download htext/jason下载KO和描述；htext方便检索，而jason方便在线分析，如jason2table
-	
-	cd ~/rice/xianGeng/metagenome
-	grep 'D      K' ko00001.keg | cut -c 8- | sed 's/  /\t/' > KO_description.txt #|  cat -A | less -S
-	# 比较两组差异
-compare.sh -i ko.txt -c compare.txt -m "wilcox"         -p 0.01 -q 0.05 -F 1.2 -t 0 -N FALSE         -d design.txt -A group -B '"HnNrt","HnZH11"'         -o compare/ -N FALSE -U 100 # Pvalue和FDR并不显著，可能秩和检验需要较多的样本数
-	# 注释KO
-	awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$2} NR>FNR{print $0,a[$1]}' KO_description.txt ko.txt > ko.anno
-
-	# 绘制单个KO和箱线图
-alpha_boxplot.sh -i ko.txt -m '"K02568","K02567","K00363","K10535","K00362"' \
--d design.txt -A group -B '"HnZH11","HnNrt"' \
--o ./ -h 2 -w 2.5 -t TRUE -n TRUE -U 1000000
-
-
-
-## 图5. 微生物与表型关联
-
-	1. 微生物、多样性、PCoA主轴与表型相关分析
-	# 先使用胡斌整理表型数据+faprotax中氮通路相关
-	# 方法1：script/phenotype_cor.R直接关联，spearman相关系数只有0-0.2，但能看到nitrogen_amonification正相关，而固
-	
-	# 方法2. 采用分组协变量关联，需要基因型的聚类/PCA信息
-	# PCA信息 /mnt/bai/yongxin/rice/miniCore/180319/gemma/pca4.txt
-	# 行名 head -n1 /mnt/bai/xiaoning/past/software/tassel-5-standalone/sum_geno_1.hmp.txt
-	head -n1 /mnt/bai/xiaoning/past/software/tassel-5-standalone/sum_geno_1.hmp.txt|cut -f 12-|tr '\t' '\n' > temp.txt
-	paste temp.txt /mnt/bai/yongxin/rice/miniCore/180319/gemma/pca4.txt | cut -f 1,3- | sed '1 i variety\tPC1\tPC2\tPC3\tPC4' | less > fig/4cor/genotype_pca4.txt
-	
-	# OTU/属水平(比OTU数量少至有描述)与张小宁整理表型关联(品种对应): HN/LN分开关联phenotype_cor.Rmd
-	cp ~/rice/miniCore/mwas/phenotype/minicore?NPhenotype.txt doc/ # 准备miniCore中HN/LN表型
-	
-	# 表型-faprotax相关 phenotype_cor_faprotax.Rmd
-
-	# 2018/6/5 相关热图+注释
-	# LN条件下OTUs与表型关联，筛选>0.4相关的值进行注释物种，差异OTUs，和功能 phenotype_cor2.Rmd ；表型数据重新整理minicore低氮下为单株，excel整理
-	sed -i '/\t0\t0\t0/d' doc/phenotype_sample_raw.txt # 删除缺失样品
-	# 株的OTU对应株的表型，OTU_11与tiller相关仅为0.33(可能植株波动大，或不对应，会规律只有平均才能看出来)，而OTU_11与分均值还有0.44的相关。那OTUs的均值对应是否会更高呢？改为均值结果更好。
-
-	# 2018/6/11 ## 筛选相关系数 > 0.4，# 添加faprotax有无 X OTU丰度，绘制泡泡图，line 310
-	
-	# 2018/6/22 用品种中全部OTUs计算相关系数，筛选相关系数>0.4，丰度大于均值0.1%的OTUs，物种名改为低级注释
-	cp xiangeng4wilcox/result/compare/LTEJ-LIND_all.txt fig1/5pheno/ # 品种0.2%过滤OTU列表
-
-
-附图.
-
-1. 样本稀释曲线，平滑处理
-alpha_rare_sample.R
-
-2. 2块地所有样品IND/TEJ一起PCoA, CPCoA
-3. 主图c/d的unifrac距离图
-4. alpha diversity chao1 richness
-5. 机器学习层级选择准确度柱状图
-6. 共有OTUs饼图
-7. 完整的OTUs时间序列和功能注释
-8. 主图的功能差异分析完整版本
-9. 图4a的，其它N相关功能与SNP关联
-10. 图4b的beta其它距离， constraind
-11. 附图专用4组多样性分析
-
-附数据统计：
-
-1. 品种数：68 IND
-cd ~/rice/xianGeng/fig1/ST
-     27 TEJ
-sed -i 's/,/\t/g' 01.variety_geotable.csv # csv替换为tsv
-# 数据筛选95个，并添加95个
-awk '{FS=OFS="\t"} NR==FNR{a[$2]=$0} NR>FNR{print $0,a[$2]}' ~/rice/miniCore/doc/minicore_list.txt 01.variety_geotable.csv > 01.variety_geotable.txt 
-cut -f 14 01.variety_geotable.txt|tail -n+2|sort|uniq|wc -l # 44个国家
-
-2. 凌水海南样本数和测序量
-# 需要使用compare_sub.R中来原代码，在3compare中汇总样品和测序量
-
-3. 查看共有16个下调菌的丰度范围
-cd ~/rice/xianGeng
-awk '{FS=OFS="\t"} NR==FNR{a[$1]=$14} NR>FNR{print a[$1]}' xiangeng4wilcox/result/compare/HTEJ-HIND_all.txt fig1/3compare/otu_TEJ_common_specific.txt|sort -nr
-awk '{FS=OFS="\t"} NR==FNR{a[$1]=$14} NR>FNR{print a[$1]}' xiangeng4wilcox/result/compare/LTEJ-LIND_all.txt fig1/3compare/otu_TEJ_common_specific.txt|sort -nr
-awk '$2<0.05' fig1/ST/09.tiller_cor_p.txt|wc -l # 381个有214个显著P<0.05
-cd fig1/ST
-paste 09.tiller_cor.txt 09.tiller_cor_p.txt | cut -f 1,2,4> 09.tiller_cor_pr.txt
-
-
-
-# 上传数据 PRJNA478068
-# 整理的最终上传实验设计 fig1/metadata.txt
-cut -f 16 fig1/metadata.txt|sort|uniq -c # 587个亚种数据来自miniCore，127+114=241来自nrt
-wc -l fig1/metadata.txt # 检查是否有样品重名
-cut -f 1 fig1/metadata.txt|sort|uniq|wc -l 
-mkdir -p seq/submit # 创建提交数据目录
-
-# 1. 籼粳稻样本，587个
-for RPM in `grep 'minicore' fig1/ST/02.design.txt|cut -f 1`; do
-	cp ../miniCore/clean_data/sample/${RPM}.fq.gz seq/submit/
-done
-
-# 2. 时间序列己上传，见 https://www.ncbi.nlm.nih.gov/bioproject/?term=PRJNA435900
-for RPM in `grep 'nrt' fig1/ST/02.design.txt|cut -f 1`; do
-	cp /mnt/bai/yongxin/rice/zjj.nitrogen/180116/clean_data/sample/${RPM}.fq.gz seq/submit/
-done
-
-
-
-# 共享中间文件和分析流程代码 submit用于投稿，publish用于正式发表后共享
-
-## 在fig1中创建index.Rmd并生成网页 http://210.75.224.110/submit/rice_microbiome, username: rice, password: microbiome
-cd ~/rice/xianGeng/fig1 # 共享目录
-ln -sf `pwd` /var/www/html/submit/rice_microbiome # 链接至外网
-cp ~/github/Amplicon/16Sv2/rmd/.htaccess ./ # 加密
-htpasswd /mnt/bai/yongxin/bin/config/users rice # 添加新用户和密码
-
-
-## 获得分析流程
-pipeline=fig1/pipeline.sh
-make -n -B library_split_stat|grep -v '#' > $pipeline
-make -n -B fq_qc|grep -v '#' >> $pipeline
-make -n -B beta_calc|grep -v '#' >> $pipeline
-
-## 根据最新实验设计和OTU表整理结果
-cd fig1/
-cp /mnt/bai/yongxin/github/Amplicon/16Sv2/script/stat_plot_functions.R script/
 

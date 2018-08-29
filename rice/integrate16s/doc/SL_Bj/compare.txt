@@ -1,0 +1,13 @@
+d27RtBj	NpRtBj
+d17RtBj	NpRtBj
+d10RtBj	NpRtBj
+d3RtBj	NpRtBj
+d3NpRtBj	NpRtBj
+d3AHLRtBj	NpRtBj
+d14RtBj	NpRtBj
+d14AHLRtBj	NpRtBj
+d53RtBj	NpRtBj
+d3NpRtBj	d3RtBj
+d3AHLRtBj	d3RtBj
+d14AHLRtBj	d14RtBj
+d3AHLRtBj	d14AHLRtBj

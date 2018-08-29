@@ -239,6 +239,18 @@
     make rmd # report
     done
 
+    # 制作A17/R108 ：Rhizosphere, Root比土的6个表根富集Enriched/depleted
+    sub="compartment"
+    doc=doc/${sub}
+    mkdir -p $doc
+    cp doc/compare.txt $doc/
+    cp doc/venn.txt $doc/
+    # 手动编辑
+    rm alpha_boxplot
+    make plot_venn # DA otu
+    make DA_compare_tax # DA taxonomy
+    make rmd # report
+
 ## 3.1. Alpha多样性指数箱线图
     
     # Alpha index in boxplot
