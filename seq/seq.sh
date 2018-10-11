@@ -175,3 +175,31 @@ parallel --xapply -j 32 "zcat lane_2.fq.gz | grep -A 3 '#{1}'| grep -v -P '^--$'
 	fastqc *.gz -t 99
 	# Merge all fastqc report, result in multiqc_report.html
 	multiqc .
+
+
+
+# 181009.lane14
+
+    # 准备index列表
+    cp /mnt/bai/yongxin/ref/culture/IlluminaIndex48.txt ~/seq/
+    sed -i '1 i IndexID\tIndex\tIndexRC' ~/seq/IlluminaIndex48.txt
+
+    # 移动全部文件至根目录
+    cd ~/seq/181009.lane14
+    for f in `find . -maxdepth 3 | grep 'fq.gz'`; do
+        mv $f ./
+    done
+    # 改名
+    rename 's/FCHFLMTBCX2_L1_Index-/L181009_/' *.gz
+    # 获取ID中编号
+    ls *.fq.gz|cut -f 2 -d '_'|uniq|sed '1 i IndexRC'>index.txt
+    # 添加index的编号
+    awk 'BEGIN{FS=OFS="\t"} NR==FNR {a[$3]=$0} NR>FNR {print a[$1]}' ~/seq/IlluminaIndex48.txt index.txt|sed 's/Index//'> index.tsv
+    # md5sum
+    # 分双端统计md5值
+    md5sum *_1.fq.gz > md5sum.txt
+    md5sum *_2.fq.gz >> md5sum.txt
+    cat md5sum.txt
+    # md5值校验
+    md5sum -c md5sum.txt > md5sum.check
+    cat md5sum.check

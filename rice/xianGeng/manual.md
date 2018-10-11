@@ -696,6 +696,11 @@ alpha_boxplot.sh -i ko.txt -m '"K02568","K02567","K00363","K10535","K00362"' \
 	cp xiangeng4wilcox/result/compare/LTEJ-LIND_all.txt fig1/5pheno/ # 品种0.2%过滤OTU列表
 
 
+## syncom重组体系表型分析
+    # 数据整理为 wet/Xu-NbSycomFunctionData.txt, 分析代码见 fig1/5Syncom.Rmd
+
+
+
 附图.
 
 1. 样本稀释曲线，平滑处理

@@ -158,14 +158,15 @@ SHELL:=/bin/bash
 	# 绘图通用参数
 	# 实验设计文件位置，全局，其它图默认调此变量，也可单独修改；并选择表中的组列和具体分组 head -n2 doc/design.txt
 	# 统计绘图和网页报告版本控制，默认为空，可修改为任意子目录的实验设计
-	sub="SL_Bj"
+	sub="nrt"
 	doc=doc/${sub}
-	design=${wd}/doc/design.txt 
+	design=${wd}/${doc}/design.txt 
 	g1=groupID
 	# tail -n+2 ${doc}/design.txt|cut -f 9|sort|uniq|awk '{print "\""$1"\""}'|tr "\n" ","
 	# 绘图使用的实验组，顺序即图中显示顺序；为空时使用所有组和默认顺序"HIND","HTEJ","HAUS","HTRJ","LIND","LTEJ","LAUS","LTRJ"
 	# 根据实验比对较获得实验组列表: cat doc/compare.txt|tr '\t' '\n'|sort|uniq|awk '{print "\""$1"\""}'|tr "\n" "," 
-	g1_list='"d10RtBj","d10RtHn","d14AHLRtBj","d14RtBj","d14RtHn","d17RtBj","d17RtHn","d27RtBj","d27RtHn","d3AHLRtBj","d3NpRtBj","d3RtBj","d3RtHn","d53RtBj","d53RtHn","NpRtBj","NpRtHn"'
+    # "d10RtBj","d10RtHn","d14AHLRtBj","d14RtBj","d14RtHn","d17RtBj","d17RtHn","d27RtBj","d27RtHn","d3AHLRtBj","d3NpRtBj","d3RtBj","d3RtHn","d53RtBj","d53RtHn","NpRtBj","NpRtHn"
+	g1_list=`cat doc/${sub}/compare.txt|tr '\t' '\n'|sort|uniq|awk '{print "\""$$1"\""}'|tr "\n" ","|sed 's/,$$//'`
 
 	# 组间比较列表
 	compare=${wd}/${doc}/compare.txt
@@ -192,7 +193,7 @@ SHELL:=/bin/bash
 	FC=1.2
 
 	# 报告输出目录
-	version=rice_${sub}_${compare_method}_v4
+	version=rice_${sub}_${compare_method}_soil16LN2
 
 
 ## 2.1 alpha_boxplot Alpha多样性指数箱线图 Alpha index in boxplot
@@ -207,7 +208,8 @@ SHELL:=/bin/bash
 	ab_group_name=${g1}
 	# 默认 ab_group_list=${g1_list}
 	# 主图 ab_group_list='"V3703HnCp6","ZH11HnCp6","A50LnCp7","A56LnCp7"'
-	ab_group_list=`cat doc/${sub}/compare.txt|tr '\t' '\n'|sort|uniq|awk '{print "\""$$1"\""}'|tr "\n" ","|sed 's/,$$//'`
+	#ab_group_list=`cat doc/${sub}/compare.txt|tr '\t' '\n'|sort|uniq|awk '{print "\""$$1"\""}'|tr "\n" ","|sed 's/,$$//'`
+	ab_group_list=${g1_list}
 	ab_output=${wd}/result/alpha/
 	ab_width=${width}
 	ab_height=${height}
@@ -226,7 +228,7 @@ SHELL:=/bin/bash
 
 ## 2.3 beta_pcoa 主坐标轴分析距离矩阵 PCoA of distance matrix "bray_curtis","binary_jaccard","weighted_unifrac","unweighted_unifrac"
 
-	bp_input=${wd}/temp/beta/
+	bp_input=${wd}/result/beta/
 	bp_method='"bray_curtis","weighted_unifrac","unweighted_unifrac"'
 	bp_design=${design}
 	bp_group_name=${g1}
@@ -242,7 +244,7 @@ SHELL:=/bin/bash
 
 ## 2.4 beta_cpcoa 限制性主坐标轴分析: OTU表基于bray距离和CCA  CCA of bray distance matrix
 	# 输入的OTU表，可原始count，也可以标准化的结果，无差异
-	bc_input=${wd}/temp/otutab_norm.txt
+	bc_input=${wd}/result/otutab_norm.txt
 	# Method from vegdist() of vegan: "manhattan", "euclidean", "canberra", "bray", "kulczynski", "jaccard", "gower", "altGower", "morisita", "horn", "mountford", "raup" , "binomial", "chao", "cao" or "mahalanobis"
 	bc_method='"bray"'
 	bc_design=${design}

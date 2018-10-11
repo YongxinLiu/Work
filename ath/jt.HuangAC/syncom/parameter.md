@@ -59,7 +59,7 @@ SHELL:=/bin/bash
 
 	# Remove redundancy
 	# 最小序列频率miniuniqusize默认为8，去除低丰度，增加计算速度，整lane的序列可更改为30，50，甚至100
-	minuniquesize=200
+	minuniquesize=8
 
 ## 1.7. **otu_pick 挑选OTU**
 
@@ -157,22 +157,22 @@ SHELL:=/bin/bash
 
 
 
-# 2. 统计绘图
+	# 2. 统计绘图
 
 	# 绘图通用参数
 	# 实验设计文件位置，全局，其它图默认调此变量，也可单独修改；并选择表中的组列和具体分组
 	# 设置子版本目录
-	sub="HN"
+	sub=""
 	doc=doc/${sub}
-	design=${wd}/doc/design.txt 
+	design=${wd}/${doc}/design.txt 
 	g1=groupID
 	# tail -n+2 ${doc}/design.txt|cut -f 5|sort|uniq|awk '{print "\""$1"\""}'|tr "\n" ","
 	# 绘图使用的实验组，顺序即图中显示顺序；为空时使用所有组和默认顺序
 	#g1_list='"Col","ThasKO2","ThahKO","ThadKO","ACT2KO"'
-	# 从比较组中提取组名，自动获得目录组 
+	# 从实验设计比较组中提取组名，自动获得目录组 
 	g1_list=`cat doc/${sub}/compare.txt|tr '\t' '\n'|sort|uniq|awk '{print "\""$$1"\""}'|tr "\n" ","|sed 's/,$$//'`
-	# 从实验设计提取组
-	# g1_list=`tail -n+2 ${doc}/design.txt|cut -f 5|sort|uniq|awk '{print "\""$$1"\""}'|tr "\n" ","|sed 's/,$$//'`
+    # 从实验设计提取组
+	g1_list=`tail -n+2 ${doc}/design.txt|cut -f 5|sort|uniq|awk '{print "\""$$1"\""}'|tr "\n" ","|sed 's/,$$//'`
 
 	# 组间比较列表
 	compare=${wd}/${doc}/compare.txt
@@ -189,7 +189,7 @@ SHELL:=/bin/bash
 	# 差异统计按丰度过滤 abundance filter，如丰度按万分之一过滤，减少计算量，提高OTU的FDR值，根据组数量多少可选十万5或万分之5
 	abundance_thre=0.01
 	# 差异比较方法，默认是 edgeR ，可选 wilcox 秩和检验
-	compare_method="wilcox"
+	compare_method="edgeR"
 	# 显著性P值过滤 threshold of P-value，可选0.05, 0.01, 0.001。采用FDR校正，此参数意义不大，即使0.001也没有FDR < 0.2过滤严格
 	pvalue=0.05
 	# 统计检验方式FDR，FDR < 0.1使用9.5万次，且为菌群近期的Nature和Sciences; 0.2使用7.7万次
