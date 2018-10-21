@@ -162,7 +162,7 @@ SHELL:=/bin/bash
 	# 绘图通用参数
 	# 实验设计文件位置，全局，其它图默认调此变量，也可单独修改；并选择表中的组列和具体分组
 	# 设置子版本目录
-	sub="HN"
+	sub="LN"
 	doc=doc/${sub}
 	design=${wd}/doc/design.txt 
 	g1=groupID
@@ -188,17 +188,19 @@ SHELL:=/bin/bash
 	legend_number=10
 	# 差异统计按丰度过滤 abundance filter，如丰度按万分之一过滤，减少计算量，提高OTU的FDR值，根据组数量多少可选十万5或万分之5
 	abundance_thre=0.01
-	# 差异比较方法，默认是 edgeR ，可选 wilcox 秩和检验
+	# 差异比较方法，默认是 edgeR ，可选 wilcox秩和检验、t.test 
 	compare_method="wilcox"
 	# 显著性P值过滤 threshold of P-value，可选0.05, 0.01, 0.001。采用FDR校正，此参数意义不大，即使0.001也没有FDR < 0.2过滤严格
 	pvalue=0.05
-	# 统计检验方式FDR，FDR < 0.1使用9.5万次，且为菌群近期的Nature和Sciences; 0.2使用7.7万次
+	# 统计检验方式FDR，常用0.05, 0.1, 0.2; FDR < 0.1使用9.5万次，且为菌群近期的Nature和Sciences; 0.2使用7.7万次
 	FDR=0.1
 	# 差异变化倍数常用1.5, 2, 4倍，对应logFC为0.585, 1, 2；菌丰度变化倍数不明显，还可用1.3和1.7倍对应0.379和0.766
 	FC=1.2
  
 	# 统计绘图和网页报告版本控制
-	version=species_${sub}_${compare_method}_v1
+	species="rice"
+	keyword="sd1"
+	version=${species}_${keyword}_${sub}_v1
 
 
 	# 2.1 alpha_boxplot Alpha多样性指数箱线图 Alpha index in boxplot
@@ -324,8 +326,11 @@ SHELL:=/bin/bash
 	ph_order=FALSE
 	# 绘制不同分类级热图，p,c,o,f,g
 	ph_tax=g
+	# 列聚类，默认TRUE
+	cluster_cols=TRUE
 
 ## 2.9 plot_manhattan 绘制OTU按门着色曼哈顿图
+	pm_yax=10
 
 ## 2.10 plot_boxplot 基于差异OTU表绘制火山图
 	pb_input=result/otutab.txt
@@ -348,8 +353,8 @@ SHELL:=/bin/bash
 
 # 2.11 plot_venn 维恩图
 
-	# venn OTU注释数据库，如差异比较result/compare/database.txt、菌库result/41culture/otu.txt等
-	venn_anno=result/41culture/otu_mean_tax.txt
+	# venn OTU注释数据库，如差异比较result/compare/database.txt、菌库需要选先修改3.9的数据库位置，并make culture生成result/39culture/otu.txt等
+	venn_anno=result/39culture/otu.txt
 
 
 # 3 高级分析

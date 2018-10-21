@@ -21,7 +21,7 @@ cp ~/github/Amplicon/16Sv2/manual.md ./
 mkdir -p ~/$wd
 ln -s `pwd`/parameter.md ~/$wd/makefile
 ln -s `pwd`/manual.md ~/$wd/manual.sh
-
+cd ~/$wd
 
 
 
@@ -31,6 +31,6 @@ ln -s `pwd`/manual.md ~/$wd/manual.sh
 cd ~/github/Work
 git add . 
 # 提交修改
-git commit -m "2018 new project Aug." 
+git commit -m "2018 new project Oct." 
 # 推送到github
 git push origin master

@@ -374,7 +374,7 @@ SHELL:=/bin/bash
 	# 
 	otu_table=${wd}/${result_f}/otu_table.txt
 
-
+	# 水稻培养菌与分菌自然样品比较2018/10/17，详见/mnt/bai/yongxin/culture/jingmei171208.rice.med.soy
 
 # 9. 其它
 

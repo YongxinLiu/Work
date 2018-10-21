@@ -38,7 +38,7 @@
 	## 0.1 准备流程配置文件
 
 	# 设置工作目录
-	wd=rice/miniCore
+	wd=ath/jt.HuangAC/syncom
 	# 创建环境代码见~/github/Work/initial_project.sh
 
 	## 准备实验设计
@@ -47,17 +47,8 @@
 	# Initialize the working directory
 	make init
 
-	# 保存模板中basic页中3. 测序文库列表library为doc/library.txt
-	# 按library中第二列index准备测序文库，如果压缩要添加.gz，并用gunzip解压
-	awk 'BEGIN{OFS=FS="\t"}{system("ln -s /mnt/bai/yongxin/seq/180528.lane11/Clean/CWHPEPI00001823/seq/"$2"_1.fq seq/"$1"_1.fq");}' <(tail -n+2 doc/library.txt )
-	awk 'BEGIN{OFS=FS="\t"}{system("ln -s /mnt/bai/yongxin/seq/180528.lane11/Clean/CWHPEPI00001823/seq/"$2"_2.fq seq/"$1"_2.fq");}' <(tail -n+2 doc/library.txt )
-	# 如果压缩文件，要强制解压链接
-	gunzip -f seq/*.gz
-
 	# 标准多文库实验设计拆分，保存模板中design页为doc/design_raw.txt
 	split_design.pl -i doc/design_raw.txt
-	# 从其它处复制实验设计
-	cp ~/ath/jt.HuangAC/batch3/doc/L*.txt doc/
 	# 删除多余空格，windows换行符等
 	sed -i 's/ //g;s/\r/\n/' doc/*.txt 
 	head -n3 doc/L1.txt
@@ -66,22 +57,23 @@
 	# 检查是否相等
 	wc -l doc/design.txt
 	cut -f 1 doc/design.txt|sort|uniq|wc -l
+    
+    # 准备文库数据
+    
+	# 保存模板中basic页中3. 测序文库列表library为doc/library.txt
+	# 按library中第二列index准备测序文库，如果压缩要添加.gz，并用gunzip解压
+	awk 'BEGIN{OFS=FS="\t"}{system("ln -s /mnt/bai/yongxin/seq/181009.lane14/"$4"_1.fq.gz seq/"$1"_1.fq.gz");}' <(tail -n+2 doc/library.txt )
+	awk 'BEGIN{OFS=FS="\t"}{system("ln -s /mnt/bai/yongxin/seq/181009.lane14/"$4"_2.fq.gz seq/"$1"_2.fq.gz");}' <(tail -n+2 doc/library.txt )
+	# 如果压缩文件，要强制解压链接
+	gunzip -f seq/*.gz
 
-	## 准备原始数据
+    # 准备参考序列(自定义数据库可选)
+    # 选择姜婷提供 doc/Syncom所用菌的信息.xlsx 中序列和菌ID保存标准fasta文件于 result/otu.fa，但无法比对，为反向且少2bp
+    # 根据COTU提取序列
+    usearch10 -fastx_getseqs ~/culture/ath/result/Rootculture_select.fa -labels doc/COTU.id -fastaout result/COTU.fa
+    # 添换为菌ID
+    awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[">"$1]=">"$2} NR>FNR{if (/>/) print a[$1]; else print $0}' doc/COTU-isolate.id result/COTU.fa > result/otu.fa
 
-	# 拆lane和质量转换归为原始seq目录中处理
-	# Prepare raw data
-	#ln ~/seq/180210.lane9.ath3T/Clean/CWHPEPI00001683/lane_* ./
-	#cp ~/ath/jt.HuangAC/batch3/doc/library.txt doc/
-	
-	# 检查数据质量，转换为33
-	#determine_phred-score.pl seq/lane_1.fq.gz
-	# 如果为64，改原始数据为33
-	rename 's/lane/lane_33/' seq/lane_*
-	# 关闭质量控制，主要目的是格式转换64至33，不然usearch无法合并
-	#time fastp -i seq/lane_64_1.fq.gz -I seq/lane_64_2.fq.gz \
-	#	-o seq/lane_1.fq.gz -O seq/lane_2.fq.gz -6 -A -G -Q -L -w 9
-	# 1lane 80GB, 2 threads, 102min
 
 ## 1.1. 按实验设计拆分lane为文库
 
@@ -98,9 +90,7 @@
 
 ## 1.2. 按实验设计拆分文库为样品
 
-
 	# 拆分样品
-	head -n3 doc/L1.txt
 	# 按L1/2/3...txt拆分library为samples
 	# 输入为seq/L*.fq，输出为seq/sample/*.fq
 	make library_split
@@ -134,6 +124,9 @@
 	make fq_qc
 
 
+    # (第一阶段结束，获得纯净扩增子序列temp/filtered.fa，可提供此文件从下面开始)
+
+
 ## 1.6. 序列去冗余
 
 	# Remove redundancy, get unique reads
@@ -163,12 +156,17 @@
 	make host_rm
 
 
+    # (第二阶段结束，获得OTU代表序列result/otu.fa，可提供此文件和测序数据temp/filtered.fa从下方起始)
+
+
 ## 1.10. 生成OTU表
 	
 	# Create OTUs table
 	# 默认使用vsearch更快10倍，可选usearch10，线程不可超48
 	make otutab_create
-
+    
+    # 比对提供result/otu.fa无法比对？？？
+    # 检查输出文件temp/filter.fa与水稻integrate16s类似，但result/otu.fa不同，V5-V7正常序列应该是GTAG开头和GGA结尾
 
 ## 1.11. 过滤样本和OTUs
 
@@ -211,7 +209,9 @@
 	# Beta diversity tree and distance matrix
 	# 最好用usearch，结果unifrac分类更好；clustero+fastree结果PCoA较差
 	make beta_calc
-	# ---Fatal error--- ../calcdistmxu.cpp(32) assert failed: QueryUniqueWordCount > 0 致信作者; 改用qiime1
+	# ---Fatal error--- ../calcdistmxu.cpp(32) assert failed: QueryUniqueWordCount > 0 致信作者或; 改用qiime1
+
+    # (第三阶段无参分析结束，获得OTU表、物种注释、Alpha、Beta多样性数据用于绘图)
 
 ## 1.17. 有参考构建OTU表
 
@@ -267,23 +267,23 @@
 
 # 4. 个性分析
 
-## 4.1. 分蘖与菌相关性
+## 4.1. 比对划菌和测序结果和COTU
 
-	# 准备相关输入文件
-	cd ~/rice/miniCore/180718
-	# 硬链数据文件，保持可同步修改和可备份
-	# miniCore分蘖数据整理
-	ln ~/rice/xianGeng/doc/phenotype_sample_raw.txt doc/
-	# LN otu表和实验设计
-	mkdir -p data
-	cp ~/rice/miniCore/180319/LN/otutab.txt data/LN_otutab.txt
-	cp ~/rice/miniCore/180319/doc/design.txt doc/design_miniCore.txt
-	mkdir -p data/cor/LN
-	# 物种注释
-	cp ~/rice/miniCore/180319/temp/otus_no_host.tax data/
+    makeblastdb -in wet/seq_otu.fa -input_type fasta -dbtype nucl
+    blastn -query result/otu.fa -db wet/seq_otu.fa -out wet/cotu_seq.xls -outfmt '6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qcovs' -num_alignments 1 -evalue 1 -num_threads 9 
+    sed -i '1 i qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qcovs' wet/cotu_seq.xls
+    sed -i '1 s/ /\t/g' ${date}.xls
+    less -S wet/cotu_seq.xls # 只有A190不是100%，是因为A190存在N，用菌的AI，但是用COTU的序列
 
-	# 统计见script/cor_tiller_LN.Rmd
-	# 相关系数，添加物种注释
-	awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$4} NR>FNR{print $0,a[$1]}' result/otus_no_host.tax data/cor/LN/otu_mean_pheno_cor.r.txt | less -S > result/cor/LN/otu_mean_pheno_cor.r.txt.tax
-	# 再添加可培养相关菌
-	awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print $0,a[$1]}' result/39culture/otu.txt data/cor/LN/otu_mean_pheno_cor.r.txt.tax | less -S > data/cor/LN/otu_mean_pheno_cor.r.txt.tax
+## 4.1 样本筛选
+
+    # 更新实验设计
+	split_design.pl -i doc/design_raw.txt
+	# 删除多余空格，windows换行符等
+	sed -i 's/ //g;s/\r/\n/' doc/*.txt 
+	# 依据各文库L*.txt文件生成实验设计
+	cat <(head -n1 doc/L1.txt | sed 's/#//g') <(cat doc/L* |grep -v '#') > doc/design.txt
+
+    # result/split中观察，mixBacB2r1和thahkoRoB2r1丢失
+    # rootB1中PCoA绘图，thasoeRoB1r4异常，#注释掉
+    sed -i 's/thasoeRoB1r4/\#thasoeRoB1r4/' doc/design.txt

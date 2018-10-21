@@ -161,7 +161,7 @@ SHELL:=/bin/bash
 
 	# 绘图通用参数
 	# 实验设计文件位置，全局，其它图默认调此变量，也可单独修改；并选择表中的组列和具体分组
-	sub="2.5.3soil"
+	sub="3.1"
 	doc=doc/${sub}
 	design=${wd}/${doc}/design.txt 
 	g1=groupID
@@ -189,14 +189,14 @@ SHELL:=/bin/bash
 	# 差异比较方法，默认是 edgeR ，可选 wilcox 秩和检验
 	compare_method="edgeR"
 	# 显著性P值过滤 threshold of P-value，可选0.05, 0.01, 0.001。采用FDR校正，此参数意义不大，即使0.001也没有FDR < 0.2过滤严格
-	pvalue=0.01
-	# 统计检验方式fdr
-	FDR=0.05
+	pvalue=0.05
+	# 统计检验方式fdr, 0.05, 0.1, 0.2
+	FDR=0.2
 	# 差异变化倍数常用1.5, 2, 4倍，对应logFC为0.585, 1, 2；菌丰度变化倍数不明显，还可用1.3和1.7倍对应0.379和0.766
-	FC=1.3
+	FC=1.2
 
 	# 统计绘图和网页报告版本控制
-	version=ath_${sub}_${compare_method}_unoisev1
+	version=ath_${sub}_${compare_method}_unoisev2
 
 
 	# 2.1 alpha_boxplot Alpha多样性指数箱线图 Alpha index in boxplot
@@ -332,8 +332,13 @@ SHELL:=/bin/bash
 	ph_order=FALSE
 	# 绘制不同分类级热图，p,c,o,f,g
 	ph_tax=g
+	# 列聚类，默认TRUE
+	cluster_cols=FALSE
 
 ## 2.9 plot_manhattan 绘制OTU按门着色曼哈顿图
+	
+	pm_yax=10
+
 
 ## 2.10 plot_boxplot 基于差异OTU表绘制火山图
 	pb_input=result/otutab.txt

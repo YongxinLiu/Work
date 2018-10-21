@@ -31,6 +31,19 @@
 
 <!-- /TOC -->
 
+	# 快速分析 Quick Start(所需文件准备好)
+	make fq_qc # 样本拆分、合并、去接头和引物、质控，获得纯净扩增子序列temp/filtered.fa
+	make host_rm # 序列去冗余、去噪、挑选代表序列、去嵌合、去宿主，获得OTU代表序列result/otu.fa
+	make beta_calc # 生成OTU表、过滤、物种注释、建库和多样性统计
+	#rm -rf alpha_boxplot # 清除统计绘图标记(重分析时使用)
+	make DA_compare # 绘制alpha、beta、taxonomy和差异OTU比较
+	#rm -f plot_volcano # 删除OTU差异比较可化标记
+	make plot_manhattan # 绘制差异比较的火山图、热图、曼哈顿图
+	make plot_venn # 绘制OTU差异共有/特有维恩图
+	make DA_compare_tax # 高分类级差异比较，维恩图绘制，2为reads count负二项分布统计
+	make rmd # 生成网页报告，必须依赖的只有alpha, beta, taxonomy
+
+
 # 1. 处理序列 Processing sequences
 
 	# 0. 准备工作 Preparation

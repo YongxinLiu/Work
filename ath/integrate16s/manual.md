@@ -249,7 +249,7 @@
 	# 获得比较组中的组名
 	cat doc/${sub}/compare.txt|tr '\t' '\n'|sort|uniq|awk '{print "\""$1"\""}'|tr "\n" ","
 
-	## 2018/8/22 比较二半萜-第三批+Soil，实验设计位于doc/2.5.3 目录中
+	## 2018/8/22 比较二半萜-第三批+Soil，实验设计位于doc/2.5.3soil 目录中
 	sub=2.5.3soil
 	mkdir -p doc/${sub}
 	cp doc/2.5.3/* doc/${sub}
@@ -265,8 +265,9 @@
 	sub=3.1
 	mkdir -p doc/${sub}
 	pwd=~/ath/jt.HuangAC/batch3all/doc/b3_4
-	cp doc/design.txt doc/${sub}/design.txt
-	# 获得比较和维恩文件，并添加b3与实验设计对应
+	# cp doc/design.txt doc/${sub}/design.txt
+	cp ~/ath/jt.HuangAC/batch3all/doc/design.txt doc/${sub}/design.txt
+    # 获得比较和维恩文件，并添加b3与实验设计对应
 	cp ${pwd}/group_compare.txt doc/${sub}/compare.txt
 	cp ${pwd}/group_venn.txt doc/${sub}/venn.txt
 	sed -i 's/enriched/E/g;s/depleted/D/g;s/vs/_/g' doc/${sub}/venn.txt
@@ -321,10 +322,133 @@
 	
 	make plot_venn
 
+
+
 # 3. 高级分析
 
-    
+
 ## 3.9 培养菌注释
 
     # 培养菌注释，采用ath root的菌库，COTU，目前只注释plot_veen的结果
     make culture
+
+
+
+# 4. 个性化分析
+
+    # 数据上传和可重复绘图
+
+## 4.1 发表前样本合并和实验设计上传
+
+# 根据结果PCoA/CPCoA/热图聚类筛选样品，删除异常点，保存于doc/3.1/outlier.txt
+# Colr2热图异常，但CPCoA正常；ACT2KOr1热图和CPCoA离群，但与ACT2CR组拼接；
+# 剔除点注释design
+for i in `cut -f 1 doc/3.1/outlier.txt`; do sed -i "s/^${i}\t/#${i}\t/" doc/3.1/design.txt;done
+
+## Fig3. 可重复计算~/ath/integrate16s/3T/fig3
+
+    # 参考模板 D:\work\ath\jt.HuangAC\manuscript\Figure 3
+    # 3A. CPCoA 五组()绘制CPCoA, 代重复；
+    # 3B调整为附图；新增Thas/ACT2共有韦恩图4个
+    # 3C 有重复的ACT2、Thas取交集,再做曼哈顿图；
+    # 3D科水平维恩，人工制作，进附录？
+    # 3E OTU水平4组维恩，与土壤相比富集的OTU
+
+    # 7个基因型："b3Col","b3ThasKO1","b3ThasKO2","b3ThahKO","b3ThadKO","b3ACT2CR","b3ACT2KO"
+    # 精选5个基因型："b3Col","b3ThasKO1","b3ThasKO2","b3ThahKO","b3ThadKO","b3ACT2CR","b3ACT2KO"
+    # 精选5个基因型+Soil："b3Col","b3ThasKO1","b3ThasKO2","b3ThahKO","b3ThadKO","b3ACT2CR","b3ACT2KO","b3BS"
+
+### 3A. CPCoA 五组()绘制CPCoA, 代重复；
+    
+    # 生成图A脚本供修改
+    beta_cpcoa.sh -i `pwd`/result/otutab.txt -m '"bray"' \
+	-d `pwd`/doc/"3.1"/design.txt  -A groupID -B '"b3Col","b3ThasKO2","b3ThahKO","b3ThadKO","b3ACT2KO"' -E TRUE \
+	-o `pwd`/result/beta/ -h 3 -w 5
+
+### 3B. 调整为附图；新增Thas/ACT2共有韦恩图4个
+
+tax_stackplot.sh -i `pwd`/result/tax/sum_ -m '"p","pc"' -n 10 \
+	-d `pwd`/doc/"3.1"/design.txt  -A groupID -B '"b3Col","b3ThasKO1","b3ThasKO2","b3ThahKO","b3ThadKO","b3ACT2CR","b3ACT2KO","b3BS"' -O FALSE \
+	-o `pwd`/result/tax/sum_ -h 3 -w 5
+
+### 3C. 两基因型共有曼哈顿图
+	
+	plot_manhattan.sh -i result/compare/b3ACT2CR-b3Col_all.txt -Y 10
+	plot_manhattan.sh -i result/compare/b3ACT2KO-b3Col_all.txt -Y 10
+
+### 4D. Venny图比较，共有比特有
+
+	# 追加两批共有OTU至result/compare/diff.list文件，再绘制维恩图
+	# 制作新共有的两组的上调和下调OTU到新文件，不可追加老文件，防错误；运行完以下内容可马上make rmd保存至网页
+	tail -n `grep -A1 'specific_to_others' result/compare/diff.list.vennb3ACT2CR_b3Col_Eb3ACT2KO_b3Col_E.xls.xls|tail -n1` result/compare/diff.list.vennb3ACT2CR_b3Col_Eb3ACT2KO_b3Col_E.xls.xls | awk '{print $1"\tACT2_E"}' > 3T/fig3/mutant_overlap.txt
+	tail -n `grep -A1 'specific_to_others' result/compare/diff.list.vennb3ACT2CR_b3Col_Db3ACT2KO_b3Col_D.xls.xls|tail -n1` result/compare/diff.list.vennb3ACT2CR_b3Col_Db3ACT2KO_b3Col_D.xls.xls | awk '{print $1"\tACT2_D"}' >> 3T/fig3/mutant_overlap.txt
+	tail -n `grep -A1 'specific_to_others' result/compare/diff.list.vennb3ThasKO1_b3Col_Eb3ThasKO2_b3Col_E.xls.xls|tail -n1` result/compare/diff.list.vennb3ThasKO1_b3Col_Eb3ThasKO2_b3Col_E.xls.xls | awk '{print $1"\tThas_E"}' >> 3T/fig3/mutant_overlap.txt
+	tail -n `grep -A1 'specific_to_others' result/compare/diff.list.vennb3ThasKO1_b3Col_Db3ThasKO2_b3Col_D.xls.xls|tail -n1` result/compare/diff.list.vennb3ThasKO1_b3Col_Db3ThasKO2_b3Col_D.xls.xls | awk '{print $1"\tThas_D"}' >> 3T/fig3/mutant_overlap.txt
+	# 备份旧文件再追加
+	cp result/compare/diff.list result/compare/diff.list.bak
+	cat result/compare/diff.list.bak 3T/fig3/mutant_overlap.txt > result/compare/diff.list
+
+	# 修改Venn.txt文件添加比较组
+	cp doc/3.1/venn.txt doc/3.1/venn.txt181016
+	# batch_venn.pl -i `pwd`/doc/"3.1"/venn.txt -d result/compare/diff.list
+	make plot_venn
+	make rmd
+	# Other downloaded from website: http://210.75.224.110/report/16Sv2/ath_3.1_edgeR_unoisev2
+
+### 3D. 土壤中富集的菌 
+	# 编辑doc/3.1/compare_soil.txt 带土，只比较土
+	compare_OTU.sh -i `pwd`/result/otutab.txt -c doc/3.1/compare_soilonly.txt -m "edgeR" \
+        -p 0.05 -q 0.2 -F 1.2 -t 0.01 \
+        -d `pwd`/doc/"3.1"/design.txt  -A groupID -B `cat doc/"3.1"/compare_soil.txt|tr '\t' '\n'|sort|uniq|awk '{print "\""$1"\""}'|tr "\n" ","|sed 's/,$//'` \
+        -o `pwd`/result/compare/ -C groupID
+	# 正常7个基因型才916个OTU，加土为2439个
+	cp result/compare/b3Col-b3BS_all.txt 3T/fig3/3d.b3Col-b3BS_all.txt # 备份最终结果
+	# 注释两类OTU
+	cut -f 6 3T/fig3/3d.b3Col-b3BS_all.txt|sort|uniq -c
+	awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$4} NR>FNR{print $0,a[$1]}'
+	awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$6} NR>FNR{print $0,a[$1]}' 3T/fig3/3d.b3Col-b3BS_all.txt result/compare/diff.list.vennThas_Eb3ThahKO_b3Col_Eb3ThadKO_b3Col_EACT2_E.xls.xls > 3T/fig3/3d.veen.enriched.soil.txt
+	# http://210.75.224.110/report/16Sv2/ath_3.1_edgeR_unoisev2/result/compare/diff.list.vennThas_Db3ThahKO_b3Col_Db3ThadKO_b3Col_DACT2_D.xls.xls
+	awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$6} NR>FNR{print $0,a[$1]}' 3T/fig3/3d.b3Col-b3BS_all.txt result/compare/diff.list.vennThas_Db3ThahKO_b3Col_Db3ThadKO_b3Col_DACT2_D.xls.xls > 3T/fig3/3d.veen.depleted.soil.txt
+	# 提取Overlap ID
+	tail -n `grep -A1 'specific_to_others' result/compare/diff.list.vennThas_Eb3ThahKO_b3Col_Eb3ThadKO_b3Col_EACT2_E.xls.xls|tail -n1` result/compare/diff.list.vennThas_Eb3ThahKO_b3Col_Eb3ThadKO_b3Col_EACT2_E.xls.xls | awk '{print $1"\tAll_E"}' > 3T/fig3/all_common.txt
+	tail -n `grep -A1 'specific_to_others' result/compare/diff.list.vennThas_Db3ThahKO_b3Col_Db3ThadKO_b3Col_DACT2_D.xls.xls|tail -n1` result/compare/diff.list.vennThas_Db3ThahKO_b3Col_Db3ThadKO_b3Col_DACT2_D.xls.xls | awk '{print $1"\tAll_E"}' >> 3T/fig3/all_common.txt
+
+
+
+## 附图15. Alpha多样性
+	# 绘制8个基因型的alpha多样性
+	alpha_boxplot.sh -i `pwd`/result/alpha/index.txt -m '"chao1","richness","shannon_e"' \
+        -d `pwd`/doc/"3.1"/design.txt  -A groupID -B '"b3Col","b3ThasKO1","b3ThasKO2","b3ThahKO","b3ThadKO","b3ACT2CR","b3ACT2KO","b3BS"' \
+        -o `pwd`/result/alpha/ -h 5 -w 8
+
+## 附图16. 热图绘制不聚类
+
+	# 绘制单个比较组
+	plot_heatmap.sh -i result/compare/b3ThahKO-b3Col_sig.txt -o result/compare/b3ThahKO-b3Col -w 7 -h 5 -C FALSE
+	# 绘制多个比较组
+	awk 'BEGIN{OFS=FS="\t"}{system("plot_heatmap.sh -i result/compare/"$1"-"$2"_sig.txt \
+        -o result/compare/"$1"-"$2" -w 7 -h 5 -C FALSE");}' \
+        <(grep -v '^$' `pwd`/doc/"3.1"/compare.txt)
+
+## 附数据：上传三萜3批数据
+
+	# 此目录三萜数据来自~/ath/jt.HuangAC/batch3all，它又来自~/ath/jt.HuangAC/batch2、3
+	cd ~/ath/jt.HuangAC/batch3
+	mkdir -p clean_data/submit
+parallel --xapply -j 8 \
+"split_libraries_fastq.py -i temp/{1}_barcode/reads.fastq \
+ -b temp/{1}_barcode/barcodes.fastq \
+ -o temp/{1}_barcode \
+ -m doc/{1}.txt --store_demultiplexed_fastq --barcode_type 10
+split_fastq_qiime.pl -i temp/{1}_barcode/seqs.fastq -o clean_data/submit/" \
+::: `tail -n+2 doc/library.txt | cut -f 1`
+# compress
+cd clean_data/submit/
+pigz *
+# 检查ID是否唯一且一致
+ls *.gz|cut -f 1 -d '.'|sort|uniq|wc -l
+ls *.gz|cut -f 1 -d '.'|sort|uniq>sampleID1
+cut -f 1 ../../doc/design.txt |tail -n+2|sort|uniq|wc -l
+cut -f 1 ../../doc/design.txt |tail -n+2|sort|uniq>sampleID2
+# 显示是否名称有不对应的样本
+cat sampleID?|sort|uniq -u

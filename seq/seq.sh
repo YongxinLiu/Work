@@ -203,3 +203,24 @@ parallel --xapply -j 32 "zcat lane_2.fq.gz | grep -A 3 '#{1}'| grep -v -P '^--$'
     # md5值校验
     md5sum -c md5sum.txt > md5sum.check
     cat md5sum.check
+
+
+
+## 准备原始数据
+
+    # lane拆分和格式标准化
+
+	# 拆lane和质量转换归为原始seq目录中处理
+	# Prepare raw data
+	#ln ~/seq/180210.lane9.ath3T/Clean/CWHPEPI00001683/lane_* ./
+	#cp ~/ath/jt.HuangAC/batch3/doc/library.txt doc/
+	
+	# 检查数据质量，转换为33
+	#determine_phred-score.pl seq/lane_1.fq.gz
+	# 如果为64，改原始数据为33
+	rename 's/lane/lane_33/' seq/lane_*
+	# 关闭质量控制，主要目的是格式转换64至33，不然usearch无法合并
+	#time fastp -i seq/lane_64_1.fq.gz -I seq/lane_64_2.fq.gz \
+	#	-o seq/lane_1.fq.gz -O seq/lane_2.fq.gz -6 -A -G -Q -L -w 9
+	# 1lane 80GB, 2 threads, 102min
+
