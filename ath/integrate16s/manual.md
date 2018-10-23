@@ -411,7 +411,7 @@ tax_stackplot.sh -i `pwd`/result/tax/sum_ -m '"p","pc"' -n 10 \
 	awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$6} NR>FNR{print $0,a[$1]}' 3T/fig3/3d.b3Col-b3BS_all.txt result/compare/diff.list.vennThas_Db3ThahKO_b3Col_Db3ThadKO_b3Col_DACT2_D.xls.xls > 3T/fig3/3d.veen.depleted.soil.txt
 	# 提取Overlap ID
 	tail -n `grep -A1 'specific_to_others' result/compare/diff.list.vennThas_Eb3ThahKO_b3Col_Eb3ThadKO_b3Col_EACT2_E.xls.xls|tail -n1` result/compare/diff.list.vennThas_Eb3ThahKO_b3Col_Eb3ThadKO_b3Col_EACT2_E.xls.xls | awk '{print $1"\tAll_E"}' > 3T/fig3/all_common.txt
-	tail -n `grep -A1 'specific_to_others' result/compare/diff.list.vennThas_Db3ThahKO_b3Col_Db3ThadKO_b3Col_DACT2_D.xls.xls|tail -n1` result/compare/diff.list.vennThas_Db3ThahKO_b3Col_Db3ThadKO_b3Col_DACT2_D.xls.xls | awk '{print $1"\tAll_E"}' >> 3T/fig3/all_common.txt
+	tail -n `grep -A1 'specific_to_others' result/compare/diff.list.vennThas_Db3ThahKO_b3Col_Db3ThadKO_b3Col_DACT2_D.xls.xls|tail -n1` result/compare/diff.list.vennThas_Db3ThahKO_b3Col_Db3ThadKO_b3Col_DACT2_D.xls.xls | awk '{print $1"\tAll_D"}' >> 3T/fig3/all_common.txt
 
 
 
