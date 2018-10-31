@@ -420,6 +420,11 @@ tax_stackplot.sh -i `pwd`/result/tax/sum_ -m '"p","pc"' -n 10 \
 	alpha_boxplot.sh -i `pwd`/result/alpha/index.txt -m '"chao1","richness","shannon_e"' \
         -d `pwd`/doc/"3.1"/design.txt  -A groupID -B '"b3Col","b3ThasKO1","b3ThasKO2","b3ThahKO","b3ThadKO","b3ACT2CR","b3ACT2KO","b3BS"' \
         -o `pwd`/result/alpha/ -h 5 -w 8
+	# 排除土壤，否则基因型间差异过小
+	alpha_boxplot.sh -i `pwd`/result/alpha/index.txt -m '"chao1","richness","shannon_e"' \
+        -d `pwd`/doc/"3.1"/design.txt  -A groupID -B '"b3Col","b3ThasKO1","b3ThasKO2","b3ThahKO","b3ThadKO","b3ACT2CR","b3ACT2KO"' \
+        -o `pwd`/3T/fig3/S15. -h 5 -w 8
+
 
 ## 附图16. 热图绘制不聚类
 

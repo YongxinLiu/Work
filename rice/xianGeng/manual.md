@@ -778,3 +778,39 @@ make -n -B beta_calc|grep -v '#' >> $pipeline
 cd fig1/
 cp /mnt/bai/yongxin/github/Amplicon/16Sv2/script/stat_plot_functions.R script/
 
+
+
+
+# 2018/10/29 补充结果
+
+目前文章需要补充的图和表
+
+主图
+
+1.分菌详细流程图：我基金中的那个流程图吗？
+原图参考2018面上项目基金D:\life\grant\NSFC2018\figure\figure.pptx中图3，复制到fig1/20180610-组合图.pptx中：和白老师定方案，秦媛绘制
+
+2.菌保图：树吗？
+~/culture/rice/makefile.man 中 	# 绘制物种树，不带丰度和可培养 ，绘制进化树，无论科62，目22，都不能确保位于树的同一分枝上。
+改为graphlan绘制物种树，并添加标签，保存为fig1/graphlan.ai/pdf
+
+
+
+附图
+
+1. 无机氮功能实验结果
+
+2. A50实验结果（同IR24，数据）Figure6S.pdf
+
+
+Table
+
+1.分离菌占16S结果比例及taxonomy组成：自然样品，先不整理
+
+2.菌保信息对应表：verified & COTU,
+
+详见clutre/rice/makefile.man中# 制作isolate(鉴定结果)物种注释、来源和序列表 181024/TableS10.xls	# 制作COUT注释和序列信息 181024/TableS9.xls
+
+
+
+3.功能实验设计及表型结果（包括有机氮/无机氮，培养基成分，浓度，sycoms菌组成，表型数据等）

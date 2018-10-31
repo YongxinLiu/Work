@@ -205,6 +205,123 @@ parallel --xapply -j 32 "zcat lane_2.fq.gz | grep -A 3 '#{1}'| grep -v -P '^--$'
     cat md5sum.check
 
 
+# 181023WangGD
+
+    # 读入md5文件列表，索引并比较，一致输出OK
+    md5sum -c md5.txt
+
+    # 查看质量报告
+    tar xvzf upload.tar.gz
+    firefox upload/index.html # 64G
+
+    # 读入md5文件列表，索引并比较，一致输出OK
+    md5sum -c md5.txt
+
+    # 简化目录和文件名
+    mv Clean/CCPM/* ./
+    rename 's/FCHL5W2BCX2_L2_CWHPE18090036/lane/' *.fq.gz
+    
+	# 准备Index列表拆分，需要IndexRC列，可由ID或Index列检索到
+	# 如保存ID列为index.ID，获取index和IndexRC，并补充到实验设计
+    awk 'BEGIN{FS=OFS="\t"} NR==FNR {a[$1]=$0} NR>FNR {print a[$1]}' \
+        /mnt/bai/yongxin/ref/culture/IlluminaIndex48.txt index.ID > index.txt
+    cat index.txt
+
+    # 并行拆库
+    prefix=L181023
+    parallel -j 9 "zcat lane_1.fq.gz | grep -A 3 '#{1}'| grep -v -P '^--$' > ${prefix}_{1}_1.fq" ::: `cut -f 3 index.txt | grep  -v '^$'`
+    parallel -j 9 "zcat lane_2.fq.gz | grep -A 3 '#{1}'| grep -v -P '^--$' > ${prefix}_{1}_2.fq" ::: `cut -f 3 index.txt | grep  -v '^$'`
+    
+    # 质控和报告汇总
+    fastqc -t 48 *.fq
+    multiqc ./ # 详见multiqc_report.html
+
+    # 压缩空间及上传
+    pigz *.fq
+    # 分双端统计md5值
+    md5sum L*_1.fq.gz > md5sum.txt
+    md5sum L*_2.fq.gz >> md5sum.txt
+    cat md5sum.txt
+
+
+
+# 181024WangChao
+
+    # 读入md5文件列表，索引并比较，一致输出OK
+    md5sum -c md5.txt
+
+    # 查看质量报告
+    tar xvzf upload.tar.gz
+    firefox upload/index.html # 76G
+
+    # 简化目录和文件名
+    mv Clean/DYMSLR18/FCHFLMNBCX2_L2_CWHPE18100007_* ./
+    rename 's/FCHFLMNBCX2_L2_CWHPE18100007/lane/' *.fq.gz
+    
+	# 准备Index列表拆分，需要IndexRC列，可由ID或Index列检索到
+	# 如保存ID列为index.ID，获取index和IndexRC，并补充到实验设计
+    awk 'BEGIN{FS=OFS="\t"} NR==FNR {a[$1]=$0} NR>FNR {print a[$1]}' \
+        /mnt/bai/yongxin/ref/culture/IlluminaIndex48.txt index.ID > index.txt
+    cat index.txt
+
+    # 并行拆库
+    prefix=L181024
+    parallel -j 24 "zcat lane_1.fq.gz | grep -A 3 '#{1}'| grep -v -P '^--$' > ${prefix}_{1}_1.fq" ::: `cut -f 3 index.txt | grep  -v '^$'` &
+    parallel -j 24 "zcat lane_2.fq.gz | grep -A 3 '#{1}'| grep -v -P '^--$' > ${prefix}_{1}_2.fq" ::: `cut -f 3 index.txt | grep  -v '^$'`
+
+    # 质控和报告汇总
+    fastqc -t 48 *.fq
+    multiqc ./ # 详见multiqc_report.html
+    # 提取各样品数据量，可能要更改6的列位置
+    cut -f 1,5 multiqc_data/multiqc_fastqc.txt | sed 's/_.\t/\t/' | uniq
+
+    # 压缩空间及上传
+    pigz *.fq
+    # 分双端统计md5值
+    md5sum L*_1.fq.gz > md5sum.txt
+    md5sum L*_2.fq.gz >> md5sum.txt
+    cat md5sum.txt
+
+
+# 181025.lane15
+
+    # 读入md5文件列表，索引并比较，一致输出OK
+    md5sum -c md5.txt
+
+    # 查看质量报告
+    tar xvzf upload.tar.gz
+    firefox upload/index.html # 64G
+
+    # 读入md5文件列表，索引并比较，一致输出OK
+    md5sum -c md5.txt
+
+    # 简化目录和文件名
+    mv Clean/CCPM/* ./
+    rename 's/FCHL5W2BCX2_L2_CWHPE18090036/lane/' *.fq.gz
+    
+	# 准备Index列表拆分，需要IndexRC列，可由ID或Index列检索到
+	# 如保存ID列为index.ID，获取index和IndexRC，并补充到实验设计
+    awk 'BEGIN{FS=OFS="\t"} NR==FNR {a[$1]=$0} NR>FNR {print a[$1]}' \
+        /mnt/bai/yongxin/ref/culture/IlluminaIndex48.txt index.ID > index.txt
+    cat index.txt
+
+    # 并行拆库
+    prefix=L181023
+    parallel -j 9 "zcat lane_1.fq.gz | grep -A 3 '#{1}'| grep -v -P '^--$' > ${prefix}_{1}_1.fq" ::: `cut -f 3 index.txt | grep  -v '^$'`
+    parallel -j 9 "zcat lane_2.fq.gz | grep -A 3 '#{1}'| grep -v -P '^--$' > ${prefix}_{1}_2.fq" ::: `cut -f 3 index.txt | grep  -v '^$'`
+    
+    # 质控和报告汇总
+    fastqc -t 48 *.fq
+    multiqc ./ # 详见multiqc_report.html
+
+    # 压缩空间及上传
+    pigz *.fq
+    # 分双端统计md5值
+    md5sum L*_1.fq.gz > md5sum.txt
+    md5sum L*_2.fq.gz >> md5sum.txt
+    cat md5sum.txt
+
+
 
 ## 准备原始数据
 

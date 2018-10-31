@@ -161,8 +161,8 @@ SHELL:=/bin/bash
 
 	# 绘图通用参数
 	# 实验设计文件位置，全局，其它图默认调此变量，也可单独修改；并选择表中的组列和具体分组
-	# 设置子版本目录
-	sub="LN"
+	# 设置子版本目录 HN LN dry wet
+	sub=wet
 	doc=doc/${sub}
 	design=${wd}/doc/design.txt 
 	g1=groupID
@@ -198,8 +198,8 @@ SHELL:=/bin/bash
 	FC=1.2
  
 	# 统计绘图和网页报告版本控制
-	species="rice"
-	keyword="sd1"
+	species=rice
+	keyword=sd1
 	version=${species}_${keyword}_${sub}_v1
 
 

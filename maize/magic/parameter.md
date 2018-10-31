@@ -168,9 +168,9 @@ SHELL:=/bin/bash
 	g1=groupID
 	# tail -n+2 ${doc}/design.txt|cut -f 5|sort|uniq|awk '{print "\""$1"\""}'|tr "\n" ","
 	# 绘图使用的实验组，顺序即图中显示顺序；为空时使用所有组和默认顺序
-	g1_list='"clRoB"'
+	#g1_list='"Col","ThasKO2","ThahKO","ThadKO","ACT2KO"'
 	# 从实验设计比较组中提取组名，自动获得目录组 (推荐)
-	# g1_list=`cat doc/${sub}/compare.txt|tr '\t' '\n'|sort|uniq|awk '{print "\""$$1"\""}'|tr "\n" ","|sed 's/,$$//'`
+	g1_list=`cat doc/${sub}/compare.txt|tr '\t' '\n'|sort|uniq|awk '{print "\""$$1"\""}'|tr "\n" ","|sed 's/,$$//'`
     # 从实验设计提取组(可选)
 	# g1_list=`tail -n+2 ${doc}/design.txt|cut -f 5|sort|uniq|awk '{print "\""$$1"\""}'|tr "\n" ","|sed 's/,$$//'`
 
@@ -365,21 +365,12 @@ SHELL:=/bin/bash
 ## 3.9 culture 可培养菌
 	 
 	# 可培养菌库类型，如组织root / rhizosphere / leaf, 品种A50 / IR24
-	type=
+	type=""
 	# 指定可培养菌库位置，fa为OTU，fasta为物种如rice
-	culture_db=/mnt/bai/yongxin/culture/ath/gaochulei/result/${type}culture_select.fa
+	culture_db=/mnt/bai/yongxin/culture/rice/result/${type}culture_select.fasta
 	# 可培养菌结果输出文件
 	# 绘制Graphlan图的筛选阈值
 	culture_thre=0.0005
-
-	# culture_graphlan
-	# 筛选指定组样品并鉴定培养比例，A50H A50L IR24H IR24L，A50 IR24且样品也要对应
-	filter=culture_${type}
-	# 过滤方法，默认median，可选max, mean, median, min，数据依次减少
-	filter_method=max
-	thre2=0.001
-	otu_table=${wd}/result/otutab.txt
-	cluture_db=/mnt/bai/yongxin/culture/ath/gaochulei/result/${type}culture_select.fa
 
 
 include /mnt/bai/yongxin/github/Amplicon/16Sv2/pipeline.md

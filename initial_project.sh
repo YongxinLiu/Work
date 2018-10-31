@@ -7,10 +7,13 @@
 # 2018/8/7 ath/wx.16s 王鑫16S功能基因验证
 # 2018/8/29 rice/zn.sd1/b2 水稻第二批SD1
 # 2018/10/11 ath/jt.HuangAC/syncom 三萜重组
+# 2018/10/23 culture/ath/gaochulei/control 对照
+# 2018/10/26 ath/CCPM 对照
+# 2018/10/31 maize/magic 对照
 
 
 
-wd=ath/jt.HuangAC/syncom
+wd=maize/magic
 # 创建github目录，用于备份流程、文档
 cd 
 mkdir -p ~/github/Work/$wd

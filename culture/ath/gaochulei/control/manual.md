@@ -1,39 +1,6 @@
-<!-- TOC -->
-
-- [1. 处理序列 Processing sequences](#1-处理序列-processing-sequences)
-    - [1.1. 按实验设计拆分lane为文库](#11-按实验设计拆分lane为文库)
-    - [1.2. 按实验设计拆分文库为样品](#12-按实验设计拆分文库为样品)
-    - [1.3. 样品双端合并、重命名、合并为单一文件](#13-样品双端合并重命名合并为单一文件)
-    - [1.4. 切除引物与标签](#14-切除引物与标签)
-    - [1.5. 质量控制](#15-质量控制)
-    - [1.6. 序列去冗余](#16-序列去冗余)
-    - [1.7. 挑选OTU](#17-挑选otu)
-    - [1.8. 有参去嵌合体](#18-有参去嵌合体)
-    - [1.9. 去除宿主](#19-去除宿主)
-    - [1.10. 生成OTU表](#110-生成otu表)
-    - [1.11. 过滤样本和OTUs](#111-过滤样本和otus)
-    - [1.12. 物种注释](#112-物种注释)
-    - [1.13. 物种统计](#113-物种统计)
-    - [1.14. 多序列比对和进化树](#114-多序列比对和进化树)
-    - [1.15. Alpha多样性指数计算](#115-alpha多样性指数计算)
-    - [1.16. Beta多样性距离矩阵计算](#116-beta多样性距离矩阵计算)
-    - [1.17. 有参考构建OTU表](#117-有参考构建otu表)
-- [2. 统计绘图 Statistics and plot](#2-统计绘图-statistics-and-plot)
-    - [2.1. Alpha多样性指数箱线图](#21-alpha多样性指数箱线图)
-    - [2.2. Alpha丰富度稀释曲线](#22-alpha丰富度稀释曲线)
-    - [2.3. 主坐标轴分析距离矩阵](#23-主坐标轴分析距离矩阵)
-    - [2.4. 限制性主坐标轴分析](#24-限制性主坐标轴分析)
-    - [2.5. 样品和组各级分类学堆叠柱状图](#25-样品和组各级分类学堆叠柱状图)
-    - [2.6. 组间差异比较](#26-组间差异比较)
-- [3. 高级分析](#3-高级分析)
-- [4. 个性分析](#4-个性分析)
-    - [4.1. 分蘖与菌相关性](#41-分蘖与菌相关性)
-
-<!-- /TOC -->
-
 	# 简明操作指南
 
-
+	# 项目简介：高初蕾的16S分菌原始样本16S测序
 
 # 1. 处理序列 Processing sequences
 
@@ -42,7 +9,7 @@
 	## 0.1 准备流程配置文件
 
 	# 设置工作目录
-	wd=rice/miniCore
+	wd=culture/ath/gaochulei/control
 	# 创建环境代码见~/github/Work/initial_project.sh
 
 	## 准备实验设计
@@ -51,67 +18,11 @@
 	# Initialize the working directory
 	make init
 
-	# 保存模板中basic页中3. 测序文库列表library为doc/library.txt
-	# 按library中第二列index准备测序文库，如果压缩要添加.gz，并用gunzip解压
-	awk 'BEGIN{OFS=FS="\t"}{system("ln -s /mnt/bai/yongxin/seq/181009.lane14/"$4"_1.fq.gz seq/"$1"_1.fq.gz");}' <(tail -n+2 doc/library.txt )
-	awk 'BEGIN{OFS=FS="\t"}{system("ln -s /mnt/bai/yongxin/seq/181009.lane14/"$4"_2.fq.gz seq/"$1"_2.fq.gz");}' <(tail -n+2 doc/library.txt )
-	# 如果压缩文件，要强制解压链接
-	gunzip -f seq/*.gz
-
-	# 标准多文库实验设计拆分，保存模板中design页为doc/design_raw.txt
-	split_design.pl -i doc/design_raw.txt
-	# 从其它处复制实验设计
-	cp ~/ath/jt.HuangAC/batch3/doc/L*.txt doc/
-	# 删除多余空格，windows换行符等
-	sed -i 's/ //g;s/\r/\n/' doc/*.txt 
-	head -n3 doc/L1.txt
-	# 依据各文库L*.txt文件生成实验设计
-	cat <(head -n1 doc/L1.txt | sed 's/#//g') <(cat doc/L* |grep -v '#') > doc/design.txt
-	# 检查是否相等
-	wc -l doc/design.txt
-	cut -f 1 doc/design.txt|sort|uniq|wc -l
-
-	## 准备原始数据
-
-	# 拆lane和质量转换归为原始seq目录中处理
-	# Prepare raw data
-	#ln ~/seq/180210.lane9.ath3T/Clean/CWHPEPI00001683/lane_* ./
-	#cp ~/ath/jt.HuangAC/batch3/doc/library.txt doc/
-	
-	# 检查数据质量，转换为33
-	#determine_phred-score.pl seq/lane_1.fq.gz
-	# 如果为64，改原始数据为33
-	rename 's/lane/lane_33/' seq/lane_*
-	# 关闭质量控制，主要目的是格式转换64至33，不然usearch无法合并
-	#time fastp -i seq/lane_64_1.fq.gz -I seq/lane_64_2.fq.gz \
-	#	-o seq/lane_1.fq.gz -O seq/lane_2.fq.gz -6 -A -G -Q -L -w 9
-	# 1lane 80GB, 2 threads, 102min
-
-## 1.1. 按实验设计拆分lane为文库
-
-	# Split lane into libraries
-	# lane文件一般为seq/lane_1/2.fq.gz
-	# lane文库信息doc/library.txt：至少包括编号、Index和样品数量三列和标题
-	# head -n3 doc/library.txt
-	#LibraryID	IndexRC	Samples
-	#L1	CTCAGA	60
-	
-	# 按library.txt拆分lane为library
-	# make lane_split
-
-
-## 1.2. 按实验设计拆分文库为样品
-
-
-	# 拆分样品
-	head -n3 doc/L1.txt
-	# 按L1/2/3...txt拆分library为samples
-	# 输入为seq/L*.fq，输出为seq/sample/*.fq
-	make library_split
-	make library_split_stat
-	# 统计结果见result/split有txt/pdf/png，推荐看png方便快速查看每张位图
-
-## 1.3. 样品双端合并、重命名、合并为单一文件
+	# 实验设计和样本，来自~/ath/jt.HuangAC/syncom
+	grep -P 'SampleID|cl' ~/ath/jt.HuangAC/syncom/doc/design.txt > doc/design.txt
+	mkdir -p seq/sample
+	ln ~/ath/jt.HuangAC/syncom/seq/sample/clRoBr* seq/sample/
+	touch library_split library_split_stat
 
 	# Merge paired reads, renames and merge all samples
 	# 样品双端合并、重命名、合并为单一文件, 注意fastq为33格式，64位采用fastp转换
@@ -178,7 +89,7 @@
 	
 	# Create OTUs table
 	# 默认使用vsearch更快10倍，可选usearch10，线程不可超48
-	make otutab_create
+	make otutab_create # 77.3%
 
 
 ## 1.11. 过滤样本和OTUs
@@ -278,23 +189,3 @@
 
 # 4. 个性分析
 
-## 4.1. 分蘖与菌相关性
-
-	# 准备相关输入文件
-	cd ~/rice/miniCore/180718
-	# 硬链数据文件，保持可同步修改和可备份
-	# miniCore分蘖数据整理
-	ln ~/rice/xianGeng/doc/phenotype_sample_raw.txt doc/
-	# LN otu表和实验设计
-	mkdir -p data
-	cp ~/rice/miniCore/180319/LN/otutab.txt data/LN_otutab.txt
-	cp ~/rice/miniCore/180319/doc/design.txt doc/design_miniCore.txt
-	mkdir -p data/cor/LN
-	# 物种注释
-	cp ~/rice/miniCore/180319/temp/otus_no_host.tax data/
-
-	# 统计见script/cor_tiller_LN.Rmd
-	# 相关系数，添加物种注释
-	awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$4} NR>FNR{print $0,a[$1]}' result/otus_no_host.tax data/cor/LN/otu_mean_pheno_cor.r.txt | less -S > result/cor/LN/otu_mean_pheno_cor.r.txt.tax
-	# 再添加可培养相关菌
-	awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print $0,a[$1]}' result/39culture/otu.txt data/cor/LN/otu_mean_pheno_cor.r.txt.tax | less -S > data/cor/LN/otu_mean_pheno_cor.r.txt.tax
