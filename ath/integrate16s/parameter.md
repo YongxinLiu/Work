@@ -196,7 +196,7 @@ SHELL:=/bin/bash
 	FC=1.2
 
 	# 统计绘图和网页报告版本控制
-	version=ath_${sub}_${compare_method}_unoisev2
+	version=ath_${sub}_${compare_method}_unoisev3
 
 
 	# 2.1 alpha_boxplot Alpha多样性指数箱线图 Alpha index in boxplot

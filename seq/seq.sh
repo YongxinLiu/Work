@@ -285,9 +285,6 @@ parallel --xapply -j 32 "zcat lane_2.fq.gz | grep -A 3 '#{1}'| grep -v -P '^--$'
 
 # 181025.lane15
 
-    # 读入md5文件列表，索引并比较，一致输出OK
-    md5sum -c md5.txt
-
     # 查看质量报告
     tar xvzf upload.tar.gz
     firefox upload/index.html # 64G
@@ -296,23 +293,30 @@ parallel --xapply -j 32 "zcat lane_2.fq.gz | grep -A 3 '#{1}'| grep -v -P '^--$'
     md5sum -c md5.txt
 
     # 简化目录和文件名
-    mv Clean/CCPM/* ./
-    rename 's/FCHL5W2BCX2_L2_CWHPE18090036/lane/' *.fq.gz
+    mv Clean/SDRS20180912/FCHL72LBCX2_L2_CWHPEPI00001955_* ./
+    rename 's/FCHL72LBCX2_L2_CWHPEPI00001955/lane/' *.fq.gz
     
 	# 准备Index列表拆分，需要IndexRC列，可由ID或Index列检索到
-	# 如保存ID列为index.ID，获取index和IndexRC，并补充到实验设计
+	# 情况1：如保存ID列为index.ID，获取index和IndexRC，并补充到实验设计
     awk 'BEGIN{FS=OFS="\t"} NR==FNR {a[$1]=$0} NR>FNR {print a[$1]}' \
         /mnt/bai/yongxin/ref/culture/IlluminaIndex48.txt index.ID > index.txt
+    # 情况2：如保存Index序列，保存为index，获取indexID和IndexRC，并补充到实验设计
+    awk 'BEGIN{FS=OFS="\t"} NR==FNR {a[$2]=$0} NR>FNR {print a[$1]}' \
+        /mnt/bai/yongxin/ref/culture/IlluminaIndex48.txt index > index.txt
     cat index.txt
+    # 保存至库文件和登记SeqLibraryList.xlsx
 
-    # 并行拆库
-    prefix=L181023
-    parallel -j 9 "zcat lane_1.fq.gz | grep -A 3 '#{1}'| grep -v -P '^--$' > ${prefix}_{1}_1.fq" ::: `cut -f 3 index.txt | grep  -v '^$'`
-    parallel -j 9 "zcat lane_2.fq.gz | grep -A 3 '#{1}'| grep -v -P '^--$' > ${prefix}_{1}_2.fq" ::: `cut -f 3 index.txt | grep  -v '^$'`
+    # 并行拆库，j可按文库数量调整，推荐默认24
+    prefix=L181025
+    parallel -j 24 "zcat lane_1.fq.gz | grep -A 3 '#{1}'| grep -v -P '^--$' > ${prefix}_{1}_1.fq" ::: `cut -f 3 index.txt | grep  -v '^$'` 
+    parallel -j 24 "zcat lane_2.fq.gz | grep -A 3 '#{1}'| grep -v -P '^--$' > ${prefix}_{1}_2.fq" ::: `cut -f 3 index.txt | grep  -v '^$'`
     
     # 质控和报告汇总
     fastqc -t 48 *.fq
     multiqc ./ # 详见multiqc_report.html
+    # 提取各样品数据量，不同批数据量的列会有变化，可能要更改列的数值5、6等
+    l=`head -n1 multiqc_data/multiqc_fastqc.txt|sed 's/\t/\n/g'|awk '{print NR"\t"$0}'|grep 'Total Sequences'|cut -f 1`
+    cut -f 1,${l} multiqc_data/multiqc_fastqc.txt | sed 's/_.\t/\t/' | uniq
 
     # 压缩空间及上传
     pigz *.fq
@@ -321,6 +325,17 @@ parallel --xapply -j 32 "zcat lane_2.fq.gz | grep -A 3 '#{1}'| grep -v -P '^--$'
     md5sum L*_2.fq.gz >> md5sum.txt
     cat md5sum.txt
 
+    ## 郭晓璇的Index13没有结果，沟通后尝试Index11的RC GGCTAC在lane中检索发现较多，修改index列表最后一列，重新分析
+    rm L181025_AGTCAA* # 删除错误Index相关文件
+    idx=GGCTAC
+    prefix=L181025
+    parallel -j 24 "zcat lane_1.fq.gz | grep -A 3 '#{1}'| grep -v -P '^--$' > ${prefix}_{1}_1.fq" ::: `cut -f 3 index.txt | grep  -v '^$' | tail -n1`
+    parallel -j 24 "zcat lane_2.fq.gz | grep -A 3 '#{1}'| grep -v -P '^--$' > ${prefix}_{1}_2.fq" ::: `cut -f 3 index.txt | grep  -v '^$' | tail -n1`
+    fastqc -t 48 L*${idx}*.fq
+    rm -r multiqc_*
+    multiqc ./
+
+    
 
 
 ## 准备原始数据

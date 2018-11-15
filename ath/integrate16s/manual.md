@@ -1,36 +1,3 @@
-<!-- TOC -->
-
-- [1. 处理序列 Processing sequences](#1-处理序列-processing-sequences)
-    - [1.1. 按实验设计拆分lane为文库](#11-按实验设计拆分lane为文库)
-    - [1.2. 按实验设计拆分文库为样品](#12-按实验设计拆分文库为样品)
-    - [1.3. 样品双端合并、重命名、合并为单一文件](#13-样品双端合并重命名合并为单一文件)
-    - [1.4. 切除引物与标签](#14-切除引物与标签)
-    - [1.5. 质量控制](#15-质量控制)
-    - [1.6. 序列去冗余](#16-序列去冗余)
-    - [1.7. 挑选OTU](#17-挑选otu)
-    - [1.8. 有参去嵌合体](#18-有参去嵌合体)
-    - [1.9. 去除宿主](#19-去除宿主)
-    - [1.10. 生成OTU表](#110-生成otu表)
-    - [1.11. 过滤样本和OTUs](#111-过滤样本和otus)
-    - [1.12. 物种注释](#112-物种注释)
-    - [1.13. 物种统计](#113-物种统计)
-    - [1.14. 多序列比对和进化树](#114-多序列比对和进化树)
-    - [1.15. Alpha多样性指数计算](#115-alpha多样性指数计算)
-    - [1.16. Beta多样性距离矩阵计算](#116-beta多样性距离矩阵计算)
-    - [1.17. 有参考构建OTU表](#117-有参考构建otu表)
-- [2. 统计绘图 Statistics and plot](#2-统计绘图-statistics-and-plot)
-    - [2.1. Alpha多样性指数箱线图](#21-alpha多样性指数箱线图)
-    - [2.2. Alpha丰富度稀释曲线](#22-alpha丰富度稀释曲线)
-    - [2.3. 主坐标轴分析距离矩阵](#23-主坐标轴分析距离矩阵)
-    - [2.4. 限制性主坐标轴分析](#24-限制性主坐标轴分析)
-    - [2.5. 样品和组各级分类学堆叠柱状图](#25-样品和组各级分类学堆叠柱状图)
-    - [2.6. 组间差异比较](#26-组间差异比较)
-- [3. 高级分析](#3-高级分析)
-- [4. 个性分析](#4-个性分析)
-    - [4.1. 分蘖与菌相关性](#41-分蘖与菌相关性)
-
-<!-- /TOC -->
-
 # 1. 处理序列 Processing sequences
 
 	# 0. 准备工作 Preparation
@@ -457,3 +424,38 @@ cut -f 1 ../../doc/design.txt |tail -n+2|sort|uniq|wc -l
 cut -f 1 ../../doc/design.txt |tail -n+2|sort|uniq>sampleID2
 # 显示是否名称有不对应的样本
 cat sampleID?|sort|uniq -u
+
+
+## 实验菌对应OTU的箱线图
+    
+    # 姜婷发我的实验的菌测序结果 3T/181105wet_isolate.fa
+    # 比对至OTU序列
+    makeblastdb -in 3T/181105wet_isolate.fa -dbtype nucl -out temp/181105wet_isolate
+    # OTU太多，只筛选用于差异比较的高丰度OTU
+    cut -f 1 ath_3.1_edgeR_unoisev2/result/compare/b3ThasKO1-b3Col_all.txt|tail -n+2 > 3T/otu.id
+    usearch10 -fastx_getseqs result/otu.fa -labels 3T/otu.id -fastaout 3T/otu.fa
+    # 比对otu至单菌序列
+	blastn -query 3T/otu.fa -db temp/181105wet_isolate -out temp/3T.otu.blast \
+	-outfmt '6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qcovs' \
+	-num_alignments 1 -evalue 1 -num_threads 9
+    # 筛选>97%相似的OTU
+    rm -r 3T/otu_box
+    mkdir -p 3T/otu_box
+    awk '$3>97' temp/3T.otu.blast|sort -k2,2 -k3,3nr > 3T/otu_box/3T.otu.blast.txt
+    # 绘制每个OTU的箱线图，需要标准化+转置 -t -n TRUE; 修改compare为compare_soil加土
+    alpha_boxplot.sh -i result/otutab.txt -m `cut -f 1 3T/otu_box/3T.otu.blast.txt|sort|uniq|awk '{print "\""$1"\""}'|tr "\n" ","|sed 's/,$//'
+` \
+        -d `pwd`/doc/"3.1"/design.txt  -A groupID -B `cat doc/3.1/compare_soil.txt|tr '\t' '\n'|sort|uniq|awk '{print "\""$1"\""}'|tr "\n" ","|sed 's/,$//'` \
+        -o `pwd`/3T/otu_box/ -h 5 -w 8 -t TRUE -n TRUE
+
+    # RDP比较
+    # 物种注释
+    usearch10 -sintax 3T/181105wet_isolate.fa \
+	-db /mnt/bai/public/ref/rdp/rdp_16s_v16_sp.udb -sintax_cutoff 0 -strand both \
+	-tabbedout 3T/181105wet_isolate.fa.tax -threads 32
+    # 结果与3T目录中`根系微生组属水平与生长曲线结果比对.xls`中在线RDP注释结果比较
+
+    # 绘制属水平曼哈顿图，需界门纲目科属一致
+    script/plot_manhattan_genus.r
+    # "b3ACT2CR","b3ACT2KO","b3BS","b3Col","b3ThadKO","b3ThahKO","b3ThasKO1","b3ThasKO2"
+

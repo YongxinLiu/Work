@@ -939,3 +939,18 @@ mkdir -p tree
     alpha_boxplot.sh -i `pwd`/result/alpha/index.txt -m '"chao1","richness","shannon_e"' \
         -d `pwd`/doc/"xiangeng"/design.txt  -A groupID -B '"LIND","LTEJ","LAUS","LTRJ"' \
         -o `pwd`/result/alpha/ -h 3 -w 5    
+
+## 图3. SL相关基因
+
+### 3.1 PCoA和CPCoA绘制SL所有基因型的丰度
+    # "d27RtBj","d17RtBj","d10RtBj","d3AHLRtBj","d3NpRtBj","d3RtBj","d14AHLRtBj","d14RtBj","d53RtBj","NpRtBj","d27RtHn","d17RtHn","d10RtHn","d3RtHn","d14RtHn","d53RtHn","NpRtHn"
+    # d3RtBj与D10混合，而d3NpRtBj两类有分开
+    beta_pcoa.sh -i `pwd`/result/beta/ -m '"bray_curtis","weighted_unifrac"' \
+        -d `pwd`/doc/SL/design.txt  -A groupID -B '"d27RtBj","d17RtBj","d10RtBj","d3NpRtBj","d14RtBj","d53RtBj","NpRtBj"' -E TRUE \
+        -c `pwd`/doc/SL_Bj/compare.txt \
+        -o `pwd`/result/beta/ -h 3 -w 5
+    beta_cpcoa.sh -i `pwd`/result/otutab_norm.txt -m '"bray"' \
+        -d `pwd`/doc/SL/design.txt  -A groupID -B '"d27RtBj","d17RtBj","d10RtBj","d3NpRtBj","d14RtBj","d53RtBj","NpRtBj"' -E TRUE \
+        -o `pwd`/result/beta/ -h 3 -w 5
+
+

@@ -372,12 +372,14 @@ cp /mnt/bai/xiaoning/past/software/gcta_1.91.3beta/sativa.pca.eigenvec pca4.txt
 # 表型数据，以属为例 HN/tax_g.txt.fam
 cp ../HN/tax_g.txt.fam T2.fam
 # 以第6列正对照wax为例
+# 正对照可运行，无问题
+gemma -bfile T2 -k kinship.txt -c pca4.txt -lmm 4 -n 1 -o 1
 gemma -bfile T2 \ # 读取bed bim fam文件
-	-k kinship.txt \ # 品种间关系
-	-lmm 4 \ # 4种计算模型
-	-n 1 \ # 分析表型所有fam文件中的列，第6列为1
-	-o 1 \ # 输出文件名
-	-c pca4.txt # covariates文件
+    -k kinship.txt \ # 品种间关系
+    -lmm 4 \ # 4种计算模型
+    -n 1 \ # 分析表型所有fam文件中的列，第6列为1
+    -o 1 \ # 输出文件名
+    -c pca4.txt # covariates文件
 # 显示各列编号和名称
 head -n1 output/6.assoc.txt|tr '\t' '\n'|awk '{print NR,$0}'
 # 按14列筛选p<0.001

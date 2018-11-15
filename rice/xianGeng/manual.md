@@ -650,14 +650,15 @@ grep -P -v '^\s*#' script/nitrogen_cor.r > fig1/script/nitrogen_cor.R
 	# 附图4组，xiangeng_wilcoxon_supp
 
 
+
 ## 图4.e宏基因组KO注释
 
 	从金桃处获得KO表和丰度，获取KO的功能描述；在kegg中没找到，picurst中没找到(输出结果有注释但不完整)，google搜索KO description download，找到biostar解答；https://www.genome.jp/kegg-bin/get_htext?ko00001.keg 中的Download htext/jason下载KO和描述；htext方便检索，而jason方便在线分析，如jason2table
 	
-	cd ~/rice/xianGeng/metagenome
+	cd ~/rice/xianGeng/meta
 	grep 'D      K' ko00001.keg | cut -c 8- | sed 's/  /\t/' > KO_description.txt #|  cat -A | less -S
 	# 比较两组差异
-compare.sh -i ko.txt -c compare.txt -m "wilcox"         -p 0.01 -q 0.05 -F 1.2 -t 0 -N FALSE         -d design.txt -A group -B '"HnNrt","HnZH11"'         -o compare/ -N FALSE -U 100 # Pvalue和FDR并不显著，可能秩和检验需要较多的样本数
+    compare.sh -i ko.txt -c compare.txt -m "wilcox"         -p 0.01 -q 0.05 -F 1.2 -t 0 -N FALSE         -d design.txt -A group -B '"HnNrt","HnZH11"'         -o compare/ -N FALSE -U 100 # Pvalue和FDR并不显著，可能秩和检验需要较多的样本数
 	# 注释KO
 	awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$2} NR>FNR{print $0,a[$1]}' KO_description.txt ko.txt > ko.anno
 
@@ -665,6 +666,30 @@ compare.sh -i ko.txt -c compare.txt -m "wilcox"         -p 0.01 -q 0.05 -F 1.2 -
 alpha_boxplot.sh -i ko.txt -m '"K02568","K02567","K00363","K10535","K00362"' \
 -d design.txt -A group -B '"HnZH11","HnNrt"' \
 -o ./ -h 2 -w 2.5 -t TRUE -n TRUE -U 1000000
+
+
+    # 2018/11/14 完整KO表
+	cd ~/rice/xianGeng/meta
+    # 制作kotab.txt, design.txt, compare.txt
+    rm -r compare
+    compare.sh -i kotab.txt -d design.txt -c compare.txt \
+        -m "ttest" -p 0.05 -q 1 -F 1.2 -t 0 -N FALSE -A GroupID -B '"HnZH11","HnNrt","LnZH11","LnNrt"' \
+        -o compare/ -N FALSE -U 100 
+    cat compare/summary.txt
+        # Pvalue和FDR并不显著，可能秩和检验需要较多的样本数，HN要比LN明显特别多
+
+    type=sulfur
+    mkdir -p ${type}
+    ## https://www.kegg.jp 搜索Nitrogen metabolism，打开PATHWAY map00910，点击Ortholog table打开KO与物种对应表，保存第一行KO和对应描述为nitrogene/ko.id
+    # 设置分析本批关键字，同类分析替换即可 nitrogen/sulfur
+    # 转换为KO ID对应基因名称，并添加差异比较对应表头
+    sed ":a;N;s/\n/ /g;ta" ${type}/ko_raw.id |sed "s/\t/\n/g"| sed "s/ /\t/;s/(//;s/)//;" | cut -f 1 -d '['| sed '1 i HnZH11_HnNrt'|less > ${type}/ko.id
+    # 筛选KO对应比较结果
+    awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print a[$1]}' compare/HnZH11-HnNrt_all.txt ${type}/ko.id | grep -v -P '^$' > ${type}/HnNrt_all.txt
+    # 查看正对照K02568 K02567 K00363
+    # 筛选显著差异并标颜色
+    awk '$4<0.05' ${type}/HnNrt_all.txt | cut -f 1-4,7-8 | awk '{if ($2>0) {print $1"\tred"}else {print $1"\tgreen"}}'
+    # N和S都有上升的基因
 
 
 

@@ -58,8 +58,8 @@ SHELL:=/bin/bash
 ## 1.6. fa_unqiue 序列去冗余
 
 	# Remove redundancy
-	# 最小序列频率miniuniqusize默认为8，去除低丰度，增加计算速度，整lane的序列可更改为30，50，甚至100
-	minuniquesize=8
+	# 最小序列频率默认为8，去除低丰度，增加计算速度，整lane的序列推荐1/1M，即上一步最后一行的数据量
+	minuniquesize=94
 
 ## 1.7. **otu_pick 挑选OTU**
 

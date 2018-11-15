@@ -53,7 +53,7 @@
 	## 0.1 准备流程配置文件
 
 	# 设置工作目录
-	wd=rice/miniCore
+	wd=maize/magic
 	# 创建环境代码见~/github/Work/initial_project.sh
 
 	## 准备实验设计
@@ -62,10 +62,10 @@
 	# Initialize the working directory
 	make init
 
-	# 保存模板中basic页中3. 测序文库列表library为doc/library.txt
+	# 保存模板中basic页中3. 测序文库列表library为doc/library.txt(含表头)
 	# 按library中第二列index准备测序文库，如果压缩要添加.gz，并用gunzip解压
-	awk 'BEGIN{OFS=FS="\t"}{system("ln -s /mnt/bai/yongxin/seq/181009.lane14/"$4"_1.fq.gz seq/"$1"_1.fq.gz");}' <(tail -n+2 doc/library.txt )
-	awk 'BEGIN{OFS=FS="\t"}{system("ln -s /mnt/bai/yongxin/seq/181009.lane14/"$4"_2.fq.gz seq/"$1"_2.fq.gz");}' <(tail -n+2 doc/library.txt )
+	awk 'BEGIN{OFS=FS="\t"}{system("ln -s /mnt/bai/yongxin/seq/181024WangChao/"$4"_1.fq.gz seq/"$1"_1.fq.gz");}' <(tail -n+2 doc/library.txt )
+	awk 'BEGIN{OFS=FS="\t"}{system("ln -s /mnt/bai/yongxin/seq/181024WangChao/"$4"_2.fq.gz seq/"$1"_2.fq.gz");}' <(tail -n+2 doc/library.txt )
     # 检查数据链接，全红为错误，绿色为正常
     ll seq/*
 	# 如果压缩文件，要强制解压链接
@@ -74,12 +74,12 @@
 	# 标准多文库实验设计拆分，保存模板中design页为doc/design_raw.txt
 	split_design.pl -i doc/design_raw.txt
 	# 从其它处复制实验设计
-	cp ~/ath/jt.HuangAC/batch3/doc/L*.txt doc/
+	# cp ~/ath/jt.HuangAC/batch3/doc/L*.txt doc/
 	# 删除多余空格，windows换行符等
 	sed -i 's/ //g;s/\r/\n/' doc/*.txt 
 	head -n3 doc/L1.txt
 	# 依据各文库L*.txt文件生成实验设计
-	cat <(head -n1 doc/L1.txt | sed 's/#//g') <(cat doc/L* |grep -v '#') > doc/design.txt
+	cat <(head -n1 doc/L1.txt | sed 's/#//g') <(cat doc/L* |grep -v '#'|grep -v -P '^SampleID\t') > doc/design.txt
 	# 检查是否相等
 	wc -l doc/design.txt
 	cut -f 1 doc/design.txt|sort|uniq|wc -l
@@ -94,7 +94,7 @@
 	# 检查数据质量，转换为33
 	#determine_phred-score.pl seq/lane_1.fq.gz
 	# 如果为64，改原始数据为33
-	rename 's/lane/lane_33/' seq/lane_*
+	# rename 's/lane/lane_33/' seq/lane_*
 	# 关闭质量控制，主要目的是格式转换64至33，不然usearch无法合并
 	#time fastp -i seq/lane_64_1.fq.gz -I seq/lane_64_2.fq.gz \
 	#	-o seq/lane_1.fq.gz -O seq/lane_2.fq.gz -6 -A -G -Q -L -w 9
@@ -117,12 +117,13 @@
 
 
 	# 拆分样品
-	head -n3 doc/L1.txt
 	# 按L1/2/3...txt拆分library为samples
 	# 输入为seq/L*.fq，输出为seq/sample/*.fq
 	make library_split
 	make library_split_stat
 	# 统计结果见result/split有txt/pdf/png，推荐看png方便快速查看每张位图
+	# 查看样本量排序
+	sort -k2,2n result/sample_split.log|less # 有11个小于5000，15个小于10000
 
 ## 1.3. 样品双端合并、重命名、合并为单一文件
 
@@ -289,25 +290,219 @@
 
 	# 默认为水稻，包括相似度、覆盖度、丰度和物种注释
 
+
+
+
+
 # 4. 个性分析
 
-## 4.1. 分蘖与菌相关性
+## 4.1 基因型数据 
 
-	# 准备相关输入文件
-	cd ~/rice/miniCore/180718
-	# 硬链数据文件，保持可同步修改和可备份
-	# miniCore分蘖数据整理
-	ln ~/rice/xianGeng/doc/phenotype_sample_raw.txt doc/
-	# LN otu表和实验设计
-	mkdir -p data
-	cp ~/rice/miniCore/180319/LN/otutab.txt data/LN_otutab.txt
-	cp ~/rice/miniCore/180319/doc/design.txt doc/design_miniCore.txt
-	mkdir -p data/cor/LN
-	# 物种注释
-	cp ~/rice/miniCore/180319/temp/otus_no_host.tax data/
+    mkdir -p snp/
+    # snp/cubic_*共5个文件，hmp2plink代表hmp格式转换为plink格式，maf0.02为min allel frequency 0.02，bed/bim/ped为一组，分别为二进制的样本与SNP表，snp列表，样本对应的表型列表；_1404_Kinship.txt为kinship相似度矩阵，最相近即本身为2；_PopStructure.txt为群体结构数据，即前10个主成分
+    # snp和样本数量，样式分别为chr1.s_717和MG_49
+    wc -l snp/cubic_1404_hmp2plink_maf0.02.bim snp/cubic_1404_hmp2plink_maf0.02.fam # 1404个样品，11,825,030个SNP
+    # 1404个样本的列表
+    cut -f 2 snp/cubic_1404_hmp2plink_maf0.02.fam -d ' ' > snp/cubic_1404.id
 
-	# 统计见script/cor_tiller_LN.Rmd
-	# 相关系数，添加物种注释
-	awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$4} NR>FNR{print $0,a[$1]}' result/otus_no_host.tax data/cor/LN/otu_mean_pheno_cor.r.txt | less -S > result/cor/LN/otu_mean_pheno_cor.r.txt.tax
-	# 再添加可培养相关菌
-	awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print $0,a[$1]}' result/39culture/otu.txt data/cor/LN/otu_mean_pheno_cor.r.txt.tax | less -S > data/cor/LN/otu_mean_pheno_cor.r.txt.tax
+    # 准备gemma分析要求格式
+    # 链接至根目录并简化名称
+    ln `pwd`/snp/cubic_1404_hmp2plink_maf0.02.b* ./
+    rename 's/cubic_1404_hmp2plink_maf0.02/snp/' cubic_1404_hmp2plink_maf0.02.b*
+    # 群体结构PC1-10与id对应
+    awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print a[$1]}' snp/cubic_PopStructure.txt snp/cubic_1404.id > snp.pca
+    # kinship矩阵
+    # 原始kinship去除行列名与gemma示例一致，下游报错矩阵是单数
+    tail -n+2 snp/cubic_1404_Kinship.txt|cut -f 2-|less -S > snp.kin # gsl: lu.c:262: ERROR: matrix is singular
+    # gemma生成kinship矩阵，第一次-o snp结果没有结果，后来发现输出至.output目录中，snp.cXx/log.txt，1h
+    cd snp
+    # 用原始数据生成kinship，error! number of analyzed individuals equals 0. ERROR: matrix dimension n1 must be positive integer，尝试修改空格为制作符仍报错，-9为1可运行
+    sed -i 's/ /\t/g;s/-9/1/g' cubic_1404_hmp2plink_maf0.02.fam
+    gemma -bfile cubic_1404_hmp2plink_maf0.02 -gk 1 -o snp 
+    ## number of total individuals = 1404
+    ## number of analyzed individuals = 1404
+    ## number of covariates = 1
+    ## number of phenotypes = 1
+    ## number of total SNPs = 11825030
+    ## number of analyzed SNPs = 8584966
+    cd ..
+    gemma -bfile snp -gk 1 -o snp
+    cp output/snp.cXX.txt snp.kin
+    mv output/snp.log.txt snp/
+    rmdir output/
+
+    # 准备gapit输入hmp格式
+    cd snp
+    # 转换bed为ped，30min, 还包括map, nosex, log文件
+    time plink --bfile cubic_1404_hmp2plink_maf0.02 --out cubic_1404_hmp2plink_maf0.02 --recode
+    # 转换ped为hmp，直接使用了60个线程，55m
+    time ~/bin/TASSEL5/run_pipeline.pl -plink -ped  cubic_1404_hmp2plink_maf0.02.ped -map cubic_1404_hmp2plink_maf0.02.map  -export cubic_1404_hmp_maf0.02 -exportType Hapmap -Xmx50g
+    cd ..
+    
+
+
+## 4.2 微生物组数据
+
+    mkdir -p 16S/
+    # 对应OTU表的编号与snp/cubic_1404_hmp2plink_maf0.02.fam第二列样本名一致
+    # 对应实验设计中的 ID_MG 列，为26列
+    head -n1 doc/design.txt | sed 's/\t/\n/g' | awk '{print NR"\t"$0}'
+    # 查看编号唯一情况
+    tail -n+2 doc/design.txt|cut -f 26|sort|uniq -u |wc -l # 唯一编号仅有1278
+    tail -n+2 doc/design.txt|cut -f 26|sort|uniq -c|awk '{print $2"\t"$1}'|awk '$2>1'|sort -k2,2nr # 查看冗余情况
+    tail -n+2 doc/design.txt|cut -f 26|sort|uniq -u > 16S/MG_unique.id # 保存非冗余编号
+    cat 16S/MG_unique.id snp/cubic_1404.id|sort|uniq|wc -l|1415 # 仍有不一致的11个
+    # 链接表型数据和SNP文件至根目录
+    ln `pwd`/snp/cubic_1404_hmp2plink_maf0.02.b* ./
+    rename 's/cubic_1404_hmp2plink_maf0.02/snp/' cubic_1404_hmp2plink_maf0.02.b*
+
+    # 筛选otutab与fam列表对应样本
+    # 提取样本名、组名和基因型对应ID
+    cut -f 1,3,26 doc/design.txt |less > doc/design.txt3
+    # 备份原始OTU表
+    cp result/otutab.txt result/otutab.txt.181105
+    # 对应OTU样本名至基因型
+    otutab2genotype.Rmd
+    # 重新计算物种和多样性
+    usearch10 -otutab_stats result/otutab.txt -output result/otutab.stat
+    usearch10 -otutab_norm result/otutab.txt -sample_size 10000 -output result/otutab_norm.txt 
+    make tax_sum # 物种
+    make beta_calc # alpha, beta
+
+    # Alpha, beta, taxonomy，生成gemma输入fam格式性状
+    Rscript ~/github/Amplicon/16Sv2/script/gemma_fam.R -i result/alpha/index.txt -d snp/cubic_1404_hmp2plink_maf0.02.fam
+    # result/alpha/index.txt.fam 和 result/alpha/index.txt.fam.header
+    
+
+
+
+## 4.3 基因型与微生物组关联
+
+    # gemma
+    mkdir -p gemma
+    cp result/alpha/index.txt.fam snp.fam
+    # 样本顺序为字母顺序，不是fam中顺序
+    i=alpha
+	tail -n+6 result/alpha/index.txt.fam.header|head -n99|sed 's/[\(\)\"]//g'|awk '{print NR"\t"NR$0}'| sed "s/\t/\t${i}/" > gemma/${i}.list
+    # 计算alpha多样性中第9列的richness关联
+    gemma -bfile snp -k snp.kin -c snp.pca -lmm 4 -n 9 -o gemma/alpha9richness # le
+
+    parallel -j 33 "gemma -bfile T2 -k gemma/kinship.txt -c snp.pca -lmm 4 -n {1} -o gemma/{1}" ::: `cut -f 1 gemma/${i}.list`
+
+	parallel -j 33 "gemma -bfile snp/cubic_1404_hmp2plink_maf0.02 -k snp/cubic_1404_Kinship.txt -c snp/cubic_PopStructure.txt -lmm 4 -n {1} -o {1}" ::: `cut -f 1 ${dir}/HN/${i}.list`
+
+    # gapit
+    script/gapit.r # 使用内存超800G，手动终止
+
+    # tassel
+    # 转换ped格式为hmp
+    time ~/bin/TASSEL5/run_pipeline.pl -plink -ped  cubic_1404_hmp2plink_maf0.02.ped -map cubic_1404_hmp2plink_maf0.02.map  -export cubic_1404_hmp_maf0.02 -exportType Hapmap -Xmx50g
+    # 
+    # 生成tassel格式
+    mkdir -p tassel/16s
+    cut -f 1,4,10,13 result/alpha/index.txt|sed '1 s/Sample/<Trait>/' > tassel/16s/alpha.txt
+    cut -f 1,3  tassel/16s/alpha.txt >  tassel/16s/alpha_richness.txt
+    # 运行tassel于alpha多样性，10G/30G内存溢出，改为200/600G
+    rm -r tassel/alpha/
+    out=tassel/alpha
+    mkdir -p $out
+    ~/software/tassel-5-standalone/run_pipeline.pl \
+        -Xms200g -Xmx600g \
+        -fork1 -h snp/cubic_1404_hmp_maf0.02.hmp.txt \
+        -fork2 -r tassel/16s/alpha_richness.txt \
+        -fork3 -q snp/cubic_PopStructure.txt \
+        -fork4 -k snp/cubic_1404_Kinship.txt \
+        -combine5 -input1 -input2 -input3 -intersect \
+        -combine6 -input5 -input4 \
+        -mlm -mlmVarCompEst P3D -mlmCompressionLevel None \
+        -mlmOutputFile $out/mlmOut \
+        -export $out/mlmExport \
+        -runfork1 -runfork2 -runfork3 -runfork4 \
+        > $out/out
+
+
+# meta-gwas 在meta上分析GWAS
+    
+    # 
+    screen -R gwas
+    ssh liuyongxin@210.75.224.32
+    cd ~/maize/magic/
+    scp -r yongxin@210.75.224.110:~/maize/magic/snp ./
+    scp -r yongxin@210.75.224.110:~/maize/magic/tassel ./
+
+
+    cut -f 1,4,10,13 result/alpha/index.txt|sed '1 s/Sample/<Trait>/' > tassel/16s/alpha.txt
+    cut -f 1,3  tassel/16s/alpha.txt >  tassel/16s/alpha_richness.txt
+    # 运行tassel于alpha多样性，10G/30G内存溢出，改为200/600G
+    rm -r tassel/alpha/
+    out=tassel/alpha
+    mkdir -p $out
+    /home/yongxin/bin/tassel-5-standalone/run_pipeline.pl \
+        -Xms200g -Xmx600g \
+        -fork1 -h snp/cubic_1404_hmp_maf0.02.hmp.txt \
+        -fork2 -r tassel/16s/alpha_richness.txt \
+        -fork3 -q snp/cubic_PopStructure.txt \
+        -fork4 -k snp/cubic_1404_Kinship.txt \
+        -combine5 -input1 -input2 -input3 -intersect \
+        -combine6 -input5 -input4 \
+        -mlm -mlmVarCompEst P3D -mlmCompressionLevel None \
+        -mlmOutputFile $out/mlmOut \
+        -export $out/mlmExport \
+        -runfork1 -runfork2 -runfork3 -runfork4 \
+        > $out/out
+
+
+# 拆分snp批量运行
+    cd ~/maize/magic/snp
+    # 11M行，输出1位数字，每个1.2M SNP拆为10份，一夜tassel只运行20%，改为100份
+    split -a 2 -d -l 120000 cubic_1404_hmp_maf0.02.hmp.txt split_hmp
+    # 提取ID
+    ls split_hmp??|cut -c10- > split_list.txt
+    # 添加表头
+    header=`head -n1 split_hmp00`
+    for i in `tail -n+2 split_list.txt`;do sed -i "1 i $header" split_hmp$i; done
+    cd ..
+
+    out=tassel/alpha
+    mkdir -p $out
+    parallel --xapply -j 30 \
+    "/home/yongxin/bin/tassel-5-standalone/run_pipeline.pl \
+        -Xms10g -Xmx30g \
+        -fork1 -h snp/split_hmp{1} \
+        -fork2 -r tassel/16s/alpha_richness.txt \
+        -fork3 -q snp/cubic_PopStructure.txt \
+        -fork4 -k snp/cubic_1404_Kinship.txt \
+        -combine5 -input1 -input2 -input3 -intersect \
+        -combine6 -input5 -input4 \
+        -mlm -mlmVarCompEst P3D -mlmCompressionLevel None \
+        -mlmOutputFile $out/mlmOut{1} \
+        -export $out/mlmExport{1} \
+        -runfork1 -runfork2 -runfork3 -runfork4 \
+        > $out/out{1}" \
+        ::: `cat snp/split_list.txt`
+## Reference
+
+### Tassel参考流程
+
+TRAIT=$1
+ID=$2
+
+perl ~/software/tassel3-standalone/run_pipeline.pl \
+	-Xms1g -Xmx3g \
+	-fork1 -h ~/hjliu/cubic/geno/cubic_1404_maf0.02_ID$ID.hmp.gz \
+	-fork2 -r ~/hjliu/cubic/AllTrait/${TRAIT}.txt \
+	-fork3 -q ~/hjliu/cubic/GWAS/cubic_PopStructure.txt \
+	-fork4 -k ~/hjliu/cubic/GWAS/cubic_1404_Kinship.txt -combine5 -input1 -input2 -input3 -intersect -combine6 -input5 -input4 -mlm -mlmVarCompEst P3D -mlmCompressionLevel None \
+	-mlmOutputFile mlmOut_cubic_${TRAIT}_ID${ID} \
+	-export mlmExport_${TRAIT}_ID${ID} \
+	-runfork1 -runfork2 -runfork3 -runfork4 \
+	> out_${TRAIT}_ID${ID}
+
+### emma参考流程
+
+#!/bin/sh
+
+i=$1
+
+~/software/emmax-beta-07Mar2010/emmax -v -d 10 -t genotype/Plink/cubic_391_maf0.05.plk -p phenotype/${i}.rld.txt -k genotype/cubic_391_Kinship_emmax.txt -c genotype/cubic_PopStructure_391_peer_emmax.txt.bak -o GWAS/${i}.rld.peer
+gzip GWAS/${i}.rld.peer.ps
