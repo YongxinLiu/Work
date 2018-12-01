@@ -1,37 +1,3 @@
-<!-- TOC -->
-
-- [1. 准备工作 Preparation](#1-准备工作-preparation)
-    - [1.1. 准备流程配置文件](#11-准备流程配置文件)
-    - [1.2. 初始化工作区](#12-初始化工作区)
-    - [1.3. 准备原始数据](#13-准备原始数据)
-- [2. 处理序列 Processing sequencing data](#2-处理序列-processing-sequencing-data)
-    - [2.1. 按实验设计拆分lane为文库](#21-按实验设计拆分lane为文库)
-    - [2.2. 按实验设计拆分文库为样品](#22-按实验设计拆分文库为样品)
-    - [2.3. 样品双端合并、重命名、合并为单一文件](#23-样品双端合并重命名合并为单一文件)
-    - [2.4. 切除引物与标签](#24-切除引物与标签)
-    - [2.5. 质量控制](#25-质量控制)
-    - [2.6. 序列去冗余](#26-序列去冗余)
-    - [2.7. 挑选OTU](#27-挑选otu)
-    - [2.8. 有参去嵌合体](#28-有参去嵌合体)
-    - [2.9. 去除宿主](#29-去除宿主)
-    - [2.10. 生成OTU表](#210-生成otu表)
-    - [2.11. 过滤样本和OTUs](#211-过滤样本和otus)
-    - [2.12. 物种注释](#212-物种注释)
-    - [2.13. 物种统计](#213-物种统计)
-    - [2.14. 多序列比对和进化树](#214-多序列比对和进化树)
-    - [2.15. Alpha多样性指数计算](#215-alpha多样性指数计算)
-    - [2.16. Beta多样性距离矩阵计算](#216-beta多样性距离矩阵计算)
-    - [2.17. 有参考构建OTU表](#217-有参考构建otu表)
-- [3. 统计绘图 Statistics and plot](#3-统计绘图-statistics-and-plot)
-    - [3.1. Alpha多样性指数箱线图](#31-alpha多样性指数箱线图)
-    - [3.2. Alpha丰富度稀释曲线](#32-alpha丰富度稀释曲线)
-    - [3.3. 主坐标轴分析距离矩阵](#33-主坐标轴分析距离矩阵)
-    - [3.4. 限制性主坐标轴分析](#34-限制性主坐标轴分析)
-    - [3.5. 样品和组各级分类学堆叠柱状图](#35-样品和组各级分类学堆叠柱状图)
-    - [3.6. 组间差异比较](#36-组间差异比较)
-
-<!-- /TOC -->
-
 # 1. 准备工作 Preparation
 
 ## 1.1. 准备流程配置文件
@@ -56,19 +22,34 @@
 
 	# 标准多文库实验设计拆分
 	# split_design.pl -i doc/design_raw.txt
-	# 从其它处复制实验设计
+	# 从其它处复制实验设计 10个库
 	cp ~/medicago/zjj170823/doc/L*.txt doc/
 	# 删除多余空格，windows换行符等
 	sed -i 's/ //g;s/\r/\n/' doc/*.txt 
 	head -n3 doc/L1.txt
+
+
 
 ## 1.3. 准备原始数据
 
     # Prepare raw data
     ln ~/medicago/zjj170823/clean_data/*.gz seq/
     cp ~/medicago/zjj170823/doc/library.txt doc/
+     # 补测27个样命名为L11
+    ln ~/medicago/zjj170823/171225test/clean_data/L1_1.fq.gz seq/L11_1.fq.gz
+    ln ~/medicago/zjj170823/171225test/clean_data/L1_2.fq.gz seq/L11_2.fq.gz 
+    cp ~/medicago/zjj170823/171225test/doc/L1.txt doc/L11.txt
+    # 手动修改L11符合前面的格式，不重名，且可比较   
     
-    # 检查数据质量，转换为33
+    # Merge paired reads, renames and merge all samples
+    # 依据各文库L*.txt文件生成实验设计
+    cat <(head -n1 doc/L1.txt | sed 's/#//g') <(cat doc/L* |grep -v '#') > doc/design.txt
+    # 检查文件名是否唯一
+    cut -f 1 doc/design.txt|sort|uniq|wc -l 
+    wc -l doc/design.txt
+    gunzip -f seq/*.gz
+
+    # 检查数据质量，如果64则转换为33
     # determine_phred-score.pl seq/lane_1.fq.gz
     determine_phred-score.pl seq/L1_1.fq.gz
     # 如果为64，改原始数据为33
@@ -91,7 +72,7 @@
     #L1	CTCAGA	60
     
     # 按library.txt拆分lane为library
-    make lane_split
+    # make lane_split
 
 
 ## 2.2. 按实验设计拆分文库为样品
@@ -113,10 +94,6 @@
  
 
 ## 2.3. 样品双端合并、重命名、合并为单一文件
-
-    # Merge paired reads, renames and merge all samples
-    # 依据各文库L*.txt文件生成实验设计
-    cat <(head -n1 doc/L1.txt | sed 's/#//g') <(cat doc/L* |grep -v '#') > doc/design.txt
 
     # 样品双端合并、重命名、合并为单一文件, 注意fastq为33格式，64位采用fastp转换
     make sample_merge
@@ -224,9 +201,9 @@
 
 # 3. 统计绘图 Statistics and plot
 
-    # 批量处理6个批次的分析b1r b2r b3r 
-    for sub in b1rs b2rs b3rs; do
-    sub="b3rs"
+    # 批量处理6个批次的分析 b1r b2r b3r b1rs b2rs b3rs
+    for sub in ; do
+    sub="b1r"
     sed -i "s/sub=.*/sub=$sub/" makefile
     doc=doc/${sub}
     mkdir -p $doc
@@ -250,6 +227,10 @@
     make plot_venn # DA otu
     make DA_compare_tax # DA taxonomy
     make rmd # report
+
+    # 恢复makefile至某版本，如退到b2r版本v3版本，更新为RDP注释为v4
+    cp med_b2r_edgeR_v3/makefile /mnt/bai/yongxin/github/Work/medicago/AMF/parameter.md
+
 
 ## 3.1. Alpha多样性指数箱线图
     
@@ -292,3 +273,52 @@ wd=/mnt/bai/yongxin/medicago/AMF
 
 # 分三批分析，以第一批为例，添加KEGG及比较
 修改 version 和 ab_group_list 处为第一组
+
+# 样本筛选：根据PCoA和热图排除异常点，保存exclude.txt
+cp doc/design.txt doc/design.txt.181127
+for i in `grep -v '#' doc/exclude.txt`; do sed -i "s/^$i/#$i/" doc/design.txt;done
+grep '#' doc/design.txt
+
+# 清除#注册样本
+sed -i 's/#//' doc/design.txt
+
+## 继续删除 A17b2r4 点，重新绘制PCoA beta_pcoa_compartment_batch.R
+
+
+
+## 实验数据绘图Wet
+    
+    # 自然土
+    cut -f 6 wet/1NatureSoil.txt|sort|uniq|awk '{print "\""$1"\""}'|tr "\n" ","|sed 's/,$//'
+
+
+## 与PNAS图5比较突变体下调目
+    Gp10
+    Acidimicrobidae
+    Flavobacteriales
+    Elusimicrobiales
+    Caulobacterales
+    Rhizobiales
+    Sphingomonadales
+    Burkholderiales
+    Neisseriales
+    Rhodocyclales
+    Myxococcales
+    Syntrophobacterales
+    Chromatiales
+    Pseudomonadales
+    Spirochaetales
+
+    # 与差异分析的结果比较
+    grep 'Depleted' med_b3r_edgeR_v4/result/compare/Anfpb3r-A17b3r_sig.txt | cut -f 10 | sort| uniq
+    grep 'Depleted' med_b3r_edgeR_v4/result/compare/Rnfpb3r-R108b3r_sig.txt | cut -f 10 | sort| uniq
+    grep 'Depleted' med_b2r_edgeR_v4/result/compare/Anfpb2r-A17b2r_sig.txt | cut -f 10 | sort| uniq
+    grep 'Depleted' med_b2r_edgeR_v4/result/compare/Rnfpb2r-R108b2r_sig.txt | cut -f 10 | sort| uniq
+    # 查看各组中在丰度
+    grep -P 'OTUID|Flavobacteriales|Caulobacterales|Rhizobiales|Burkholderiales|Pseudomonadales' result/compare_o/database.txt
+    # 查看来自这些目OTU的相对丰度
+    head -n1 med_b3r_edgeR_v4/result/compare/Anfpb3r-A17b3r_sig.txt|tr '\t' '\n' | awk '{print NR,$0} # 查看列编号
+    grep 'Depleted' med_b3r_edgeR_v4/result/compare/Anfpb3r-A17b3r_sig.txt | grep -P 'Flavobacteriales|Caulobacterales|Rhizobiales|Burkholderiales|Pseudomonadales' | cut -f 15 | awk '{a=a+$1} END{print a}' # 14为A，15为B
+    grep 'Depleted' med_b3r_edgeR_v4/result/compare/Rnfpb3r-R108b3r_sig.txt |  grep -P 'Flavobacteriales|Caulobacterales|Rhizobiales|Burkholderiales|Pseudomonadales' | cut -f 15 | awk '{a=a+$1} END{print a}' 
+    grep 'Depleted' med_b2r_edgeR_v4/result/compare/Anfpb2r-A17b2r_sig.txt |  grep -P 'Flavobacteriales|Caulobacterales|Rhizobiales|Burkholderiales|Pseudomonadales' | cut -f 15 | awk '{a=a+$1} END{print a}' 
+    grep 'Depleted' med_b2r_edgeR_v4/result/compare/Rnfpb2r-R108b2r_sig.txt |  grep -P 'Flavobacteriales|Caulobacterales|Rhizobiales|Burkholderiales|Pseudomonadales' | cut -f 15 | awk '{a=a+$1} END{print a}' 

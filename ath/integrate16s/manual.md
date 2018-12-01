@@ -296,7 +296,7 @@
 
 ## 3.9 培养菌注释
 
-    # 培养菌注释，采用ath root的菌库，COTU，目前只注释plot_veen的结果
+    # 培养菌注释，采用ath root的菌库，COTU，目前只注释plot_venn的结果
     make culture
 
 
@@ -459,3 +459,8 @@ cat sampleID?|sort|uniq -u
     script/plot_manhattan_genus.r
     # "b3ACT2CR","b3ACT2KO","b3BS","b3Col","b3ThadKO","b3ThahKO","b3ThasKO1","b3ThasKO2"
 
+
+## 附表制作
+
+    # 3T/index.Rmd - Supplement Table
+    

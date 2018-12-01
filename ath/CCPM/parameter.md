@@ -189,7 +189,7 @@ SHELL:=/bin/bash
 	# 差异统计按丰度过滤 abundance filter，如丰度按万分之一过滤，减少计算量，提高OTU的FDR值，根据组数量多少可选十万5或万分之5
 	abundance_thre=0.01
 	# 差异比较方法，默认是 edgeR ，可选 wilcox秩和检验、t.test 
-	compare_method="wilcox"
+	compare_method="edgeR"
 	# 显著性P值过滤 threshold of P-value，可选0.05, 0.01, 0.001。采用FDR校正，此参数意义不大，即使0.001也没有FDR < 0.2过滤严格
 	pvalue=0.05
 	# 统计检验方式FDR，常用0.05, 0.1, 0.2; FDR < 0.1使用9.5万次，且为菌群近期的Nature和Sciences; 0.2使用7.7万次
@@ -200,7 +200,7 @@ SHELL:=/bin/bash
 	# 统计绘图和网页报告版本控制
 	species=ath
 	keyword=CCPM
-	version=${species}_${keyword}_${sub}_v1
+	version=${species}_${keyword}_${sub}${compare_method}_v1
 
 
 ## 2.1 alpha_boxplot Alpha多样性指数箱线图 Alpha index in boxplot
@@ -354,7 +354,7 @@ SHELL:=/bin/bash
 # 2.11 plot_venn 维恩图
 
 	# venn OTU注释数据库，如差异比较result/compare/database.txt、菌库需要选先修改3.9的数据库位置，并make culture生成result/39culture/otu.txt等
-	venn_anno=result/compare/database.txt
+	venn_anno=result/39culture/otu.txt
 
 # 3 高级分析
 
@@ -365,9 +365,9 @@ SHELL:=/bin/bash
 ## 3.9 culture 可培养菌
 	 
 	# 可培养菌库类型，如组织root / rhizosphere / leaf, 品种A50 / IR24
-	type=""
+	type="Root"
 	# 指定可培养菌库位置，fa为OTU，fasta为物种如rice
-	culture_db=/mnt/bai/yongxin/culture/rice/result/${type}culture_select.fasta
+	culture_db=/mnt/bai/yongxin/culture/ath/result/${type}culture_select.fa
 	# 可培养菌结果输出文件
 	# 绘制Graphlan图的筛选阈值
 	culture_thre=0.0005

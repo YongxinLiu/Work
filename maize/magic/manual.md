@@ -423,12 +423,13 @@
 
 # meta-gwas 在meta上分析GWAS
     
-    # 
+    [meta@meta:]scp -r yongxin@210.75.224.110:~/software/tassel-5-standalone/ ~/soft/tassel5
     screen -R gwas
-    ssh liuyongxin@210.75.224.32
+    ssh yongxin@210.75.224.32
     cd ~/maize/magic/
     scp -r yongxin@210.75.224.110:~/maize/magic/snp ./
     scp -r yongxin@210.75.224.110:~/maize/magic/tassel ./
+    scp -r yongxin@210.75.224.110:~/maize/magic/result ./
 
 
     cut -f 1,4,10,13 result/alpha/index.txt|sed '1 s/Sample/<Trait>/' > tassel/16s/alpha.txt
@@ -437,7 +438,8 @@
     rm -r tassel/alpha/
     out=tassel/alpha
     mkdir -p $out
-    /home/yongxin/bin/tassel-5-standalone/run_pipeline.pl \
+    # 样本量和SNP太多，2天也运行不完
+    /home/meta/soft/tassel5/run_pipeline.pl \
         -Xms200g -Xmx600g \
         -fork1 -h snp/cubic_1404_hmp_maf0.02.hmp.txt \
         -fork2 -r tassel/16s/alpha_richness.txt \
@@ -452,7 +454,8 @@
         > $out/out
 
 
-# 拆分snp批量运行
+### 拆分snp批量运行tassel
+
     cd ~/maize/magic/snp
     # 11M行，输出1位数字，每个1.2M SNP拆为10份，一夜tassel只运行20%，改为100份
     split -a 2 -d -l 120000 cubic_1404_hmp_maf0.02.hmp.txt split_hmp
@@ -466,7 +469,7 @@
     out=tassel/alpha
     mkdir -p $out
     parallel --xapply -j 30 \
-    "/home/yongxin/bin/tassel-5-standalone/run_pipeline.pl \
+    "/home/meta/soft/tassel5/run_pipeline.pl \
         -Xms10g -Xmx30g \
         -fork1 -h snp/split_hmp{1} \
         -fork2 -r tassel/16s/alpha_richness.txt \
@@ -480,6 +483,9 @@
         -runfork1 -runfork2 -runfork3 -runfork4 \
         > $out/out{1}" \
         ::: `cat snp/split_list.txt`
+    # 类似的结果文件 tassel/alpha/mlmOut00_split_hmp00_+_alpha_richness_+_cubic_PopStructure_stats.txt
+
+
 ## Reference
 
 ### Tassel参考流程

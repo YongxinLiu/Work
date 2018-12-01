@@ -58,7 +58,7 @@ SHELL:=/bin/bash
 ## 1.6. fa_unqiue 序列去冗余
 
 	# Remove redundancy
-	# 最小序列频率miniuniqusize默认为8，去除低丰度，增加计算速度，整lane的序列可更改为30，甚至100
+	# 单个样本最小序列频率miniuniqusize默认为8，去除低丰度，增加计算速度，整lane的序列可更改为100，推荐最小1/1M
 	minuniquesize=100
 
 ## 1.7. otu_pick 挑选OTU
@@ -161,8 +161,8 @@ SHELL:=/bin/bash
 
 	# 绘图通用参数
 	# 实验设计文件位置，全局，其它图默认调此变量，也可单独修改；并选择表中的组列和具体分组
-	# 区域和批次分为Root_Batch1/2/3(b1r)，Rhizosphere_Batch1/2/3(b1rs)
-	sub=b1r
+	# 区域和批次分为Root_Batch1/2/3(b1r)，Rhizosphere_Batch1/2/3(b1rs), 比较根vs根际,根际vs土(b1)
+	sub=b3R108
 	doc=doc/${sub}
 	design=${wd}/doc/design.txt 
 	g1=groupID
@@ -171,12 +171,12 @@ SHELL:=/bin/bash
 	# 绘图使用的实验组，顺序即图中显示顺序；为空时使用所有组和默认顺序
 #	g1_list='"A17b1rs","Anfpb1rs","dmi2b1rs","dmi3b1rs","lyk3b1rs","lyk9b1rs","lyk9nfpb1rs","lyr4b1rs","R108b1rs","Rnfpb1rs","A17b1r","Anfpb1r","dmi2b1r","dmi3b1r","lyk3b1r","lyk9b1r","lyk9nfpb1r","lyr4b1r","R108b1r","Rnfpb1r","soilB1S","A17b2rs","Anfpb2rs","dmi2b2rs","dmi3b2rs","lyk3b2rs","lyk9b2rs","lyk9nfpb2rs","lyr4b2rs","R108b2rs","Rnfpb2rs","A17b2r","Anfpb2r","dmi2b2r","dmi3b2r","lyk3b2r","lyk9b2r","lyk9nfpb2r","lyr4b2r","R108b2r","Rnfpb2r","soilB2S","A17b3rs","Anfpb3rs","dmi2b3rs","dmi3b3rs","lyk3b3rs","lyk9b3rs","lyk9nfpb3rs","lyr4b3rs","R108b3rs","Rnfpb3rs","A17b3r","Anfpb3r","dmi2b3r","dmi3b3r","lyk3b3r","lyk9b3r","lyk9nfpb3r","lyr4b3r","R108b3r","Rnfpb3r","soilB3S"'
 	# 从实验设计比较组中提取组名，自动获得目录组
-	g1_list=`cat doc/${sub}/compare.txt|tr '\t' '\n'|sort|uniq|awk '{print "\""$$1"\""}'|tr "\n" ","|sed 's/,$$//'`
+	g1_list=`cat ${doc}/compare.txt|tr '\t' '\n'|sort|uniq|awk '{print "\""$$1"\""}'|tr "\n" ","|sed 's/,$$//'`
 
 	# 组间比较列表
 	compare=${wd}/${doc}/compare.txt
 	# 组间共有、特有比较列表
-	venn=${wd}/doc/venn.txt
+	venn=${wd}/${doc}/venn.txt
 	# 图片长宽，按nature全面版、半版页面设置
 	# 图片长宽和字体大小，7组以下用默认，7组以上改为8x5或更大； figure size, recommend 4x2.5, 5x3(default), 8x5, 16x10, text_size 6, 7(default), 8
 	width=8
@@ -190,14 +190,14 @@ SHELL:=/bin/bash
 	# 差异比较方法，默认是 edgeR ，可选 wilcox 秩和检验
 	compare_method="edgeR"
 	# 显著性P值过滤 threshold of P-value，可选0.05, 0.01, 0.001。采用FDR校正，此参数意义不大，即使0.001也没有FDR < 0.2过滤严格
-	pvalue=0.01
+	pvalue=0.05
 	# 统计检验方式fdr
-	FDR=0.05
+	FDR=0.1
 	# 差异变化倍数常用1.5, 2, 4倍，对应logFC为0.585, 1, 2；菌丰度变化倍数不明显，还可用1.3和1.7倍对应0.379和0.766
-	FC=1.3
+	FC=1.2
 
 	# 统计绘图和网页报告版本控制
-	version=med_${sub}_${compare_method}_v1
+	version=med_${sub}_${compare_method}_v4
 
 
 ## 2.1 alpha_boxplot Alpha多样性指数箱线图 Alpha index in boxplot
@@ -339,8 +339,11 @@ SHELL:=/bin/bash
 	ph_order=FALSE
 	# 绘制不同分类级热图，p,c,o,f,g
 	ph_tax=g
+	# 列聚类，默认TRUE
+	cluster_cols=TRUE
 
 ## 2.9 plot_manhattan 绘制OTU按门着色曼哈顿图
+	pm_yax=20
 
 ## 2.10 plot_boxplot 基于差异OTU表绘制火山图
 	pb_input=result/otutab.txt

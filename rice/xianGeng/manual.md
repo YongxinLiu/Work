@@ -1,60 +1,67 @@
 <!-- TOC -->
 
-- [1. 标准流程 Standard pipeline](#1-标准流程-standard-pipeline)
-    - [1.1. 按实验设计拆分lane为文库](#11-按实验设计拆分lane为文库)
-    - [1.2. 按实验设计拆分文库为样品](#12-按实验设计拆分文库为样品)
-    - [1.3. 样品双端合并、重命名、合并为单一文件](#13-样品双端合并重命名合并为单一文件)
-    - [1.4. 切除引物与标签](#14-切除引物与标签)
-    - [1.5. 质量控制](#15-质量控制)
-    - [1.6. 序列去冗余](#16-序列去冗余)
-    - [1.7. 挑选OTU](#17-挑选otu)
-    - [1.8. 有参去嵌合体](#18-有参去嵌合体)
-    - [1.9. 去除宿主](#19-去除宿主)
-    - [1.10. 生成OTU表](#110-生成otu表)
-    - [1.11. 过滤样本和OTUs](#111-过滤样本和otus)
-    - [1.12. 物种注释](#112-物种注释)
-    - [1.13. 物种统计](#113-物种统计)
-    - [1.14. 多序列比对和进化树](#114-多序列比对和进化树)
-    - [1.15. Alpha多样性指数计算](#115-alpha多样性指数计算)
-    - [1.16. Beta多样性距离矩阵计算](#116-beta多样性距离矩阵计算)
-    - [1.17. 有参考构建OTU表](#117-有参考构建otu表)
-- [2. 统计绘图 Statistics and plot](#2-统计绘图-statistics-and-plot)
-    - [2.1. Alpha多样性指数箱线图](#21-alpha多样性指数箱线图)
-    - [2.2. Alpha丰富度稀释曲线](#22-alpha丰富度稀释曲线)
-    - [2.3. 主坐标轴分析距离矩阵](#23-主坐标轴分析距离矩阵)
-    - [2.4. 限制性主坐标轴分析](#24-限制性主坐标轴分析)
-    - [2.5. 样品和组各级分类学堆叠柱状图](#25-样品和组各级分类学堆叠柱状图)
-    - [2.6. 组间差异比较](#26-组间差异比较)
-- [3. 高级分析 Advanced analysis](#3-高级分析-advanced-analysis)
-    - [3.1. 添加可培养菌](#31-添加可培养菌)
-    - [3.2. 查看Venn 4者共有菌，其中三者共有45，95，1，5](#32-查看venn-4者共有菌其中三者共有459515)
-    - [3.3. 整理faprotax中菌的功能列表](#33-整理faprotax中菌的功能列表)
-    - [3.4. 绘制网络](#34-绘制网络)
-    - [3.5. /5/14 随机森林属水平区分籼粳稻](#35-514-随机森林属水平区分籼粳稻)
-- [4. 个性化分析 Custom analysis](#4-个性化分析-custom-analysis)
-    - [4.1. 低氮条件下挑选30个IND品种测宏基因组](#41-低氮条件下挑选30个ind品种测宏基因组)
-    - [4.2. 挑选NRT样品测宏基因组](#42-挑选nrt样品测宏基因组)
-    - [4.3. 新发现OTU_8的物种很像OTU_11](#43-新发现otu_8的物种很像otu_11)
-    - [4.4. 筛选各品种最好的3个样品](#44-筛选各品种最好的3个样品)
-    - [4.5. OTU或分类与PCoA轴的差异](#45-otu或分类与pcoa轴的差异)
-    - [4.6. 检查GWAS是否可以发现Anaeromyxobacter与SNP的关联](#46-检查gwas是否可以发现anaeromyxobacter与snp的关联)
-- [5. 图表整理 Figures and legends](#5-图表整理-figures-and-legends)
-    - [籼粳稻分型](#籼粳稻分型)
-        - [模式图](#模式图)
-        - [alpha多样性](#alpha多样性)
+- [标准流程 Standard pipeline](#标准流程-standard-pipeline)
+    - [按实验设计拆分lane为文库](#按实验设计拆分lane为文库)
+    - [按实验设计拆分文库为样品](#按实验设计拆分文库为样品)
+    - [样品双端合并、重命名、合并为单一文件](#样品双端合并重命名合并为单一文件)
+    - [切除引物与标签](#切除引物与标签)
+    - [质量控制](#质量控制)
+    - [序列去冗余](#序列去冗余)
+    - [挑选OTU](#挑选otu)
+    - [有参去嵌合体](#有参去嵌合体)
+    - [去除宿主](#去除宿主)
+    - [生成OTU表](#生成otu表)
+    - [过滤样本和OTUs](#过滤样本和otus)
+    - [物种注释](#物种注释)
+    - [物种统计](#物种统计)
+    - [多序列比对和进化树](#多序列比对和进化树)
+    - [Alpha多样性指数计算](#alpha多样性指数计算)
+    - [Beta多样性距离矩阵计算](#beta多样性距离矩阵计算)
+    - [有参考构建OTU表](#有参考构建otu表)
+- [统计绘图 Statistics and plot](#统计绘图-statistics-and-plot)
+    - [Alpha多样性指数箱线图](#alpha多样性指数箱线图)
+    - [Alpha丰富度稀释曲线](#alpha丰富度稀释曲线)
+    - [主坐标轴分析距离矩阵](#主坐标轴分析距离矩阵)
+    - [限制性主坐标轴分析](#限制性主坐标轴分析)
+    - [样品和组各级分类学堆叠柱状图](#样品和组各级分类学堆叠柱状图)
+    - [组间差异比较](#组间差异比较)
+- [高级分析 Advanced analysis](#高级分析-advanced-analysis)
+    - [添加可培养菌](#添加可培养菌)
+    - [查看Venn 4者共有菌，其中三者共有45，95，1，5](#查看venn-4者共有菌其中三者共有459515)
+    - [整理faprotax中菌的功能列表](#整理faprotax中菌的功能列表)
+    - [绘制网络](#绘制网络)
+    - [/5/14 随机森林属水平区分籼粳稻](#514-随机森林属水平区分籼粳稻)
+- [个性化分析 Custom analysis](#个性化分析-custom-analysis)
+    - [低氮条件下挑选30个IND品种测宏基因组](#低氮条件下挑选30个ind品种测宏基因组)
+    - [挑选NRT样品测宏基因组](#挑选nrt样品测宏基因组)
+    - [新发现OTU_8的物种很像OTU_11](#新发现otu_8的物种很像otu_11)
+    - [筛选各品种最好的3个样品](#筛选各品种最好的3个样品)
+    - [OTU或分类与PCoA轴的差异](#otu或分类与pcoa轴的差异)
+    - [检查GWAS是否可以发现Anaeromyxobacter与SNP的关联](#检查gwas是否可以发现anaeromyxobacter与snp的关联)
+    - [/5/28 筛选HN/LN下可高丰度菌及是否可培养](#528-筛选hnln下可高丰度菌及是否可培养)
+- [图表整理 Figures and legends](#图表整理-figures-and-legends)
+    - [图1. 籼粳稻分型](#图1-籼粳稻分型)
+        - [a, b 模式图](#a-b-模式图)
         - [beta多样性](#beta多样性)
+        - [alpha多样性](#alpha多样性)
+        - [Taxonomy 门+变形菌纲](#taxonomy-门变形菌纲)
         - [门及纲水平差异](#门及纲水平差异)
-    - [随机森林分类](#随机森林分类)
-        - [纲水平建模](#纲水平建模)
-        - [展示Top feature](#展示top-feature)
-        - [在nrt和时间序列中验证](#在nrt和时间序列中验证)
-        - [差异OTUs](#差异otus)
-    - [亚种差异与氮相关](#亚种差异与氮相关)
-    - [微生物与表型关联](#微生物与表型关联)
+    - [图2. 随机森林分类](#图2-随机森林分类)
+    - [图3. 亚种差异与氮相关](#图3-亚种差异与氮相关)
+    - [菌群与nrt关系](#菌群与nrt关系)
+        - [差异菌/功能与氮相关基因显著相关](#差异菌功能与氮相关基因显著相关)
+        - [关键氮高效基因NRT不同形态、突变体可部分解析亚种差异](#关键氮高效基因nrt不同形态突变体可部分解析亚种差异)
+        - [宏基因组KO注释](#宏基因组ko注释)
+    - [图5. 微生物与表型关联](#图5-微生物与表型关联)
+    - [syncom重组体系表型分析](#syncom重组体系表型分析)
+    - [附图](#附图)
+    - [附数据统计](#附数据统计)
+    - [上传数据 PRJNA478068](#上传数据-prjna478068)
+    - [/10/29 补充结果](#1029-补充结果)
 
 <!-- /TOC -->
 
-# 1. 标准流程 Standard pipeline
+# 标准流程 Standard pipeline
 
 	处理序列 Processing sequencing data
 
@@ -107,7 +114,7 @@
 	# 从2.7 fa_unqiue 开始
 	
 	
-## 1.1. 按实验设计拆分lane为文库
+## 按实验设计拆分lane为文库
 
 	# Split lane into libraries
 	# lane文件一般为seq/lane_1/2.fq.gz
@@ -120,7 +127,7 @@
 	make lane_split
 
 
-## 1.2. 按实验设计拆分文库为样品
+## 按实验设计拆分文库为样品
 
 	# Prepare design of libraries
 	
@@ -138,7 +145,7 @@
 	make library_split
  
 
-## 1.3. 样品双端合并、重命名、合并为单一文件
+## 样品双端合并、重命名、合并为单一文件
 
 	# Merge paired reads, renames and merge all samples
 	# 依据各文库L*.txt文件生成实验设计
@@ -148,7 +155,7 @@
 	make sample_merge
 
 
-## 1.4. 切除引物与标签
+## 切除引物与标签
 
 	# Cut primers and lables
 	# 切除左端标签和引物，右端 引物
@@ -156,14 +163,14 @@
 	make fq_trim
 
 
-## 1.5. 质量控制
+## 质量控制
 
 	# Quality control
 	# 过滤序列中预期累计错误率>1%的序列
 	make fq_qc
 
 
-## 1.6. 序列去冗余
+## 序列去冗余
 	
 	# 从这里开始
 	ln ~/medicago/zjj170823/temp/seqs_usearch.fa temp/filtered.fa
@@ -172,35 +179,35 @@
 	make fa_unqiue
 
 
-## 1.7. 挑选OTU
+## 挑选OTU
 
 	# Pick OTUs
 	# unoise3速度比cluster_otus慢上百倍
 	make otu_pick
 
 
-## 1.8. 有参去嵌合体
+## 有参去嵌合体
 
 	# Remove chimiras by silva database
 	# 基于SILVA数据库去除
 	make chimera_ref
 
 
-## 1.9. 去除宿主
+## 去除宿主
 
 	# Remove host
 	# 根据SILVA注释去除线粒体、叶绿体、真核生物18S和未知序列(非rRNA)
 	make host_rm
 
 
-## 1.10. 生成OTU表
+## 生成OTU表
 	
 	# Create OTUs table
 	# 默认使用vsearch更快10倍，可选usearch10，线程不可超48
 	make otutab_create
 
 
-## 1.11. 过滤样本和OTUs
+## 过滤样本和OTUs
 
 	# OTU table filter samples and OTU
 	# 推荐过滤低测序量<5000的样本，筛选大于1RPM的OTU
@@ -210,7 +217,7 @@
 	# 缺失 482样，主要是没有时间序列
 
 
-## 1.12. 物种注释
+## 物种注释
 
 	# Assign taxonomy
 	# 默认使用RDP trainset快而准，GG太旧，Silva太慢
@@ -218,35 +225,35 @@
 	make tax_assign
 
 
-## 1.13. 物种统计
+## 物种统计
 	
 	# Taxonomy summary
 	# 必须所有物种有注释，否则有可能报错
 	make tax_sum
 
 
-## 1.14. 多序列比对和进化树
+## 多序列比对和进化树
 	
 	# Multiply alignment and make_phylogeny
 	# usearch10/culsterO结果不同可能影响多样性分析(usearch unifrac结果更可信)
 	# 进化树，用于树图和多样性分析
 	make tree_make
 
-## 1.15. Alpha多样性指数计算
+## Alpha多样性指数计算
 	
 	# Calculate alpha diversity index
 	# alpha指数计算结果为 result/alpha/index.txt
 	# 稀释梯度结果位于 result/alpha/rare.txt
 	make alpha_calc
 
-## 1.16. Beta多样性距离矩阵计算
+## Beta多样性距离矩阵计算
 	
 	# Beta diversity tree and distance matrix
 	# 最好用usearch，结果unifrac分类更好；clustero+fastree结果PCoA较差
 	make beta_calc
 	# ---Fatal error--- ../calcdistmxu.cpp(32) assert failed: QueryUniqueWordCount > 0 致信作者; 改用qiime1
 
-## 1.17. 有参考构建OTU表
+## 有参考构建OTU表
 
 	# Reference based OTU table
 	# otutab_gg 有参比对，如Greengenes，可用于picurst, bugbase分析
@@ -254,44 +261,44 @@
 
 
 
-# 2. 统计绘图 Statistics and plot
+# 统计绘图 Statistics and plot
 
-## 2.1. Alpha多样性指数箱线图
+## Alpha多样性指数箱线图
 	
 	# Alpha index in boxplot
 	make alpha_boxplot
 
-## 2.2. Alpha丰富度稀释曲线
+## Alpha丰富度稀释曲线
 	
 	# Alpha rarefracation curve
 	make alpha_rare
 
-## 2.3. 主坐标轴分析距离矩阵
+## 主坐标轴分析距离矩阵
 	
 	# PCoA of distance matrix
 	make beta_pcoa
 
-## 2.4. 限制性主坐标轴分析
+## 限制性主坐标轴分析
 
 	# Constrained PCoA / CCA of bray distance matrix
 	# OTU表基于bray距离和CCA，至少3个组 
 	make beta_cpcoa
 
-## 2.5. 样品和组各级分类学堆叠柱状图
+## 样品和组各级分类学堆叠柱状图
 
 	# Stackplot showing taxonomy in each level
 	make tax_stackplot
 
-## 2.6. 组间差异比较 
+## 组间差异比较 
 	
 	# Group compareing by edgeR or wilcox
 	# 可选负二项分布，或wilcoxon秩和检验
 	make DA_compare
 
 
-# 3. 高级分析 Advanced analysis
+# 高级分析 Advanced analysis
 
-## 3.1. 添加可培养菌
+## 添加可培养菌
 
 	awk 'BEGIN{OFS=FS="\t"} NR==FNR {a[$1]=$2} NR>FNR {print $0,a[$1]}' temp/otutab.mean temp/culture_otu.blastn | cut -f 1-4,14 > result/41culture/otu.txt
 	echo -ne "OTUs > 97% abundance :\t" >> result/41culture/summary.txt
@@ -299,18 +306,18 @@
 	cat result/41culture/summary.txt
 
 
-## 3.2. 查看Venn 4者共有菌，其中三者共有45，95，1，5
+## 查看Venn 4者共有菌，其中三者共有45，95，1，5
 	awk 'NR==FNR{a[$1]=$0} NR>FNR{print a[$1]}' result/41culture/otu.txt result/venn/3_45.txt |sort -k3,3nr|less -S
 	awk 'NR==FNR{a[$1]=$0} NR>FNR{print a[$1]}' result/41culture/otu.txt result/venn/3_95.txt |sort -k3,3nr|less -S
 
 	# 制作有平均丰度，和物种注释的表
 	awk 'BEGIN{OFS=FS="\t"} NR==FNR {a[$1]=$2} NR>FNR {print $1,$5,a[$1]}' result/taxonomy_2.txt result/41culture/otu.txt > result/41culture/otu_mean_tax.txt
 
-## 3.3. 整理faprotax中菌的功能列表
+## 整理faprotax中菌的功能列表
 	grep -v '^#' /mnt/bai/yongxin/software/FAPROTAX_1.1/FAPROTAX.txt|sed 's/\*/_/g' > culture/faprotax.tax
 
 
-## 3.4. 绘制网络
+## 绘制网络
 	
 	# 制作数据文件
 	OTU按差异比较计算整理
@@ -321,7 +328,7 @@
 	# 以Burkholderia 相关菌 与 Anaeromyxobacter 的小网络 co_network_genus_LIndTej_core.R
 
 
-## 3.5. /5/14 随机森林属水平区分籼粳稻
+## /5/14 随机森林属水平区分籼粳稻
 
 	数据集 | 丰度% | 数量 |  错误率%
 	LTEJ/LIND | 0.1 | 11.7 | 11
@@ -348,9 +355,9 @@
 
 	# 发现Top feature贡献度不大。改为科、目、纲时差异较明显。尤其是丰度阈值0.3%时，Top1/2为两类氮相关菌，绘制15个features
 
-# 4. 个性化分析 Custom analysis
+# 个性化分析 Custom analysis
 
-## 4.1. 低氮条件下挑选30个IND品种测宏基因组
+## 低氮条件下挑选30个IND品种测宏基因组
 
 	# 目标：挑选基于LN条件下Weighted Unifrac结果中IND与TEJ差异明显的的30个代表品种
 	# 方法：筛选LN下IND/TEJ样品，按组合并，添加标签后筛选。
@@ -377,7 +384,7 @@ beta_pcoa.sh -i result/beta/ -m '"bray_curtis","weighted_unifrac"' \
 
 
 
-## 4.2. 挑选NRT样品测宏基因组
+## 挑选NRT样品测宏基因组
 
 	# 按Anaeromyxobacter为新版OTU_11(1)，备选OTU_8(0.37)，必须 使用RDP注释，其它注释科faprotax无法识别
 	# 查看OTU_11在CP 2016年中箱线图
@@ -403,11 +410,11 @@ beta_pcoa.sh -i result/beta/ -m '"bray_curtis","weighted_unifrac"' \
 	alpha_boxplot.sh -i result/otutab_norm.txt -d doc/design.txt -A groupID -B '"HSoil1","HSoil2","LSoil1","LSoil2","soilHnCp7","soilLnCp7","soilHnCp6","soilLnCp6","soilLnSz7","soilHnSz7"' -m '"OTU_11"' -t TRUE -o temp/soil_ -n TRUE
 
 
-## 4.3. 新发现OTU_8的物种很像OTU_11
+## 新发现OTU_8的物种很像OTU_11
 	less result/faprotax/report# 但按物种注释0.6注释到科无法识别；改为0.3阈值
 
 
-## 4.4. 筛选各品种最好的3个样品
+## 筛选各品种最好的3个样品
 
 	# 结果备份，并筛选3个样品看结果
 	cp -r result/ result180508/
@@ -422,7 +429,7 @@ beta_pcoa.sh -i result/beta/ -m '"bray_curtis","weighted_unifrac"' \
 		sed -i "s/$i/#$i/" doc/design.txt;done
 
 
-## 4.5. OTU或分类与PCoA轴的差异
+## OTU或分类与PCoA轴的差异
 	
 	# 以LN的weighted unifrac PCoA1/2为例
 	# 基于PCoA轴与OTU计算相关
@@ -443,22 +450,22 @@ beta_pcoa.sh -i result/beta/ -m '"bray_curtis","weighted_unifrac"' \
 	
 
 
-## 4.6. 检查GWAS是否可以发现Anaeromyxobacter与SNP的关联
+## 检查GWAS是否可以发现Anaeromyxobacter与SNP的关联
 	# 基于LN TEJ/IND中Anaeromyxobacter最低和最高的20个品种(保证数据可分开)，与nsSNP关联，最为仅为e-3，10m21759092,10,21759092,0.643641032317718,0.475,40,0.893753744914084,0.894396427377941,1。
 	gapit_IndTej_Anaeromyxobacter_top20.R
 	# 修改为30个品种有重合，肯定无法找到差异，再改为25个品种
 	10m21759092,10,21759092,0.962618742911769,0.46,50,0.856299549567109,0.85630648832468,1
 	# 可能从样本量、数据波动程度、SNP背景均无法满足
 
-## 2018/5/28 筛选HN/LN下可高丰度菌及是否可培养
+## /5/28 筛选HN/LN下可高丰度菌及是否可培养
 	# core_microbiome_culture.R筛选中位数并排序 
 	awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print $0,a[$1]}' result/41culture/otu.txt culture/core.txt > culture/core_culture.txt
 
 
 
-# 5. 图表整理 Figures and legends
+# 图表整理 Figures and legends
 
-##  图1. 籼粳稻分型
+## 图1. 籼粳稻分型
 
 ### a, b 模式图
 	
@@ -469,19 +476,19 @@ beta_pcoa.sh -i result/beta/ -m '"bray_curtis","weighted_unifrac"' \
 	
 	# 不同加土，否则主要差异为土壤；不能两块地混合，否则主要差异为不同地块
 	# HN下TEJ和IND
-beta_pcoa.sh -i `pwd`/result/beta/ -m '"bray_curtis","weighted_unifrac","unweighted_unifrac"' \
+	beta_pcoa.sh -i `pwd`/result/beta/ -m '"bray_curtis","weighted_unifrac","unweighted_unifrac"' \
 	-d `pwd`/doc/design.txt -A groupID -B '"HIND","HTEJ"' -E TRUE \
 	-c `pwd`/doc/compare.txt \
 	-o `pwd`/fig1/1subspecies/beta_HN_ -h 3 -w 5
-# 匹配非注释行，输出用于发表
-grep -P '^\s*#' script/beta_pcoa.R | less
-grep -P -v '^\s*#' script/beta_pcoa.R > fig1/script/beta_pcoa_fieldII.R
-	# LN下TEJ和IND
-beta_pcoa.sh -i `pwd`/result/beta/ -m '"bray_curtis","weighted_unifrac","unweighted_unifrac"' \
-	-d `pwd`/doc/design.txt -A groupID -B '"LIND","LTEJ"' -E TRUE \
-	-c `pwd`/doc/compare.txt \
-	-o `pwd`/fig1/1subspecies/beta_LN_ -h 3 -w 5
-grep -P -v '^\s*#' script/beta_pcoa.R > fig1/script/beta_pcoa_fieldI.R
+	# 匹配非注释行，输出用于发表
+	grep -P '^\s*#' script/beta_pcoa.R | less
+	grep -P -v '^\s*#' script/beta_pcoa.R > fig1/script/beta_pcoa_fieldII.R
+		# LN下TEJ和IND
+	beta_pcoa.sh -i `pwd`/result/beta/ -m '"bray_curtis","weighted_unifrac","unweighted_unifrac"' \
+		-d `pwd`/doc/design.txt -A groupID -B '"LIND","LTEJ"' -E TRUE \
+		-c `pwd`/doc/compare.txt \
+		-o `pwd`/fig1/1subspecies/beta_LN_ -h 3 -w 5
+	grep -P -v '^\s*#' script/beta_pcoa.R > fig1/script/beta_pcoa_fieldI.R
 
 
 ### alpha多样性
@@ -608,9 +615,10 @@ grep -P -v '^\s*#' script/compare_sub.R > fig1/script/compare.R
 
 grep -P -v '^\s*#' script/alpha_boxplot_far.R > fig1/script/alpha_boxplot_far.R
 
-# 图4. 菌群与nrt关系
+## 菌群与nrt关系
 
-	## 2. 差异菌/功能与氮相关基因显著相关
+### 差异菌/功能与氮相关基因显著相关
+	
 	# 来自胡斌整理的氮相关基因doc/N-related genes in rice.docx共9个基因，先在doc/rice_nitrogen_list.xlsx中惠惠相关ID，保存为doc/rice_nitrogen_list.txt, 其中第5列RAP_SNP的ID与SNP注释文件对应
 	dos2unix doc/rice_nitrogen_list.txt # windows转换为linux
 	# 整理出SNP数据中对应的基因型、提取相应的位点
@@ -638,20 +646,25 @@ grep -P -v '^\s*#' script/alpha_boxplot_far.R > fig1/script/alpha_boxplot_far.R
 	cut -f 2,8,20 result/nitrogen_cor/design.txt|sort|uniq|cut -f 2,3|sort|uniq -c
 	grep -P '10m21759092|2m655515\t|8m3183208' /mnt/bai/yongxin/rice/miniCore/180319/gemma/T2.ann.vcf # 查询SNP变化位置、碱基和AA详细
 
-grep -P -v '^\s*#' script/nitrogen_cor.r > fig1/script/nitrogen_cor.R
+	grep -P -v '^\s*#' script/nitrogen_cor.r > fig1/script/nitrogen_cor.R
 
 
-	3. 关键氮高效基因不同形态、突变体可部分解析亚种差异 2018/5/31
+### 关键氮高效基因NRT不同形态、突变体可部分解析亚种差异
+
 	"A50LnCp6","A56LnCp6","A50LnCp7","A56LnCp7","A50LnSz7","A56LnSz7","A50HnCp6","A56HnCp6","A50HnCp7","A56HnCp7","A50HnSz7","A56HnSz7","V3703HnCp6","ZH11HnCp6","V3703LnCp6","ZH11LnCp6","nrtHnCp7","ZH11HnCp7","ZH11LnCp7","nrtLnCp7","nrtHnSz7","ZH11HnSz7","nrtLnSz7","ZH11LnSz7"
 	# nrt vs ZH11(TEJ): 主图："V3703HnCp6","ZH11HnCp6", 附图："V3703LnCp6","ZH11LnCp6",
 	# 近等基因系：主图："A50LnCp7","A56LnCp7", 附图："A50LnCp6","A56LnCp6",
 	# 主图/附图各分析一次：alpha, beta, 差异OTUs, venn: HTEJ_HIND_D LTEJ_LIND_D V3703HnCp6_ZH11HnCp6; HTEJ_HIND_D LTEJ_LIND_D A50HnCp7_A56HnCp7
-	# 主图4组，xiangeng_wilcoxon_main
-	# 附图4组，xiangeng_wilcoxon_supp
+
+主图4组: http://bailab.genetics.ac.cn/report/16Sv2/xiangeng_wilcoxon_main/
+
+附图4组: http://bailab.genetics.ac.cn/report/16Sv2xiangeng_wilcoxon_supp
+
+主图3.10.2和3.10.3中共有菌数量但不，但丰度很高，计算其占全部菌的相对丰度。详见fig1/venn_overlap_abundance.R
 
 
 
-## 图4.e宏基因组KO注释
+### 宏基因组KO注释
 
 	从金桃处获得KO表和丰度，获取KO的功能描述；在kegg中没找到，picurst中没找到(输出结果有注释但不完整)，google搜索KO description download，找到biostar解答；https://www.genome.jp/kegg-bin/get_htext?ko00001.keg 中的Download htext/jason下载KO和描述；htext方便检索，而jason方便在线分析，如jason2table
 	
@@ -663,9 +676,9 @@ grep -P -v '^\s*#' script/nitrogen_cor.r > fig1/script/nitrogen_cor.R
 	awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$2} NR>FNR{print $0,a[$1]}' KO_description.txt ko.txt > ko.anno
 
 	# 绘制单个KO和箱线图
-alpha_boxplot.sh -i ko.txt -m '"K02568","K02567","K00363","K10535","K00362"' \
--d design.txt -A group -B '"HnZH11","HnNrt"' \
--o ./ -h 2 -w 2.5 -t TRUE -n TRUE -U 1000000
+	alpha_boxplot.sh -i ko.txt -m '"K02568","K02567","K00363","K10535","K00362"' \
+	-d design.txt -A group -B '"HnZH11","HnNrt"' \
+	-o ./ -h 2 -w 2.5 -t TRUE -n TRUE -U 1000000
 
 
     # 2018/11/14 完整KO表
@@ -678,22 +691,39 @@ alpha_boxplot.sh -i ko.txt -m '"K02568","K02567","K00363","K10535","K00362"' \
     cat compare/summary.txt
         # Pvalue和FDR并不显著，可能秩和检验需要较多的样本数，HN要比LN明显特别多
 
+    ## https://www.kegg.jp 搜索Nitrogen metabolism ，打开PATHWAY map00910，点击Ortholog table打开KO与物种对应表，保存第一行KO和对应描述为nitrogene/ko.id
+    # 设置分析本批关键字，同类分析替换即可 nitrogen/sulfur 有代谢通路, potassium 只有M00454中两个KO 	K07646 K07667, phosphorus 相关KO由张鹏帆贡献
     type=sulfur
     mkdir -p ${type}
-    ## https://www.kegg.jp 搜索Nitrogen metabolism，打开PATHWAY map00910，点击Ortholog table打开KO与物种对应表，保存第一行KO和对应描述为nitrogene/ko.id
-    # 设置分析本批关键字，同类分析替换即可 nitrogen/sulfur
     # 转换为KO ID对应基因名称，并添加差异比较对应表头
     sed ":a;N;s/\n/ /g;ta" ${type}/ko_raw.id |sed "s/\t/\n/g"| sed "s/ /\t/;s/(//;s/)//;" | cut -f 1 -d '['| sed '1 i HnZH11_HnNrt'|less > ${type}/ko.id
     # 筛选KO对应比较结果
     awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print a[$1]}' compare/HnZH11-HnNrt_all.txt ${type}/ko.id | grep -v -P '^$' > ${type}/HnNrt_all.txt
+    # 添加注释
+    awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$7]=$8} NR>FNR{print $0,a[$1]}' ~/github/Metagenome/denovo1/kegg/ko00001.tsv  ${type}/HnNrt_all.txt > ${type}/HnNrt_all_anno.txt
     # 查看正对照K02568 K02567 K00363
-    # 筛选显著差异并标颜色
-    awk '$4<0.05' ${type}/HnNrt_all.txt | cut -f 1-4,7-8 | awk '{if ($2>0) {print $1"\tred"}else {print $1"\tgreen"}}'
-    # N和S都有上升的基因
+    # 筛选显著差异并标颜色，用于在线展示
+    # awk '$4<0.05' ${type}/HnNrt_all.txt | cut -f 1-4,7-8 | awk '{if ($2>0) {print $0"\tred"}else {print $0"\tgreen"}}' > ${type}/HnNrt_diff.txt
+    # cat ${type}/HnNrt_diff.txt
+    # KO添加描述
+    # head -n1 ~/github/Metagenome/denovo1/kegg/ko00001.tsv|sed 's/\t/\n/g'|awk '{print NR"\t"$0}'
+    awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$7]=$8} NR>FNR{print $0,a[$1]}' ~/github/Metagenome/denovo1/kegg/ko00001.tsv ${type}/HnNrt_diff.txt > ${type}/HnNrt_diff_anno.txt
+    # N和S都有上升的基因，钾无差异，P有一个下调
+
+
+## 图5. 可培养菌
+
+    # 可培养比例与自然样品  ~/culture/jingmei171208.rice.med.soy/makefile.man # 2018/10/17 培养菌与自然样本比较
+    # 统计科数量
+    awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print a[$1]}' result/rep_seqs_tax.txt culture_A50/otu_cultured.txt > culture_A50/otu_cultured.tax
+    awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print a[$1]}' result/rep_seqs_tax.txt culture_IR24/otu_cultured.txt > culture_IR24/otu_cultured.tax
+    cat culture_A50/otu_cultured.tax culture_IR24/otu_cultured.tax | cut -f 6 | sort | uniq | wc -l
+    # 分菌见 ~/culture/rice/makefile.man # 2018/10/19 水稻分菌整理
+    # 总结：1098个单菌，去掉一个序列异常的1097，去冗余519，序列比对剩512条序列
 
 
 
-## 图5. 微生物与表型关联
+## 图5. 微生物与表型关联——2018/11/19去掉
 
 	1. 微生物、多样性、PCoA主轴与表型相关分析
 	# 先使用胡斌整理表型数据+faprotax中氮通路相关
@@ -720,17 +750,18 @@ alpha_boxplot.sh -i ko.txt -m '"K02568","K02567","K00363","K10535","K00362"' \
 	# 2018/6/22 用品种中全部OTUs计算相关系数，筛选相关系数>0.4，丰度大于均值0.1%的OTUs，物种名改为低级注释
 	cp xiangeng4wilcox/result/compare/LTEJ-LIND_all.txt fig1/5pheno/ # 品种0.2%过滤OTU列表
 
+    # 2018/11/16 株高、鲜重与OTU相关性 fig1\5pheno\LN_otu_mean_pheno_cor.r.txt，用echart可视化为LN_otu_mean_pheno_cor.r.pdf
+
 
 ## syncom重组体系表型分析
     # 数据整理为 wet/Xu-NbSycomFunctionData.txt, 分析代码见 fig1/5Syncom.Rmd
 
 
 
-附图.
+## 附图
 
 1. 样本稀释曲线，平滑处理
 alpha_rare_sample.R
-
 2. 2块地所有样品IND/TEJ一起PCoA, CPCoA
 3. 主图c/d的unifrac距离图
 4. alpha diversity chao1 richness
@@ -742,100 +773,140 @@ alpha_rare_sample.R
 10. 图4b的beta其它距离， constraind
 11. 附图专用4组多样性分析
 
-附数据统计：
+## 附数据统计
 
-1. 品种数：68 IND
-cd ~/rice/xianGeng/fig1/ST
-     27 TEJ
-sed -i 's/,/\t/g' 01.variety_geotable.csv # csv替换为tsv
-# 数据筛选95个，并添加95个
-awk '{FS=OFS="\t"} NR==FNR{a[$2]=$0} NR>FNR{print $0,a[$2]}' ~/rice/miniCore/doc/minicore_list.txt 01.variety_geotable.csv > 01.variety_geotable.txt 
-cut -f 14 01.variety_geotable.txt|tail -n+2|sort|uniq|wc -l # 44个国家
+	# 1. 品种数：68 IND
+	cd ~/rice/xianGeng/fig1/ST
+		27 TEJ
+	sed -i 's/,/\t/g' 01.variety_geotable.csv # csv替换为tsv
+	# 数据筛选95个，并添加95个
+	awk '{FS=OFS="\t"} NR==FNR{a[$2]=$0} NR>FNR{print $0,a[$2]}' ~/rice/miniCore/doc/minicore_list.txt 01.variety_geotable.csv > 01.variety_geotable.txt 
+	cut -f 14 01.variety_geotable.txt|tail -n+2|sort|uniq|wc -l # 44个国家
 
-2. 凌水海南样本数和测序量
-# 需要使用compare_sub.R中来原代码，在3compare中汇总样品和测序量
+	# 2. 凌水海南样本数和测序量
+	# 需要使用compare_sub.R中来原代码，在3compare中汇总样品和测序量
 
-3. 查看共有16个下调菌的丰度范围
-cd ~/rice/xianGeng
-awk '{FS=OFS="\t"} NR==FNR{a[$1]=$14} NR>FNR{print a[$1]}' xiangeng4wilcox/result/compare/HTEJ-HIND_all.txt fig1/3compare/otu_TEJ_common_specific.txt|sort -nr
-awk '{FS=OFS="\t"} NR==FNR{a[$1]=$14} NR>FNR{print a[$1]}' xiangeng4wilcox/result/compare/LTEJ-LIND_all.txt fig1/3compare/otu_TEJ_common_specific.txt|sort -nr
-awk '$2<0.05' fig1/ST/09.tiller_cor_p.txt|wc -l # 381个有214个显著P<0.05
-cd fig1/ST
-paste 09.tiller_cor.txt 09.tiller_cor_p.txt | cut -f 1,2,4> 09.tiller_cor_pr.txt
+	# 3. 查看共有16个下调菌的丰度范围
+	cd ~/rice/xianGeng
+	awk '{FS=OFS="\t"} NR==FNR{a[$1]=$14} NR>FNR{print a[$1]}' xiangeng4wilcox/result/compare/HTEJ-HIND_all.txt fig1/3compare/otu_TEJ_common_specific.txt|sort -nr
+	awk '{FS=OFS="\t"} NR==FNR{a[$1]=$14} NR>FNR{print a[$1]}' xiangeng4wilcox/result/compare/LTEJ-LIND_all.txt fig1/3compare/otu_TEJ_common_specific.txt|sort -nr
+	awk '$2<0.05' fig1/ST/09.tiller_cor_p.txt|wc -l # 381个有214个显著P<0.05
+	cd fig1/ST
+	paste 09.tiller_cor.txt 09.tiller_cor_p.txt | cut -f 1,2,4> 09.tiller_cor_pr.txt
 
+## 上传数据 PRJNA478068
 
+	# 整理的最终上传实验设计 fig1/metadata.txt
+	cut -f 16 fig1/metadata.txt|sort|uniq -c # 587个亚种数据来自miniCore，127+114=241来自nrt
+	wc -l fig1/metadata.txt # 检查是否有样品重名
+	cut -f 1 fig1/metadata.txt|sort|uniq|wc -l 
+	mkdir -p seq/submit # 创建提交数据目录
 
-# 上传数据 PRJNA478068
-# 整理的最终上传实验设计 fig1/metadata.txt
-cut -f 16 fig1/metadata.txt|sort|uniq -c # 587个亚种数据来自miniCore，127+114=241来自nrt
-wc -l fig1/metadata.txt # 检查是否有样品重名
-cut -f 1 fig1/metadata.txt|sort|uniq|wc -l 
-mkdir -p seq/submit # 创建提交数据目录
+	# 1. 籼粳稻样本，587个
+	for RPM in `grep 'minicore' fig1/ST/02.design.txt|cut -f 1`; do
+		cp ../miniCore/clean_data/sample/${RPM}.fq.gz seq/submit/
+	done
 
-# 1. 籼粳稻样本，587个
-for RPM in `grep 'minicore' fig1/ST/02.design.txt|cut -f 1`; do
-	cp ../miniCore/clean_data/sample/${RPM}.fq.gz seq/submit/
-done
-
-# 2. 时间序列己上传，见 https://www.ncbi.nlm.nih.gov/bioproject/?term=PRJNA435900
-for RPM in `grep 'nrt' fig1/ST/02.design.txt|cut -f 1`; do
-	cp /mnt/bai/yongxin/rice/zjj.nitrogen/180116/clean_data/sample/${RPM}.fq.gz seq/submit/
-done
-
-
-
-# 共享中间文件和分析流程代码 submit用于投稿，publish用于正式发表后共享
-
-## 在fig1中创建index.Rmd并生成网页 http://210.75.224.110/submit/rice_microbiome, username: rice, password: microbiome
-cd ~/rice/xianGeng/fig1 # 共享目录
-ln -sf `pwd` /var/www/html/submit/rice_microbiome # 链接至外网
-cp ~/github/Amplicon/16Sv2/rmd/.htaccess ./ # 加密
-htpasswd /mnt/bai/yongxin/bin/config/users rice # 添加新用户和密码
-
-
-## 获得分析流程
-pipeline=fig1/pipeline.sh
-make -n -B library_split_stat|grep -v '#' > $pipeline
-make -n -B fq_qc|grep -v '#' >> $pipeline
-make -n -B beta_calc|grep -v '#' >> $pipeline
-
-## 根据最新实验设计和OTU表整理结果
-cd fig1/
-cp /mnt/bai/yongxin/github/Amplicon/16Sv2/script/stat_plot_functions.R script/
+	# 2. 时间序列己上传，见 https://www.ncbi.nlm.nih.gov/bioproject/?term=PRJNA435900
+	for RPM in `grep 'nrt' fig1/ST/02.design.txt|cut -f 1`; do
+		cp /mnt/bai/yongxin/rice/zjj.nitrogen/180116/clean_data/sample/${RPM}.fq.gz seq/submit/
+	done
 
 
 
+	# 共享中间文件和分析流程代码 submit用于投稿，publish用于正式发表后共享
 
-# 2018/10/29 补充结果
+	## 在fig1中创建index.Rmd并生成网页 http://210.75.224.110/submit/rice_microbiome, username: rice, password: microbiome
+	cd ~/rice/xianGeng/fig1 # 共享目录
+	ln -sf `pwd` /var/www/html/submit/rice_microbiome # 链接至外网
+	cp ~/github/Amplicon/16Sv2/rmd/.htaccess ./ # 加密
+	htpasswd /mnt/bai/yongxin/bin/config/users rice # 添加新用户和密码
 
-目前文章需要补充的图和表
+	## 获得分析流程
+	pipeline=fig1/pipeline.sh
+	make -n -B library_split_stat|grep -v '#' > $pipeline
+	make -n -B fq_qc|grep -v '#' >> $pipeline
+	make -n -B beta_calc|grep -v '#' >> $pipeline
 
-主图
-
-1.分菌详细流程图：我基金中的那个流程图吗？
-原图参考2018面上项目基金D:\life\grant\NSFC2018\figure\figure.pptx中图3，复制到fig1/20180610-组合图.pptx中：和白老师定方案，秦媛绘制
-
-2.菌保图：树吗？
-~/culture/rice/makefile.man 中 	# 绘制物种树，不带丰度和可培养 ，绘制进化树，无论科62，目22，都不能确保位于树的同一分枝上。
-改为graphlan绘制物种树，并添加标签，保存为fig1/graphlan.ai/pdf
-
-
-
-附图
-
-1. 无机氮功能实验结果
-
-2. A50实验结果（同IR24，数据）Figure6S.pdf
+	## 根据最新实验设计和OTU表整理结果
+	cd fig1/
+	cp /mnt/bai/yongxin/github/Amplicon/16Sv2/script/stat_plot_functions.R script/
 
 
-Table
+## 补充结果2018/10/29 
 
-1.分离菌占16S结果比例及taxonomy组成：自然样品，先不整理
+	目前文章需要补充的图和表
 
-2.菌保信息对应表：verified & COTU,
+	主图
 
-详见clutre/rice/makefile.man中# 制作isolate(鉴定结果)物种注释、来源和序列表 181024/TableS10.xls	# 制作COUT注释和序列信息 181024/TableS9.xls
+	1.分菌详细流程图：我基金中的那个流程图吗？
+	原图参考2018面上项目基金D:\life\grant\NSFC2018\figure\figure.pptx中图3，复制到fig1/20180610-组合图.pptx中：和白老师定方案，秦媛绘制
+
+	2.菌保图：树吗？
+	~/culture/rice/makefile.man 中 	# 绘制物种树，不带丰度和可培养 ，绘制进化树，无论科62，目22，都不能确保位于树的同一分枝上。
+	改为graphlan绘制物种树，并添加标签，保存为fig1/graphlan.ai/pdf
+
+
+	附图
+
+	1. 无机氮功能实验结果
+	2. A50实验结果（同IR24，数据）Figure6S.pdf
+
+	Table
+
+	1.分离菌占16S结果比例及taxonomy组成：自然样品，先不整理
+
+	2.菌保信息对应表：verified & COTU，详见clutre/rice/makefile.man中# 制作isolate(鉴定结果)物种注释、来源和序列表 181024/TableS10.xls	# 制作COUT注释和序列信息 181024/TableS9.xls
+
+	3.功能实验设计及表型结果（包括有机氮/无机氮，培养基成分，浓度，sycoms菌组成，表型数据等）
 
 
 
-3.功能实验设计及表型结果（包括有机氮/无机氮，培养基成分，浓度，sycoms菌组成，表型数据等）
+## 补充结果2018/11/17
+
+1. IND/TEJ差异共有OTU在表型相关系数；
+
+共有差异OTU列表，见： http://bailab.genetics.ac.cn/report/16Sv2/xiangeng_wilcoxon_main/result-otu.html#htej_hind_dltej_lind_dcde-5 http://bailab.genetics.ac.cn/report/16Sv2/xiangeng_wilcoxon_main/result-otu.html#htej_hind_eltej_lind_ecde-5
+
+    wd=result/subspecies_otu_cor
+    mkdir -p $wd
+    # 筛选IND/TEJ富集的OTU
+    tail -n 141 xiangeng_wilcoxon_main/result/compare/diff.list.vennHTEJ_HIND_DLTEJ_LIND_D.xls.xls | awk '{print $0"\tIND_enriched"}'> $wd/IND_enriched_otu.id
+    tail -n 16 xiangeng_wilcoxon_main/result/compare/diff.list.vennHTEJ_HIND_ELTEJ_LIND_E.xls.xls | awk '{print $0"\tTEJ_enriched"}'> $wd/TEJ_enriched_otu.id
+    cat $wd/IND_enriched_otu.id $wd/TEJ_enriched_otu.id | sed '1 i OTUID\tAbundance\tTaxonomy\tType' > $wd/IND_TEJ_otu.id
+    # 添加OTU相关
+    awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print $0,a[$1]}' ./fig1/5pheno/LN_otu_mean_pheno_cor.r.txt $wd/IND_TEJ_otu.id | less -S > $wd/IND_TEJ_otu.cor # 添加亚种
+    # 在ehcart绘制热图 http://www.ehbio.com/ImageGP/index.php/Home/Index/PHeatmap.html
+
+2. Venn中共有比例
+
+共有和特有OTU列表见: http://bailab.genetics.ac.cn/report/16Sv2/xiangeng_wilcoxon_main/result-otu.html#htej_hind_dltej_lind_dv3703hncp6_zh11hncp6_dde-5
+    
+    wd=result/nrt_venn_abundance
+    mkdir -p $wd
+    # 脚本见 fig1/venn_overlap_abundance.R
+    cp xiangeng_wilcoxon_main/result/compare/diff.list.vennHTEJ_HIND_DLTEJ_LIND_DA50LnCp7_A56LnCp7_D.xls.xls $wd/HTEJ_HIND_DLTEJ_LIND_DA50LnCp7_A56LnCp7_D.xls
+    cp xiangeng_wilcoxon_main/result/compare/diff.list.vennHTEJ_HIND_DLTEJ_LIND_DV3703HnCp6_ZH11HnCp6_D.xls.xls $wd/HTEJ_HIND_DLTEJ_LIND_DV3703HnCp6_ZH11HnCp6_D.xls
+    # 替换名称
+    # 整理为附表 TableSX.nrt_veen_list.xlsx
+    
+
+3. Figure S10统计
+
+    # 检索原代码
+    /rice/xianGeng/fig1]$grep 'Tiller number' *.Rmd
+    # 5phenotype_cor.Rmd 中有代码和图，带wilcoxon检验的P值
+
+4. Figure 3.I/J 统计注释菌的总丰度，注释到N的总丰度；
+    # ../result/faprotax/report.mat在菌和功能对应表
+    # ../result/41culture/otu_mean_tax.txt 丰度和注释
+    # 查看注释菌的丰度
+    awk '{a=a+$2} END {print a}' ../result/41culture/otu_mean_tax.txt # 总量99.752%
+    awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$2} NR>FNR{print a[$1]}' ../result/41culture/otu_mean_tax.txt ../result/faprotax/report.mat | awk '{a=a+$1} END {print a}' # 注释的菌有62.972
+    # 用R脚本统计每类的丰度，和几类总和的丰度 sum_faprotax_anno.R，补充为3comapre_en.rmd中3E段落中末属
+
+
+5. 机器学习方法写清楚：使用了那个包，调用了哪个函数。
+    /mnt/bai/yongxin/rice/xianGeng/fig1/随机森林分类方法描述.docx
+
+6. Nitrogene related KO STAMP: Welch's t-test, Storey FDR
