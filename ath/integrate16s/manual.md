@@ -297,8 +297,49 @@
 ## 3.9 培养菌注释
 
     # 培养菌注释，采用ath root的菌库，COTU，目前只注释plot_venn的结果
-    make culture
+    make culture # 总体均值为 62.995
+    
+    # 默认计算所有OTU的平均丰度，这里只想用WT的平均丰度
+    make -n -B culture
+    otutab_mean_group.sh -i result/otutab.txt -o temp/otutab.mean -A "groupID" -B '"b3Col"'
+    # 添加丰度至culture
+    awk 'BEGIN{OFS=FS="\t"} NR==FNR {a[$1]=$2} NR>FNR {print $0,a[$1]}' temp/otutab.mean temp/culture_otu.blastn | cut -f 1-4,14 > temp/temp
+    # 添加物种注释
+    awk 'BEGIN{OFS=FS="\t"} NR==FNR {a[$1]=$4} NR>FNR {print $0,a[$2]}' /mnt/bai/yongxin/culture/ath/result/"Root"culture_select.fa.tax temp/temp | sed '1 s/$/Taxonomy/' > result/39culture/otu.txt
+    echo -ne "Cultured abundance\t" >> result/39culture/summary.txt
+    awk '$3>=97 && $4>=99' result/39culture/otu.txt | awk '{a=a+$5} END {print a}' >> result/39culture/summary.txt
+    cat result/39culture/summary.txt
+    # WT中占丰度61.074
 
+    # 绘图
+    make -n -B culture_graphlan 
+    # 筛选根际土、根的k1 OTU,并在相应库中匹配培养比例；
+mkdir -p culture_"Root"
+filter_otus_from_otu_table.sh -t 0.001 -o culture_Root -f `pwd`/result/otutab.txt -d `pwd`/doc/design.txt -F 'TRUE' -A groupID -B '"b3Col"' -F mean
+# 筛选WT组中0.1%丰度OTU 153条
+#awk '$2>0.1' temp/otutab.mean | awk '{print $1"\t"$2/100}' |tail -n+2 > culture_"Root"/otu_table_ha.mean
+#awk '$2>0.1' temp/otutab.mean | cut -f 1 |tail -n+2 > culture_"Root"/otu_table_ha.id
+filter_fasta.py -f result/otu.fa -o culture_"Root"/rep_seqs.fa.top -s culture_"Root"/otu_table_ha.id
+echo -ne "Nature_HA_OTUs:\t" > culture_"Root"/culture.sum
+grep -c '>' culture_"Root"/rep_seqs.fa.top >> culture_"Root"/culture.sum
+# 分析这些OTU中可培养的比例
+blastn -query culture_"Root"/rep_seqs.fa.top -db /mnt/bai/yongxin/culture/ath/result/"Root"culture_select.fa -out culture_"Root"/rep_seqs.blastn -outfmt '6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qcovs' -num_alignments 1 -evalue 1 -num_threads 9 # 输出13列为coverage
+awk '$3*$13>=9700' culture_"Root"/rep_seqs.blastn|cut -f 1 > culture_"Root"/otu_cultured.txt
+echo -ne "Stocked_OTUs:\t" >> culture_"Root"/culture.sum
+grep -c 'OTU' culture_"Root"/otu_cultured.txt >> culture_"Root"/culture.sum
+echo -ne "Nature_HA_abundance:\t" >> culture_"Root"/culture.sum
+awk '{a=a+$2} END {print a}' culture_"Root"/otu_table_ha.mean >> culture_"Root"/culture.sum # total is 0.835
+echo -ne "Stocked_abundance:\t" >> culture_"Root"/culture.sum
+awk 'BEGIN{OFS=FS="\t"} NR==FNR {a[$1]="culture"} NR>FNR {print $0,a[$1]}' culture_"Root"/otu_cultured.txt culture_"Root"/otu_table_ha.mean |grep 'culture'|awk '{a=a+$2} END {print a}' >> culture_"Root"/culture.sum 
+# 绘制graphlan
+sed 's/\t/\;/g' result/taxonomy_8.txt|sed 's/\;/\t/' > temp/taxonomy_2.txt
+graphlan_culture.pl -i culture_"Root"/otu_table_ha.id -d culture_"Root"/otu_cultured.txt -t temp/taxonomy_2.txt -o 0_ha_otu_culture.txt
+Rscript /mnt/bai/yongxin/bin/graphlan_culture.R # 生成1树, 2科注释, 3培养注释文件
+sed 's/\t/\tring_alpha\t3\t/g' culture_"Root"/otu_table_ha.zscore > culture_"Root"/abundance_heat.txt # 柱状用log2，热图用zscore
+cat /mnt/bai/yongxin/culture/rice/graphlan/global.cfg 2_annotation_family.txt /mnt/bai/yongxin/culture/rice/graphlan/ring1.cfg 3_annotation_match.txt /mnt/bai/yongxin/culture/rice/graphlan/abundance_heat.cfg culture_"Root"/abundance_heat.txt > culture_"Root"/5_annotation.txt
+graphlan_annotate.py --annot culture_"Root"/5_annotation.txt 1_tree_plain.txt culture_"Root"/graphlan.xml
+graphlan.py culture_"Root"/graphlan.xml culture_"Root"/graphlan.pdf --size 5
+cat culture_"Root"/culture.sum
 
 
 # 4. 个性化分析

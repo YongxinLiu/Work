@@ -1,183 +1,88 @@
-# ath -- Arabidopsis thaliana
+# amplicon 华大基因扩增子包lane测序数据
 
+## 171018 lane1 钱景美苜蓿真菌
+    wd=L171018 && cd ~/seq/$wd
+    # 转换64为33、准备index、拆lane、统计
 
+## 171121 lane2
+    wd=L171121 && cd ~/seq/$wd
+    # 转换64为33、准备index、拆lane、统计
 
+## 171122 lane3
+    wd=L171122 && cd ~/seq/$wd
+    # 转换64为33、准备index、拆lane、统计
 
-# rice -- Oryza Sativa
+## 171212 lane4
+    wd=L171212 && cd ~/seq/$wd
+    # 转换64为33、准备index、拆lane、统计
 
-
-# wheat -- Triticum aestivum L. 
-
-# 华大基因测序数据
-## 2017/10/16 景美苜蓿真菌
-nohup wget --user 20171013F17FTSNCKF3414 --password LIBkboR ftp://cdts-wh.genomics.cn/F17FTSNCKF3414_LIBkboR/Raw/CWHPEPI00001583/CWHPEPI00001583_1.fq.gz &bg
-nohup wget --user 20171013F17FTSNCKF3414 --password LIBkboR ftp://cdts-wh.genomics.cn/F17FTSNCKF3414_LIBkboR/Raw/CWHPEPI00001583/CWHPEPI00001583_2.fq.gz &bg # 无效，不支持wget
-
-
-## 171121华大两个lane数据
-cd ~/seq
-mkdir 171121
-cd 171121
-#nohup wget -dcr --user  20171013F17FTSNCKF3414 --password LIBpfjR ftp://cdts-wh.genomics.cn/F17FTSNCKF3414_LIBpfjR/Clean/ &bg # 530 Login incorrect
-for file in `find ./ -name *.gz`; do
-	fastqc $file &
-done
-# 查找姜婷Index1，正向，反向分别尝试；参考序列~/ref/culture/IlluminaIndex48.txt
-ls|grep 'CGTGAT' # result无结果
-ls|grep 'ATCACG' # 找到结果 
-mv *L2* ~/seq/171122.wheatNP.Aq/
-cd ~/seq/171122.wheatNP.Aq
-for file in `find | grep 'L2'| grep 'fq.gz'`; do
-	mv $file ./
-done
-rename 's/FCHY55LBCXY_L2_CWHPEPI00001611_Index-//' *.gz
-fastqc *.fq.gz -t 96 &
-multiqc . # 汇总评估报告
-
-
-
-## 171212华大两个lane数据
-# 筛选第二个lane的数据rice minicore到171213
-cd ~/seq/171212
-mkdir -p ~/seq/171213riceMinicore/
-for file in `find | grep 'L2'| grep 'fq.gz'`; do
-	mv $file ~/seq/171213riceMinicore/
-done
-cd ~/seq/171213riceMinicore/
-rename 's/FCH3L7FBCX2_L2_CWHPEI17110010-//' *.gz
-# 将index取反向互补
-format_seq_revcom.pl -i lane4.index
-format_seq_revcom.pl -i lane5.index
-
-
-## 171212 华大lane7
-cd ~/seq/171220.lane7.GuoXX.JiangT
-# 简化文件名
-rename 's/171214_I188_FCH3MHMBCX2_L1_CWHPEPI00001645/lane7/g' *.gz
-# 制作反向互补的index与测序结果一致
-format_seq_revcom.pl -i index.txt
-# 拆分文库: grep处匹配需要提示less查看文件头的具体格式
-for index in `cat index.txt.out`; do
-	echo ${index}
-	zcat lane7_1.fq.gz|grep -A 3 "#${index}AT_TCTTTCCC/"|grep -v -P '^--$' |gzip > ${index}_1.fq.gz &bg
-	zcat lane7_2.fq.gz|grep -A 3 "#${index}AT_TCTTTCCC/"|grep -v -P '^--$' |gzip > ${index}_2.fq.gz &bg
-done
-fastqc *.gz -t 96 # 质控所有数据
-multiqc . # 汇总评估报告
-cut -f 1,16 multiqc_data/multiqc_fastqc.txt|grep '_1'|sed 's/_1//;s/\.0//' > multiqc_data/multiqc_fastqc.count
-awk 'BEGIN{FS=OFS="\t"} NR==FNR {a[$1]=$2} NR>FNR {print $0,a[$1]}' multiqc_data/multiqc_fastqc.count index.txt.ou
-
+## 171213 lane5
+    wd=L171213 && cd ~/seq/$wd
+    # 转换64为33、准备index、拆lane、统计
 
 ## 171221 华大lane6 重测
-cd ~/seq/171221.lane6.reseq/raw/lane6
-rename 's/171217_I191_FCH3N7TBCX2_L2_CWHPEPI00001634/lane/g' *.gz
-md5sum *.gz > md5.txt # 获得文件的md5植
-md5sum -c md5.txt # 检查原始md5，确定文件传输是否正确
-fastqc *.gz -t 2 &
-cat >index.txt # 粘贴index列表
-format_seq_revcom.pl -i index.txt # 翻转序列
-for index in `cat index.txt.out`; do
-	echo ${index}
-	zcat lane_1.fq.gz|grep -A 3 "#${index}AT_TCTTTCCC/"|grep -v -P '^--$' |gzip > ${index}_1.fq.gz &bg
-	zcat lane_2.fq.gz|grep -A 3 "#${index}AT_TCTTTCCC/"|grep -v -P '^--$' |gzip > ${index}_2.fq.gz &bg
-done
+    wd=L171221 && cd ~/seq/$wd
+    # 转换64为33、准备index、拆lane、统计
 
+## 171220 华大lane7
+    wd=L171220 && cd ~/seq/$wd
+    # 转换64为33、准备index、拆lane、统计
 
 ## 180108 华大lane8
-cd ~/seq/180108.lane8.rice/lane8
-md5sum *.gz
-format_seq_revcom.pl -i index.txt
-# 拆分文库: grep处匹配需要提示less查看文件头的具体格式
-for index in `cat index.txt.out`; do
-	echo ${index}
-	zcat lane_1.fq.gz|grep -A 3 "#${index}AT_TCTTTCCC/"|grep -v -P '^--$' |gzip > ${index}_1.fq.gz &bg
-	zcat lane_2.fq.gz|grep -A 3 "#${index}AT_TCTTTCCC/"|grep -v -P '^--$' |gzip > ${index}_2.fq.gz &bg
-done
-fastqc *.gz -t 96 # 质控所有数据
-multiqc . # 汇总评估报告
-cut -f 1,8 multiqc_data/multiqc_fastqc.txt|grep '_1'|sed 's/_1//;s/\.0//' > multiqc_data/multiqc_fastqc.count
-awk 'BEGIN{FS=OFS="\t"} NR==FNR {a[$1]=$2} NR>FNR {print $0,a[$1]}' multiqc_data/multiqc_fastqc.count index.txt.out
-
+    
+    wd=L180108 && cd ~/seq/$wd
+    # 转换64为33、准备index、拆lane、统计
 
 ## 180210.lane9.ath3T
-cd ~/seq/180210.lane9.ath3T/Clean/CWHPEPI00001683/
-rename 's/FCHCMCCBCX2_L1_CWHPEPI00001683/lane/g' *.gz
-md5sum *.gz > md5.txt # 获得文件的md5植
-fastqc *.gz -t 2 &
-cat >index.txt # 粘贴index列表
-format_seq_revcom.pl -i index.txt # 翻转序列
-for index in `cat index.txt.out`; do
-	echo ${index}
-	zcat lane_1.fq.gz|grep -A 3 "#${index}ATC_TCTTTCCC/"|grep -v -P '^--$' |gzip > ${index}_1.fq.gz &bg
-	zcat lane_2.fq.gz|grep -A 3 "#${index}ATC_TCTTTCCC/"|grep -v -P '^--$' |gzip > ${index}_2.fq.gz &bg
-done
 
-# 生成3个库的测试文件
-zless lane_1.fq.gz|head -n 10000|gzip > lane1_1.fq.gz
-zless lane_2.fq.gz|head -n 10000|gzip > lane1_2.fq.gz
+    wd=L180210 && cd ~/seq/$wd
+    # 转换64为33、准备index、拆lane、统计
 
+## 180301 lane10
 
-## 180301 华大lane10
-cd ~/seq/180301.lane10/Clean/CWHPEPI00001684
-rename 's/FCH7L5VBCX2_L1_CWHPEPI00001684/lane/g' *.gz
-md5sum *.gz > md5.txt & # 获得文件的md5植
-fastqc *.gz -t 2 &
-cp /mnt/bai/yongxin/ref/culture/IlluminaIndex48.txt index.txt # 筛选为本实验使用的
-nohup time parallel -j 32 "zcat lane_1.fq.gz | grep -A 3 '#{1}'| grep -v -P '^--$' > {1}_1.fq" ::: `cat index.txt` &bg
-nohup time parallel -j 32 "zcat lane_2.fq.gz | grep -A 3 '#{1}'| grep -v -P '^--$' > {1}_2.fq" ::: `cat index.txt` &bg
+    wd=L180301 && cd ~/seq/$wd
+    # 转换64为33、准备index、拆lane、统计
 
-## 2018/5/28 华大lane11
-cd ~/seq
-mv F18FTSNCKF1459_LIBulyR/ 180528.lane11
-cd 180528.lane11/Clean/CWHPEPI00001823/
-rename 's/FCH7GG7BCX2_L2_CWHPEPI00001823/lane_64/' *.gz
-# 格式转换
-time fastp -i lane_64_1.fq.gz -I lane_64_2.fq.gz -o lane_1.fq.gz -O lane_2.fq.gz -6 -A -G -Q -L -w 9
-cut -f 1,3 /mnt/bai/xiaoning/seq_raw_data/180528.lane11/Clean/CWHPEPI00001823/index.txt | sed '1 i LibraryID\tIndexRC' > library.txt
-# 并行拆库
-mkdir -p seq
-parallel --xapply -j 32 "zcat lane_1.fq.gz | grep -A 3 '#{1}'| grep -v -P '^--$' > seq/{1}_1.fq" ::: `tail -n+2 library.txt | cut -f 2`
-parallel --xapply -j 32 "zcat lane_2.fq.gz | grep -A 3 '#{1}'| grep -v -P '^--$' > seq/{1}_2.fq" ::: `tail -n+2 library.txt | cut -f 2`
+## 180528 lane11 定量
+    
+    wd=L180528
+    cd ~/seq/$wd
+    cd Clean/CWHPEPI00001823/
+    # 确定为64位格式，先转换，详见附见2
+    rename 's/FCH7GG7BCX2_L2_CWHPEPI00001823/lane_64/' *.gz
+    # 有预拆好的Library移动并改名即可
+    mv Clean/CWHPEPI00001823/seq/*.fq ./
+    rename "s/^/${wd}_/" *.fq
+    # 质控和压缩上传
 
-# 180601.ath.WGS
+## 180719 lane12 nrt1.1a
 
-## 诺合数据下载工具下载和安装
-	# https://helpcdn.aliyun.com/document_detail/50452.html
-	cd ~/bin
-	wget http://docs-aliyun.cn-hangzhou.oss.aliyun-inc.com/assets/attach/50452/cn_zh/1524643963683/ossutil64?spm=a2c4g.11186623.2.6.TfLBVN -O ossutil
-	chmod +x ossutil
-
-## 数据下载指定目录
-
-	# 进入screen环境防断网
-	screen -d -r seq
-	# 设置下载目录，每次不同数据请修改此处
-	wd=~/seq/180601.ath.WGS/
-	mkdir -p $wd
-	# 创建配置文件，不同用户名请修改用户名和密码
-	ossutil config -e oss.aliyuncs.com -i LTAIhcpcybDqnbxI -k c3oJcIIDzc9z3H7f8CENdC4taSqUoG
-	# 下载文件
-	ossutil cp oss://novo-data-nj/customer-sMIXvUoG/ $wd -r -f --jobs 3 --parallel 2
-
-
-
-# 180719华大lane12
-
-	cd /mnt/bai/yongxin/seq/180719.nrt1.1a.lane12/
-	tar xvzf upload.tar.gz
-	# 使用远程桌面查看分析报告数据量、质量评估结果
-	cd /mnt/bai/yongxin/seq/180719.nrt1.1a.lane12/Clean/AC/
-	# 简单文件名
-	rename 's/FCH7F2JBCX2_L1_CWHPE18070021-//g' *.gz
-	# 检查数据质量格式：33可以，64还需转换为33
-	determine_phred-score.pl AAAATG_1.fq.gz
+    wd=L180719
+    cd ~/seq/$wd
+    # 附录：查看质量报告和评估文件完整性
+    # 此lane数据被华大拆分为5个文件夹？分别处理
+    # 有三个文件夹中只包括一个样品，直接移动并改名即可
+    mv Clean/CW541/FCH7F2JBCX2_L1_CWHPE18070019_* ./
+    rename 's/FCH7F2JBCX2_L1_CWHPE18070019/L180719_CACTCA/' FCH7F2JBCX2_L1_CWHPE18070019_*.gz
+    mv Clean/TARDF16/FCH7F2JBCX2_L1_CWHPE18070017-A_* ./
+    rename 's/FCH7F2JBCX2_L1_CWHPE18070017-A/L180719_CCGTCC/' FCH7F2JBCX2_L1_CWHPE18070017-A_*.gz
+    mv Clean/TARDB28/FCH7F2JBCX2_L1_CWHPE18070018_* ./
+    rename 's/FCH7F2JBCX2_L1_CWHPE18070018/L180719_CAAAAG/' FCH7F2JBCX2_L1_CWHPE18070018_*.gz
+	# TOM文件夹包括两个library吗？检查只有 CAGGCG
+    mv Clean/TOM/FCH7F2JBCX2_L1_CWHPE18070020_* ./
+    rename 's/FCH7F2JBCX2_L1_CWHPE18070020/L180719_CAGGCG/' FCH7F2JBCX2_L1_CWHPE18070020_*.gz
+    # AC目录正好多一个TCTGAG，逐个移动并改Index为反向互补，再移至根目录
+    awk 'BEGIN{OFS=FS="\t"}{system("mv Clean/AC/"$2"_1.fq.gz Clean/L180719_"$3"_1.fq.gz ")}' index.txt
+    awk 'BEGIN{OFS=FS="\t"}{system("mv Clean/AC/"$2"_2.fq.gz Clean/L180719_"$3"_2.fq.gz ")}' index.txt
+    mv Clean/*.gz ./
+    # 附录：质控与压缩
 
 ## 180816 lane13 sd1
     
     # 设置批次编号
     wd=L180816
     cd ~/seq/$wd
-    # :附录：查看质量报告和评估文件完整性
+    # 附录：查看质量报告和评估文件完整性
     # 统一lane文件为当前目录的Lane_1/2.fq.gz
     mv Clean/D20170718/FCHFLH2BCX2_L2_CWHPE18070298_* ./
     rename 's/FCHFLH2BCX2_L2_CWHPE18070298/lane/' *.fq.gz
@@ -251,25 +156,33 @@ parallel --xapply -j 32 "zcat lane_2.fq.gz | grep -A 3 '#{1}'| grep -v -P '^--$'
     firefox upload/index.html # firefox、下载或远程桌面查看
     md5sum -c md5.txt # 检查下载数据准确性，一致输出OK
 
-	# 检查数据质量，如果64跳到附录2
-	determine_phred-score.pl lane_1.fq.gz
-
     # 准备Index列表拆分，需要IndexRC列，可由ID或Index列检索到
 	# 情况1：如保存ID列为index.ID，获取index和IndexRC，并补充到实验设计
     awk 'BEGIN{FS=OFS="\t"} NR==FNR {a[$1]=$0} NR>FNR {print a[$1]}' \
         /mnt/bai/yongxin/ref/culture/IlluminaIndex48.txt index.ID > index.txt
+    cat index.txt
     # 情况2：如保存Index序列，保存为index，获取indexID和IndexRC，并补充到实验设计
     awk 'BEGIN{FS=OFS="\t"} NR==FNR {a[$2]=$0} NR>FNR {print a[$1]}' \
         /mnt/bai/yongxin/ref/culture/IlluminaIndex48.txt index > index.txt
     cat index.txt
     # 保存至库文件和登记 SeqLibraryList.xlsx
 
+	# 检查数据质量格式，如果64跳转换，否则跳至下节
+	determine_phred-score.pl lane_1.fq.gz
+	# 如果为64，改原始数据为33
+	rename 's/lane/lane_64/' lane_*
+	# 关闭质量控制，主要目的是格式转换64至33，而不是过滤序列，否则扩增子必须成对不满足则usearch无法合并
+	time fastp -i lane_64_1.fq.gz -I lane_64_2.fq.gz -o lane_1.fq.gz -O lane_2.fq.gz -6 -A -G -Q -L -w 8
+	# 1lane 80GB, 2 threads, 102min
+    # 查看fastp报告，数据问题为双端之和，且单位为百万(M)
+    # firefox upload/index.html # fastp.html
+
     # 并行拆库，按目录名见附件编号A18xxxx，j可按文库数量调整，推荐默认24
-    parallel -j 24 "zcat lane_1.fq.gz | grep -A 3 '#{1}'| grep -v -P '^--$' > ${wd}_{1}_1.fq" ::: `cut -f 3 index.txt | grep  -v '^$'` 
+    parallel -j 24 "zcat lane_1.fq.gz | grep -A 3 '#{1}'| grep -v -P '^--$' > ${wd}_{1}_1.fq" ::: `cut -f 3 index.txt | grep  -v '^$'`
     parallel -j 24 "zcat lane_2.fq.gz | grep -A 3 '#{1}'| grep -v -P '^--$' > ${wd}_{1}_2.fq" ::: `cut -f 3 index.txt | grep  -v '^$'`
 
     # 质控和报告汇总
-    fastqc -t 48 L*.fq.gz
+    fastqc -t 48 L*.fq
     multiqc ./ # 详见multiqc_report.html
     # 提取各样品数据量，不同批数据量的列会有变化，可能要更改列的数值5、6等
     l=`head -n1 multiqc_data/multiqc_fastqc.txt|sed 's/\t/\n/g'|awk '{print NR"\t"$0}'|grep 'Total Sequences'|cut -f 1`
@@ -284,15 +197,6 @@ parallel --xapply -j 32 "zcat lane_2.fq.gz | grep -A 3 '#{1}'| grep -v -P '^--$'
     paste /tmp/md5sum1.txt /tmp/md5sum2.txt | awk '{print $2"\t"$1"\t"$4"\t"$3}' > md5sum.txt
     cat md5sum.txt
 
-
-### 2. lane文件格式64转33标准化
-
-	# 如果为64，改原始数据为33
-	rename 's/lane/lane_33/' lane_*
-	# 关闭质量控制，主要目的是格式转换64至33，而不是过滤序列，否则扩增子必须成对不满足则usearch无法合并
-	time fastp -i lane_64_1.fq.gz -I lane_64_2.fq.gz \
-		-o lane_1.fq.gz -O lane_2.fq.gz -6 -A -G -Q -L -w 9
-	# 1lane 80GB, 2 threads, 102min
 
 
 
@@ -422,3 +326,27 @@ parallel --xapply -j 32 "zcat lane_2.fq.gz | grep -A 3 '#{1}'| grep -v -P '^--$'
     md5sum L*_2.fq.gz > /tmp/md5sum2.txt
     paste /tmp/md5sum1.txt /tmp/md5sum2.txt | awk '{print $2"\t"$1"\t"$4"\t"$3}' > md5sum.txt
     cat md5sum.txt
+
+
+
+# 其它
+
+# 180601.ath.WGS 基因组测序
+
+## 诺合数据下载工具下载和安装
+	# https://helpcdn.aliyun.com/document_detail/50452.html
+	cd ~/bin
+	wget http://docs-aliyun.cn-hangzhou.oss.aliyun-inc.com/assets/attach/50452/cn_zh/1524643963683/ossutil64?spm=a2c4g.11186623.2.6.TfLBVN -O ossutil
+	chmod +x ossutil
+
+## 数据下载指定目录
+
+	# 进入screen环境防断网
+	screen -d -r seq
+	# 设置下载目录，每次不同数据请修改此处
+	wd=~/seq/180601.ath.WGS/
+	mkdir -p $wd
+	# 创建配置文件，不同用户名请修改用户名和密码
+	ossutil config -e oss.aliyuncs.com -i LTAIhcpcybDqnbxI -k c3oJcIIDzc9z3H7f8CENdC4taSqUoG
+	# 下载文件
+	ossutil cp oss://novo-data-nj/customer-sMIXvUoG/ $wd -r -f --jobs 3 --parallel 2

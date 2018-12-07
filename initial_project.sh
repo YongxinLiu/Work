@@ -11,10 +11,12 @@
 # 2018/10/26 ath/CCPM 拟南芥代谢物突变体
 # 2018/10/31 maize/magic 玉米GWAS
 # 2018/12/1 medicago/AMF/its 苜宿AMF ITS数据
+# 2018/12/1 ehbio/qianxubo 肠道测试数据
+# 2018/12/7 ath/myb28 基因对叶际微生物的影响
 
 
 
-wd=medicago/AMF/its
+wd=ath/myb28
 # 创建github目录，用于备份流程、文档
 cd 
 mkdir -p ~/github/Work/$wd
@@ -35,6 +37,6 @@ cd ~/$wd
 cd ~/github/Work
 git add . 
 # 提交修改
-git commit -m "2018 new project Oct." 
+git commit -m "2018/12/1" 
 # 推送到github
 git push origin master

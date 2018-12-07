@@ -120,7 +120,7 @@ SHELL:=/bin/bash
 	# Assign taxonomy
 	# 物种注释推荐使用小而准的数据库，如rdp trainset 16(由Robert整理)
 	# 可选gg, silva，分别从官网下载并shell调整格式
-	sintax_db=${usearch_silva}
+	sintax_db=${usearch_rdp}
 	# 分类准确度阈值，默认0.8，注释太少最小可改0.5，发现有明显错误可最高上升为0.95，0保证分配最全最近物种
 	sintax_cutoff=0
 
@@ -162,16 +162,16 @@ SHELL:=/bin/bash
 	# 绘图通用参数
 	# 实验设计文件位置，全局，其它图默认调此变量，也可单独修改；并选择表中的组列和具体分组
 	# 区域和批次分为Root_Batch1/2/3(b1r)，Rhizosphere_Batch1/2/3(b1rs), 比较根vs根际,根际vs土(b1)
-	sub=b3R108
+	sub=b23r
 	doc=doc/${sub}
-	design=${wd}/doc/design.txt 
-	g1=groupID
+	design=${wd}/${doc}/design.txt 
+	g1=genotype
 	# tail -n+2 doc/design.txt|cut -f 2|sort|uniq|awk '{print "\""$1"\""}'|tr "\n" ","
 	# "A17b1rs","Anfpb1rs","dmi2b1rs","dmi3b1rs","lyk3b1rs","lyk9b1rs","lyk9nfpb1rs","lyr4b1rs","R108b1rs","Rnfpb1rs","A17b1r","Anfpb1r","dmi2b1r","dmi3b1r","lyk3b1r","lyk9b1r","lyk9nfpb1r","lyr4b1r","R108b1r","Rnfpb1r","soilB1S","A17b2rs","Anfpb2rs","dmi2b2rs","dmi3b2rs","lyk3b2rs","lyk9b2rs","lyk9nfpb2rs","lyr4b2rs","R108b2rs","Rnfpb2rs","A17b2r","Anfpb2r","dmi2b2r","dmi3b2r","lyk3b2r","lyk9b2r","lyk9nfpb2r","lyr4b2r","R108b2r","Rnfpb2r","soilB2S","A17b3rs","Anfpb3rs","dmi2b3rs","dmi3b3rs","lyk3b3rs","lyk9b3rs","lyk9nfpb3rs","lyr4b3rs","R108b3rs","Rnfpb3rs","A17b3r","Anfpb3r","dmi2b3r","dmi3b3r","lyk3b3r","lyk9b3r","lyk9nfpb3r","lyr4b3r","R108b3r","Rnfpb3r","soilB3S"
 	# 绘图使用的实验组，顺序即图中显示顺序；为空时使用所有组和默认顺序
-#	g1_list='"A17b1rs","Anfpb1rs","dmi2b1rs","dmi3b1rs","lyk3b1rs","lyk9b1rs","lyk9nfpb1rs","lyr4b1rs","R108b1rs","Rnfpb1rs","A17b1r","Anfpb1r","dmi2b1r","dmi3b1r","lyk3b1r","lyk9b1r","lyk9nfpb1r","lyr4b1r","R108b1r","Rnfpb1r","soilB1S","A17b2rs","Anfpb2rs","dmi2b2rs","dmi3b2rs","lyk3b2rs","lyk9b2rs","lyk9nfpb2rs","lyr4b2rs","R108b2rs","Rnfpb2rs","A17b2r","Anfpb2r","dmi2b2r","dmi3b2r","lyk3b2r","lyk9b2r","lyk9nfpb2r","lyr4b2r","R108b2r","Rnfpb2r","soilB2S","A17b3rs","Anfpb3rs","dmi2b3rs","dmi3b3rs","lyk3b3rs","lyk9b3rs","lyk9nfpb3rs","lyr4b3rs","R108b3rs","Rnfpb3rs","A17b3r","Anfpb3r","dmi2b3r","dmi3b3r","lyk3b3r","lyk9b3r","lyk9nfpb3r","lyr4b3r","R108b3r","Rnfpb3r","soilB3S"'
+	g1_list='"R108", "Rnfp","lyr4", "lyk9","lyk9nfp","A17","dmi3"'
 	# 从实验设计比较组中提取组名，自动获得目录组
-	g1_list=`cat ${doc}/compare.txt|tr '\t' '\n'|sort|uniq|awk '{print "\""$$1"\""}'|tr "\n" ","|sed 's/,$$//'`
+	# g1_list=`cat ${doc}/compare.txt|tr '\t' '\n'|sort|uniq|awk '{print "\""$$1"\""}'|tr "\n" ","|sed 's/,$$//'`
 
 	# 组间比较列表
 	compare=${wd}/${doc}/compare.txt
@@ -186,18 +186,18 @@ SHELL:=/bin/bash
 	# 图中显示legend, 如taxonomy的数量，5，8(default)，10
 	legend_number=10
 	# 差异统计按丰度过滤 abundance filter，如丰度按万分之一过滤，减少计算量，提高OTU的FDR值，根据组数量多少可选十万5或万分之5
-	abundance_thre=0.05
+	abundance_thre=0.005
 	# 差异比较方法，默认是 edgeR ，可选 wilcox 秩和检验
 	compare_method="edgeR"
 	# 显著性P值过滤 threshold of P-value，可选0.05, 0.01, 0.001。采用FDR校正，此参数意义不大，即使0.001也没有FDR < 0.2过滤严格
 	pvalue=0.05
-	# 统计检验方式fdr
-	FDR=0.1
+	# 统计检验方式fdr，常用0.2, 0.1, 0.05，差异太多可进一步缩小
+	FDR=0.05
 	# 差异变化倍数常用1.5, 2, 4倍，对应logFC为0.585, 1, 2；菌丰度变化倍数不明显，还可用1.3和1.7倍对应0.379和0.766
 	FC=1.2
 
 	# 统计绘图和网页报告版本控制
-	version=med_${sub}_${compare_method}_v4
+	version=med_${sub}_${compare_method}_v2
 
 
 ## 2.1 alpha_boxplot Alpha多样性指数箱线图 Alpha index in boxplot
@@ -282,7 +282,7 @@ SHELL:=/bin/bash
 	Dc_group_name=${g1}
 	#比较组变化会导致OTUs数量不同，不同批次无法比，此处可固定所有组
 	#Dc_group_list=${g1_list}
-	Dc_group_list=`tail -n+2 doc/design.txt|cut -f 2|sort|uniq|sort|uniq|awk '{print "\""$$1"\""}'|tr "\n" ","|sed 's/,$$//'`
+	Dc_group_list=`tail -n+2 ${doc}/design.txt|cut -f 3|sort|uniq|sort|uniq|awk '{print "\""$$1"\""}'|tr "\n" ","|sed 's/,$$//'`
 	Dc_output=${wd}/result/compare/
 	Dc_group_name2=${g1}
 
@@ -371,6 +371,25 @@ SHELL:=/bin/bash
 
 # 3 高级分析
 
+
+# 3.2 picrust_compare KO组间比较
+	Pic_input=${wd}/PICRUSt/ko.txt
+	# 差异比较方法edgeR or wilcox，默认edgeR
+	Pic_compare=${compare}
+	Pic_method=${compare_method}
+	Pic_pvalue=${pvalue}
+	Pic_FDR=${FDR}
+	Pic_FC=${FC}
+	Pic_thre=0
+	Pic_design=${design}
+	Pic_group_name=${g1}
+	#比较组变化会导致OTUs数量不同，不同批次无法比，此处可固定所有组
+	#Pic_group_list=${g1_list}
+	Pic_group_list=`tail -n+2 ${doc}/design.txt|cut -f 3|sort|uniq|sort|uniq|awk '{print "\""$$1"\""}'|tr "\n" ","|sed 's/,$$//'`
+	Pic_output=${wd}/PICRUSt/ko/
+	Pic_group_name2=${g1}
+
+
 ## 3.3 faprotax 元素循环预测
 
 	fapro_list='"nitrate_ammonification","nitrogen_fixation"'
@@ -379,13 +398,24 @@ SHELL:=/bin/bash
 
 ## 3.9 culture 可培养菌
 	 
-	# 可培养菌库类型，如组织root / rhizosphere / leaf, 品种A50 / IR24
-	type=""
+	# 可培养菌库类型，如组织root / rhizosphere / leaf, 品种A50 / IR24, 苜蓿为A17, R108
+	type=
 	# 指定可培养菌库位置，fa为OTU，fasta为物种如rice
 	culture_db=/mnt/bai/yongxin/culture/medicago/result/${type}culture_select.fasta
 	# 可培养菌结果输出文件
 	# 绘制Graphlan图的筛选阈值
-	culture_thre=0.0005
+	graph_thre=0.001
+	filter=culture_${type}
+	# 过滤方法，默认median，可选max, mean, median, min，数据依次减少
+	filter_method=max
+	otu_table=`pwd`/result/otutab.txt
 
+	# 指定具体的实验设计、列、组筛选
+#	cg_design=${design}
+#	cg_group_name=${g1}
+#	cg_group_list=${ab_group_list}
+	cg_design=`pwd`/doc/design.txt
+	cg_group_name=groupID
+	cg_group_list='"A17b1r"'
 
 include /mnt/bai/yongxin/github/Amplicon/16Sv2/pipeline.md

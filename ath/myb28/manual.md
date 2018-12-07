@@ -1,6 +1,7 @@
 
 	# 快速分析 Quick Start(所需文件准备好)
-	make fq_qc # 样本拆分、合并、去接头和引物、质控，获得纯净扩增子序列temp/filtered.fa
+	make library_split # 样本拆分、
+	make fq_qc # 合并、去接头和引物、质控，获得纯净扩增子序列temp/filtered.fa
 	make host_rm # 序列去冗余、去噪、挑选代表序列、去嵌合、去宿主，获得OTU代表序列result/otu.fa
 	make beta_calc # 生成OTU表、过滤、物种注释、建库和多样性统计
 	# 清除统计绘图标记(重分析时使用)
@@ -26,7 +27,7 @@
 	## 0.1 准备流程配置文件
 
 	# 设置工作目录
-	wd=medicago/AMF/its
+	wd=rice/miniCore
 	# 创建环境代码见~/github/Work/initial_project.sh
 
 	## 准备实验设计

@@ -26,78 +26,20 @@
 	## 0.1 准备流程配置文件
 
 	# 设置工作目录
-	wd=medicago/AMF/its
+	wd=ehbio/qianxubo
 	# 创建环境代码见~/github/Work/initial_project.sh
 
 	## 准备实验设计
-
 	cd ~/$wd
 	# Initialize the working directory
 	make init
 
-	# 保存模板中basic页中3. 测序文库列表library为doc/library.txt
-	# 按library中第二列index准备测序文库，如果压缩要添加.gz，并用gunzip解压
-	awk 'BEGIN{OFS=FS="\t"}{system("ln -s /mnt/bai/yongxin/seq/181009.lane14/"$4"_1.fq.gz seq/"$1"_1.fq.gz");}' <(tail -n+2 doc/library.txt )
-	awk 'BEGIN{OFS=FS="\t"}{system("ln -s /mnt/bai/yongxin/seq/181009.lane14/"$4"_2.fq.gz seq/"$1"_2.fq.gz");}' <(tail -n+2 doc/library.txt )
-    # 检查数据链接，全红为错误，绿色为正常
-    ll seq/*
-	# 如果压缩文件，要强制解压链接
-	gunzip -f seq/*.gz
-
-	# 标准多文库实验设计拆分，保存模板中design页为doc/design_raw.txt
-	split_design.pl -i doc/design_raw.txt
-	# 从其它处复制实验设计
-	cp ~/ath/jt.HuangAC/batch3/doc/L*.txt doc/
-	# 删除多余空格，windows换行符等
-	sed -i 's/ //g;s/\r/\n/' doc/*.txt 
-	head -n3 doc/L1.txt
-	# 依据各文库L*.txt文件生成实验设计
-	cat <(head -n1 doc/L1.txt | sed 's/#//g') <(cat doc/L* |grep -v '#'|grep -v -P '^SampleID\t') > doc/design.txt
-	# 检查是否相等
-	wc -l doc/design.txt
-	cut -f 1 doc/design.txt|sort|uniq|wc -l
-
 	## 准备原始数据
-
-	# 拆lane和质量转换归为原始seq目录中处理
-	# Prepare raw data
-	#ln ~/seq/180210.lane9.ath3T/Clean/CWHPEPI00001683/lane_* ./
-	#cp ~/ath/jt.HuangAC/batch3/doc/library.txt doc/
-	
-	# 检查数据质量，转换为33
-	#determine_phred-score.pl seq/lane_1.fq.gz
-	# 如果为64，改原始数据为33
-	rename 's/lane/lane_33/' seq/lane_*
-	# 关闭质量控制，主要目的是格式转换64至33，不然usearch无法合并
-	#time fastp -i seq/lane_64_1.fq.gz -I seq/lane_64_2.fq.gz \
-	#	-o seq/lane_1.fq.gz -O seq/lane_2.fq.gz -6 -A -G -Q -L -w 9
-	# 1lane 80GB, 2 threads, 102min
-
-## 1.1. 按实验设计拆分lane为文库
-
-	# Split lane into libraries
-	# lane文件一般为seq/lane_1/2.fq.gz
-	# lane文库信息doc/library.txt：至少包括编号、Index和样品数量三列和标题
-	# head -n3 doc/library.txt
-	#LibraryID	IndexRC	Samples
-	#L1	CTCAGA	60
-	
-	# 按library.txt拆分lane为library
-	# make lane_split
-
-
-## 1.2. 按实验设计拆分文库为样品
-
-
-	# 拆分样品
-	head -n3 doc/L1.txt
-	# 按L1/2/3...txt拆分library为samples
-	# 输入为seq/L*.fq，输出为seq/sample/*.fq
-	make library_split
-	make library_split_stat
-	# 统计结果见result/split有txt/pdf/png，推荐看png方便快速查看每张位图
-	# 查看样本量排序
-	sort -k2,2n result/sample_split.log|less
+    mkdir -p seq/sample
+    for i in `find rawdata*/*.gz`; do mv $i seq/sample/; done
+    rename 's/_R/_/;s/_001//;s/fastq/fq/' seq/sample/*
+    gunzip seq/sample/*
+    # 拆分完成的样本，从1.3合并开始
 
 ## 1.3. 样品双端合并、重命名、合并为单一文件
 
