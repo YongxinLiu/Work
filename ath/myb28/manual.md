@@ -2,11 +2,15 @@
 	# 快速分析 Quick Start(所需文件准备好)
 	make library_split # 样本拆分、
 	make fq_qc # 合并、去接头和引物、质控，获得纯净扩增子序列temp/filtered.fa
-	make host_rm # 序列去冗余、去噪、挑选代表序列、去嵌合、去宿主，获得OTU代表序列result/otu.fa
+    rm host_rm
+    make host_rm # 序列去冗余、去噪、挑选代表序列、去嵌合、去宿主，获得OTU代表序列result/otu.fa
+    rm otutab_create
+    rm otutab_filter
 	make beta_calc # 生成OTU表、过滤、物种注释、建库和多样性统计
 	# 清除统计绘图标记(重分析时使用)
 	rm -rf alpha_boxplot 
-	make DA_compare # 绘制alpha、beta、taxonomy和差异OTU比较
+    rm DA_compare
+    make DA_compare # 绘制alpha、beta、taxonomy和差异OTU比较
 	#rm -f plot_volcano # 删除OTU差异比较可化标记
 	make plot_manhattan # 绘制差异比较的火山图、热图、曼哈顿图
 	make plot_venn # 绘制OTU差异共有/特有维恩图
@@ -27,7 +31,7 @@
 	## 0.1 准备流程配置文件
 
 	# 设置工作目录
-	wd=rice/miniCore
+	wd=ath/myb28
 	# 创建环境代码见~/github/Work/initial_project.sh
 
 	## 准备实验设计
@@ -38,8 +42,8 @@
 
 	# 保存模板中basic页中3. 测序文库列表library为doc/library.txt
 	# 按library中第二列index准备测序文库，如果压缩要添加.gz，并用gunzip解压
-	awk 'BEGIN{OFS=FS="\t"}{system("ln -s /mnt/bai/yongxin/seq/181009.lane14/"$4"_1.fq.gz seq/"$1"_1.fq.gz");}' <(tail -n+2 doc/library.txt )
-	awk 'BEGIN{OFS=FS="\t"}{system("ln -s /mnt/bai/yongxin/seq/181009.lane14/"$4"_2.fq.gz seq/"$1"_2.fq.gz");}' <(tail -n+2 doc/library.txt )
+	awk 'BEGIN{OFS=FS="\t"}{system("ln -s /mnt/bai/yongxin/seq/L181122/L181122_"$2"_1.fq.gz seq/"$1"_1.fq.gz");}' <(tail -n+2 doc/library.txt )
+	awk 'BEGIN{OFS=FS="\t"}{system("ln -s /mnt/bai/yongxin/seq/L181122/L181122_"$2"_2.fq.gz seq/"$1"_2.fq.gz");}' <(tail -n+2 doc/library.txt )
     # 检查数据链接，全红为错误，绿色为正常
     ll seq/*
 	# 如果压缩文件，要强制解压链接
@@ -47,8 +51,6 @@
 
 	# 标准多文库实验设计拆分，保存模板中design页为doc/design_raw.txt
 	split_design.pl -i doc/design_raw.txt
-	# 从其它处复制实验设计
-	cp ~/ath/jt.HuangAC/batch3/doc/L*.txt doc/
 	# 删除多余空格，windows换行符等
 	sed -i 's/ //g;s/\r/\n/' doc/*.txt 
 	head -n3 doc/L1.txt
@@ -268,23 +270,31 @@
 
 # 4. 个性分析
 
-## 4.1. 分蘖与菌相关性
+## 4.1
 
-	# 准备相关输入文件
-	cd ~/rice/miniCore/180718
-	# 硬链数据文件，保持可同步修改和可备份
-	# miniCore分蘖数据整理
-	ln ~/rice/xianGeng/doc/phenotype_sample_raw.txt doc/
-	# LN otu表和实验设计
-	mkdir -p data
-	cp ~/rice/miniCore/180319/LN/otutab.txt data/LN_otutab.txt
-	cp ~/rice/miniCore/180319/doc/design.txt doc/design_miniCore.txt
-	mkdir -p data/cor/LN
-	# 物种注释
-	cp ~/rice/miniCore/180319/temp/otus_no_host.tax data/
+结果列表：http://210.75.224.110/report/16Sv2/ath_myb__v1 # 关闭了叶、线叶体过滤，所有样本
+http://210.75.224.110/report/16Sv2/ath_myb__v1 # 过滤OTU_1叶绿体，OTU表过滤>2000 reads
 
-	# 统计见script/cor_tiller_LN.Rmd
-	# 相关系数，添加物种注释
-	awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$4} NR>FNR{print $0,a[$1]}' result/otus_no_host.tax data/cor/LN/otu_mean_pheno_cor.r.txt | less -S > result/cor/LN/otu_mean_pheno_cor.r.txt.tax
-	# 再添加可培养相关菌
-	awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print $0,a[$1]}' result/39culture/otu.txt data/cor/LN/otu_mean_pheno_cor.r.txt.tax | less -S > data/cor/LN/otu_mean_pheno_cor.r.txt.tax
+    # 缺少样本，改为1000条两种方法分析
+http://210.75.224.110/report/16Sv2/ath_myb_edgeR_v2
+http://210.75.224.110/report/16Sv2/ath_myb_wilcox_v2
+
+    # 过滤所有宿主，1000条抽样
+http://210.75.224.110/report/16Sv2/ath_myb_wilcox_v3
+http://210.75.224.110/report/16Sv2/ath_myb_edgeR_v3
+# 问题汇总
+
+## otutab_filter过滤小于5000后样本减少，但样本数据量大于5万
+
+    # 可能原因为宿主叶绿体、线粒体含量过高，关掉过滤叶绿体
+    grep -P 'Mitochondria|Chloroplast|Eukaryota' temp/otus_no_chimeras.tax > temp/host.tax # OTU1/9都是叶、线粒体
+    # 关掉过滤，即修改 gg_silva为none，比对率也上升为90.1%
+
+    # 样本过滤前后数据量
+    less temp/otutab.biom.sum
+    less result/otutab.biom.sum
+
+## 删除OTU_1继续分析
+    cp temp/otutab.txt temp/otutab.txt.bak
+    sed '/OTU_1\t/d' temp/otutab.txt
+    rm otutab_filter

@@ -1,3 +1,24 @@
+	# 快速分析 Quick Start(所需文件准备好)
+	make library_split # 样本拆分、
+	make fq_qc # 合并、去接头和引物、质控，获得纯净扩增子序列temp/filtered.fa
+	make host_rm # 序列去冗余、去噪、挑选代表序列、去嵌合、去宿主，获得OTU代表序列result/otu.fa
+    make beta_calc # 生成OTU表、过滤、物种注释、建库和多样性统计
+	# 清除统计绘图标记(重分析时使用)
+	rm -rf alpha_boxplot 
+	make DA_compare # 绘制alpha、beta、taxonomy和差异OTU比较
+	#rm -f plot_volcano # 删除OTU差异比较可化标记
+	make plot_manhattan # 绘制差异比较的火山图、热图、曼哈顿图
+	make plot_venn # 绘制OTU差异共有/特有维恩图
+	make DA_compare_tax # 高分类级差异比较，维恩图绘制，2为reads count负二项分布统计
+	make rmd # 生成网页报告，必须依赖的只有alpha, beta, taxonomy
+
+	# 提取脚本
+	submit=3T
+	make -n -B fq_qc > pipeline.sh # 样本拆分、合并、去接头和引物、质控，获得纯净扩增子序列temp/filtered.fa
+	make -n -B host_rm >> pipeline.sh # 序列去冗余、去噪、挑选代表序列、去嵌合、去宿主，获得OTU代表序列result/otu.fa
+	make -n -B beta_calc >> pipeline.sh # 生成OTU表、过滤、物种注释、建库和多样性统计
+	grep -v '#' pipeline.sh > ${submit}/pipeline.sh
+
 # 1. 准备工作 Preparation
 
 ## 1.1. 准备流程配置文件
@@ -306,44 +327,8 @@ sed -i 's/#//' doc/design.txt
 
 ## 3.9 培养菌注释
 
-    # 培养菌注释，采用ath root的菌库，COTU，目前只注释plot_venn的结果
-    make culture # 总体均值为 74.092, 修改为R108根(b23r)为97.69，A17根为94.598
-
-    # 默认计算所有OTU的平均丰度，这里只想用WT的平均丰度
-    make -n -B culture
-
-    # 绘图
-    make -n -B culture_graphlan 
-
-    # 筛选根际土、根的k1 OTU,并在相应库中匹配培养比例；
-mkdir -p culture_Root
-filter_otus_from_otu_table.sh -t 0.001 -o culture_Root -f `pwd`/result/otutab.txt -d `pwd`/doc/b23r/design.txt -F 'TRUE' -A genotype -B '"R108"' -F mean
-# 筛选WT组中0.1%丰度OTU 153条
-#awk '$2>0.1' temp/otutab.mean | awk '{print $1"\t"$2/100}' |tail -n+2 > culture_"Root"/otu_table_ha.mean
-#awk '$2>0.1' temp/otutab.mean | cut -f 1 |tail -n+2 > culture_"Root"/otu_table_ha.id
-filter_fasta.py -f result/otu.fa -o culture_"Root"/rep_seqs.fa.top -s culture_"Root"/otu_table_ha.id
-echo -ne "Nature_HA_OTUs:\t" > culture_"Root"/culture.sum
-grep -c '>' culture_"Root"/rep_seqs.fa.top >> culture_"Root"/culture.sum
-# 分析这些OTU中可培养的比例
-blastn -query culture_"Root"/rep_seqs.fa.top -db /mnt/bai/yongxin/culture/ath/result/"Root"culture_select.fa -out culture_"Root"/rep_seqs.blastn -outfmt '6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qcovs' -num_alignments 1 -evalue 1 -num_threads 9 # 输出13列为coverage
-awk '$3*$13>=9700' culture_"Root"/rep_seqs.blastn|cut -f 1 > culture_"Root"/otu_cultured.txt
-echo -ne "Stocked_OTUs:\t" >> culture_"Root"/culture.sum
-grep -c 'OTU' culture_"Root"/otu_cultured.txt >> culture_"Root"/culture.sum
-echo -ne "Nature_HA_abundance:\t" >> culture_"Root"/culture.sum
-awk '{a=a+$2} END {print a}' culture_"Root"/otu_table_ha.mean >> culture_"Root"/culture.sum # total is 0.835
-echo -ne "Stocked_abundance:\t" >> culture_"Root"/culture.sum
-awk 'BEGIN{OFS=FS="\t"} NR==FNR {a[$1]="culture"} NR>FNR {print $0,a[$1]}' culture_"Root"/otu_cultured.txt culture_"Root"/otu_table_ha.mean |grep 'culture'|awk '{a=a+$2} END {print a}' >> culture_"Root"/culture.sum 
-# 绘制graphlan
-sed 's/\t/\;/g' result/taxonomy_8.txt|sed 's/\;/\t/' > temp/taxonomy_2.txt
-graphlan_culture.pl -i culture_"Root"/otu_table_ha.id -d culture_"Root"/otu_cultured.txt -t temp/taxonomy_2.txt -o 0_ha_otu_culture.txt
-Rscript /mnt/bai/yongxin/bin/graphlan_culture.R # 生成1树, 2科注释, 3培养注释文件
-sed 's/\t/\tring_alpha\t3\t/g' culture_"Root"/otu_table_ha.zscore > culture_"Root"/abundance_heat.txt # 柱状用log2，热图用zscore
-cat /mnt/bai/yongxin/culture/rice/graphlan/global.cfg 2_annotation_family.txt /mnt/bai/yongxin/culture/rice/graphlan/ring1.cfg 3_annotation_match.txt /mnt/bai/yongxin/culture/rice/graphlan/abundance_heat.cfg culture_"Root"/abundance_heat.txt > culture_"Root"/5_annotation.txt
-graphlan_annotate.py --annot culture_"Root"/5_annotation.txt 1_tree_plain.txt culture_"Root"/graphlan.xml
-graphlan.py culture_"Root"/graphlan.xml culture_"Root"/graphlan.pdf --size 5
-cat culture_"Root"/culture.sum
-
-
+    make culture 
+    make culture_graphlan 
 
 ## 实验数据绘图Wet
     
@@ -352,22 +337,7 @@ cat culture_"Root"/culture.sum
 
 
 ## 与PNAS图5比较突变体下调目
-    Gp10
-    Acidimicrobidae
-    Flavobacteriales
-    Elusimicrobiales
-    Caulobacterales
-    Rhizobiales
-    Sphingomonadales
-    Burkholderiales
-    Neisseriales
-    Rhodocyclales
-    Myxococcales
-    Syntrophobacterales
-    Chromatiales
-    Pseudomonadales
-    Spirochaetales
-
+    Gp10,Acidimicrobidae,Flavobacteriales,Elusimicrobiales,Caulobacterales,Rhizobiales,Sphingomonadales,Burkholderiales,Neisseriales,Rhodocyclales,Myxococcales,Syntrophobacterales,Chromatiales,Pseudomonadales,Spirochaetales,
     # 与差异分析的结果比较
     grep 'Depleted' med_b3r_edgeR_v4/result/compare/Anfpb3r-A17b3r_sig.txt | cut -f 10 | sort| uniq
     grep 'Depleted' med_b3r_edgeR_v4/result/compare/Rnfpb3r-R108b3r_sig.txt | cut -f 10 | sort| uniq
@@ -385,27 +355,59 @@ cat culture_"Root"/culture.sum
 # 4. 高级分析
 
 
-# 5. 发版图表
+# 5. 发表图版
 
-## 样本描述
+## 样本描述description
 
-    # 使用7个基因型2，3批进行分析 "R108", "Rnfp","lyk9","lyr4","lyk9nfp","A17","dmi3"
+    # 使用7个基因型2，3批进行分析 "A17","Anfp","lyk3","dmi3","R108","lyk9","lyr4" # ,"dmi2","Rnfp","lyk9nfp"
+    # 2018/12/11 使用7个基因型2，3批进行分析 "A17","Anfp","lyk3","dmi3","R108","lyk9","lyr4" 去掉,"dmi2"，两批次差别极大，一批像WT
 
 ### PCoA compartment shape, genotype color
+    # fig/beta_pcoa_all.R 绘制根、根际、土间差异
+    # fig/beta_pcoa_root.R 表现基因型可变
+    # 组间距离箱线图的 beta_boxplot.R
 
-    # beta_pcoa_all.R 绘制根、根际、土间差异，表现基因型可变
+### 物种组成
+    # tax_stackplot_all.R
 
+### 附图
+    # Constrained PCoA: fig/beta_cpcoa_all.R 绘制根、根际、土间差异
+    # Constrained PCoA: fig/beta_pcoa_root.R 表现基因型可变
+    # Alpha diversity: fig/alpha_boxplot.R 7个基因型两批次
 
-### 绘制单个菌在不同条件下的箱线图，景美发来wet/序列与OTU比较，100%一致
+## 差异比较compare
+    
+### 差异比较曼哈顿图(2/3批混合筛选点后10个基因型8组edgeR比较) http://210.75.224.110/report/16Sv2/med_b23r10_edgeR_v1/
+
+### 饼形图，见 fig/plot_bar_pie.R
+
+## 绘制单菌的丰度图
+    # 前10个菌有5个重点关注，Pseudomonadaceae 1(相反但不显著), **3(目标菌)**, 7(不显著); **Bacillus 2**, 5(趋势一致)
+    # 绘制菌在7个基因型中变化
+    alpha_boxplot.sh -i result/otutab.txt -d doc/b23r/design.txt -A genotype -B '"A17","nfp","lyk3","dmi3","R108","lyk9","lyr4"' -m '"OTU_2","OTU_3"' -t TRUE -o fig/boxplot_ -n TRUE -U 100
+    # 绘制单个菌在不同条件下的箱线图(景美发来wet/序列与OTU比较，100%一致)
     alpha_boxplot.sh -i result/otutab.txt -d doc/design.txt -A groupID -B '"soilB3S","R108b3rs","R108b3r","lyk9b3rs","lyk9b3r","soilB2S","R108b2rs","R108b2r","lyk9b2rs","lyk9b2r"' -m '"OTU_2","OTU_3"' -t TRUE -o fig/OTU_box -n TRUE -U 100
 
-## 差异比较
 
 ## 分菌
     
-    # 工作量和稀释曲线
-    详细：/mnt/bai/yongxin/culture/medicago/makefile.man
+    # 工作量和稀释曲线 /mnt/bai/yongxin/culture/medicago/result/sample_rarefracation_boxplot.pdf
+    # 详细：/mnt/bai/yongxin/culture/medicago/makefile.man
 
-    # 与原生样本比较
+    # 与项目中A17/R180野生型根样本与总体菌库比较
+    # 3.9 culture和culture_graphlan，只需修改A17r或R108r
 
-    # 与自然样本比较
+
+## 实验数据分析
+
+    # 2018/12/19 绘制定殖实验批次1-5的箱线+统计，文件来源云：苜宿-2.colonization_data_20181218
+    # 保存 wet/colonization181218 ，代码见 phenotype.Rmd
+    # 先分析第4批，保存为文本 b4.txt，
+
+## 文中数据统计
+    grep 'b[23]' doc/design.txt|wc -l # 360个样，有一个数据量太少，359
+    grep 'b[23]' result/split/L*txt|awk '{a=a+$2} END {print a}' # 75245220
+    cat result/otu.log  # 查看OTU数据 9622
+    grep 'b[23]' result/alpha/index.txt|cut -f 9|awk '{a=a+$1} END {print a/359}' # 9531，这些也基本都有了
+
+

@@ -1,3 +1,190 @@
+# amplicon 诺禾致源测序
+
+## 160914 16S+ITS
+    cd ~/seq/160914xx.rice.TF.16S.ITS/clean_data
+    zcat GB_HNVN7BCXX_L1_1.clean.fq.gz GB_H2NLWBCXY_L1_1.clean.fq.gz | pigz -p 30 > ~/seq/novagene/L160914_GB_1.fq.gz &
+    zcat GB_HNVN7BCXX_L1_2.clean.fq.gz GB_H2NLWBCXY_L1_2.clean.fq.gz | pigz -p 30 > ~/seq/novagene/L160914_GB_2.fq.gz &
+    zcat GF_H2NLWBCXY_L1_1.clean.fq.gz GF_HNVN7BCXX_L1_1.clean.fq.gz | pigz -p 30 > ~/seq/novagene/L160914_GF_1.fq.gz &
+    zcat GF_H2NLWBCXY_L1_2.clean.fq.gz GF_HNVN7BCXX_L1_2.clean.fq.gz | pigz -p 30 > ~/seq/novagene/L160914_GF_2.fq.gz &
+
+## 170122 xx.absolute.quantification
+    cd ~/seq/170122xx.absolute.quantification/clean_data
+    rename 's/clean.//' *gz
+    rename 's/AQ44_HCHTTBCXY_L1/L170122_AQ44/' *.gz
+    rename 's/AQ44-2_H552MBCXY_L2/L170122_AQ44-2/' *.gz
+    ln AQ44_HCHTTBCXY_L1_1.clean.fq.gz ~/seq/novagene/L170122_AQ44_1.fq.gz
+
+## 170302
+    # 删除共有和冗余名字
+    rename 's/clean.//' *gz
+    rename 's/_\w+_L\d_/_/' *.gz
+    # 提取文件列表
+    ls *_1.fq.gz|cut -f 1 -d '_' > index.txt
+    # 修改添加新名另存为library.txt
+    dos2unix index.txt
+    # 批量链接
+    awk 'BEGIN{OFS=FS="\t"}{system("ln "$1"_1.fq.gz ~/seq/novagene/"$2"_1.fq.gz")}' index.txt
+    awk 'BEGIN{OFS=FS="\t"}{system("ln "$1"_2.fq.gz ~/seq/novagene/"$2"_2.fq.gz")}' index.txt
+
+## 170327
+    rename 's/clean.//' *gz
+    rename 's/_\w+_L\d_/_/' *.gz
+    rename 's/^/L170327_/' *.gz
+    ln *.gz ~/seq/novagene/
+
+## 170424
+    cd ~/seq/170424.ath/clean_data
+    rename 's/clean.//' *gz
+    rename 's/JT201703283101_HCJ2YBCXY_L2/L170424_T1/' *.gz
+    rename 's/JT201703283202_HCJ2YBCXY/L170424/' *.gz
+    ln *.gz ~/seq/novagene/
+
+## 170425
+    cd ~/seq/170425.clover/clean_data
+    rename 's/clean.//' *gz
+    awk 'BEGIN{OFS=FS="\t"}{system("ln "$1"_1.fq.gz ~/seq/novagene/"$2"_1.fq.gz")}' index.txt
+    awk 'BEGIN{OFS=FS="\t"}{system("ln "$1"_2.fq.gz ~/seq/novagene/"$2"_2.fq.gz")}' index.txt
+
+## 170623
+    cd ~/seq/170623rice.nitrogen/clean_data
+    rename 's/clean.//' *gz
+    rename 's/_\w+_L\d_/_/' *.gz
+    rename 's/yoyo-/L170623_/' *.gz
+    ln *.gz ~/seq/novagene/
+
+## 170703.GuoXX
+    cd ~/seq/170703.GuoXX.CTK/clean_data
+    rename 's/clean.//' *gz
+    rename 's/_\w+_L\d_/_/' *.gz
+    rename 's/^/L170703_/' *.gz
+    ln *.gz ~/seq/novagene/
+
+## 170703.jt.ath.terpene
+    cd ~/seq/170703.jt.ath.terpene/clean_data
+    rename 's/clean.//' *gz
+    rename 's/_\w+_L\d_/_/' *.gz
+    ls *_1.fq.gz|cut -f 1 -d '_' > index.txt
+    awk 'BEGIN{OFS=FS="\t"}{system("ln "$1"_1.fq.gz ~/seq/novagene/"$2"_1.fq.gz")}' index.txt
+    awk 'BEGIN{OFS=FS="\t"}{system("ln "$1"_2.fq.gz ~/seq/novagene/"$2"_2.fq.gz")}' index.txt
+
+## 170707.ZhouJM.GaoCL
+    cd ~/seq/170707.ZhouJM.GaoCL/clean_data
+    rename 's/clean.//' *gz
+    rename 's/_\w+_L\d_/_/' *.gz
+    rename 's/JT201706032/L170707_/' *gz
+    ln *.gz ~/seq/novagene/
+
+## 170718.JT.terpene3
+    cd ~/seq/170718.JT.terpene3/clean_data
+    rename 's/clean.//' *gz
+    rename 's/_\w+_L\d_/_/' *.gz
+    rename 's/JT201706133234-/L170718_/' *gz
+    ln *.gz ~/seq/novagene/
+
+## 170813JY.rice.epi
+    cd ~/seq/170813JY.rice.epi/clean_data
+    rename 's/clean.//' *gz
+    rename 's/_\w+_L\d_/_/' *.gz
+    rename 's/YoYo-2-/L170813_/' *gz
+    ln *.gz ~/seq/novagene/
+    ls *.gz|cut -c1-14|uniq
+
+## 170814.ZN.rice.sd1
+    cd ~/seq/170814.ZN.rice.sd1/clean_data
+    rename 's/clean.//' *gz
+    rename 's/_\w+_L\d_/_/' *.gz
+    rename 's/ZN-/L170814_/' *gz
+    ln *.gz ~/seq/novagene/
+    ls *.gz|cut -c1-14|uniq
+
+## 170816.JT.wheat.NP
+    cd ~/seq/170816.JT.wheat.NP/clean_data
+    rename 's/clean.//' *gz
+    rename 's/_\w+_L\d_/_/' *.gz
+    rename 's/JT201706244047-/L170816_/' *gz
+    ln *.gz ~/seq/novagene/
+    ls *.gz|cut -c1-14|uniq
+
+## 170823JY.clover
+    cd ~/seq/170823JY.clover/clean_data
+    rename 's/clean.//' *gz
+    rename 's/_\w+_L\d_/_/' *.gz
+    rename 's/Med-/L170823_/' *gz
+    ln *.gz ~/seq/novagene/
+    ls *.gz|cut -c1-14|uniq
+
+## 170831.XX.AQ
+    cd ~/seq/170831.XX.AQ/clean_data
+    rename 's/clean.//' *gz
+    rename 's/_\w+_L\d_/_/' *.gz
+    rename 's/^/L170831_/' *gz
+    ln *.gz ~/seq/novagene/
+    ls *.gz|sed 's/_[12].fq.gz//'|uniq
+
+## 170919.XX_AQ
+    cd ~/seq/170919.XX_AQ/clean_data
+    rename 's/clean.//' *gz
+    rename 's/_\w+_L\d_/_/' *.gz
+    rename 's/^/L170919_/' *gz
+    ln *.gz ~/seq/novagene/
+    ls *.gz|sed 's/_[12].fq.gz//'|uniq
+
+## 170920.culture_med
+    cd ~/seq/170920.culture_med/clean_data
+    rename 's/clean.//' *gz
+    rename 's/_\w+_L\d_/_/' *.gz
+    rename 's/^/L170920_/' *gz
+    ln *.gz ~/seq/novagene/
+    ls *.gz|sed 's/_[12].fq.gz//'|uniq
+
+## 170926.culture_rice
+    cd ~/seq/170926.culture_rice/clean_data
+    rename 's/clean.//' *gz
+    rename 's/_\w+_L\d_/_/' *.gz
+    rename 's/^/L170926_/' *gz
+    ln *.gz ~/seq/novagene/
+    ls *.gz|sed 's/_[12].fq.gz//'|uniq
+
+## 170928.culture_ath
+    cd ~/seq/170928.culture_ath/clean_data
+    rename 's/clean.//' *gz
+    rename 's/_\w+_L\d_/_/' *.gz
+    rename 's/^JT201708100/L170928_/' *gz
+    ln *.gz ~/seq/novagene/
+    ls *.gz|sed 's/_[12].fq.gz//'|uniq
+
+## 170929.culture_wheat
+    cd ~/seq/170929.culture_wheat/clean_data
+    rename 's/clean.//' *gz
+    rename 's/_\w+_L\d_/_/' *.gz
+    rename 's/^/L170929_/' *gz
+    ln *.gz ~/seq/novagene/
+    ls *.gz|sed 's/_[12].fq.gz//'|uniq
+
+## 171013-20.GXX.AQ
+    cd ~/seq/171013-20.GXX.AQ/clean_data
+    rename 's/clean.//' *gz
+    rename 's/_\w+_L\d_/_/' *.gz
+    rename 's/^/L171013_/' *gz
+    ln *.gz ~/seq/novagene/
+    ls *.gz|sed 's/_[12].fq.gz//'|uniq
+
+## novagene汇总
+
+    # 质控和报告汇总
+    fastqc -t 48 L*.fq.gz
+    multiqc ./ # 详见multiqc_report.html
+    # 提取各样品数据量，不同批数据量的列会有变化，可能要更改列的数值5、6等
+    l=`head -n1 multiqc_data/multiqc_fastqc.txt|sed 's/\t/\n/g'|awk '{print NR"\t"$0}'|grep 'Total Sequences'|cut -f 1`
+    cut -f 1,${l} multiqc_data/multiqc_fastqc.txt | sed 's/_.\t/\t/' | uniq > datasize.txt
+    cat datasize.txt
+    # 分双端统计md5值
+    md5sum L*_1.fq.gz > /tmp/md5sum1.txt
+    md5sum L*_2.fq.gz > /tmp/md5sum2.txt
+    paste /tmp/md5sum1.txt /tmp/md5sum2.txt | awk '{print $2"\t"$1"\t"$4"\t"$3}' > md5sum.txt
+    cat md5sum.txt
+
+
 # amplicon 华大基因扩增子包lane测序数据
 
 ## 171018 lane1 钱景美苜蓿真菌
@@ -267,6 +454,15 @@
     mkdir -p seq
     awk 'BEGIN{OFS=FS="\t"}{system("mv 2.cleandata/"$2"/"$2"_1.clean.fq.gz seq/"$1"_1.fq.gz");system("mv 2.cleandata/"$2"/"$2"_2.clean.fq.gz seq/"$1"_2.fq.gz");}' <(tail -n+2 design.txt)
 
+## 2018/12/21 wheat rootrot
+    cd /mnt/m2/data/meta/wheat/rootrot
+    ossutil config -e oss.aliyuncs.com -i LTAIOvpGVPaADctY -k xGt7LX4KrReiKpEDgFKgSSthPPJfZg
+    ossutil cp oss://novo-data-nj/customer-DIDtwmIC/ ./ -r -f --jobs 3 --parallel 2
+    # 根据下载文件编写metadata.txt
+    mkdir -p seq
+    awk 'BEGIN{OFS=FS="\t"}{system("mv 2.cleandata/"$2"/"$2"_1.clean.fq.gz seq/"$1"_1.fq.gz");system("mv 2.cleandata/"$2"/"$2"_2.clean.fq.gz seq/"$1"_2.fq.gz");}' <(tail -n+2 metadata.txt)
+
+
 
 ## 附录: 宏基因组通用操作代码
     
@@ -331,16 +527,24 @@
 
 # 其它
 
-# 180601.ath.WGS 基因组测序
+## 180115.BSA.wx BSA测序筛选突变体位点
+    mv clean_data/*.gz ./
+    # 通用诺禾改名
+    # 质控和报告汇总
+    # 分双端统计md5值
 
-## 诺合数据下载工具下载和安装
-	# https://helpcdn.aliyun.com/document_detail/50452.html
+## 180601.ath.WGS 基因组测序
+    mv customer-sMIXvUoG/02.cleanData/*.gz ./
+    # 质控和报告汇总
+    # 分双端统计md5值
+
+
+## 诺合数据下载工具
+	# 下载和安装 https://helpcdn.aliyun.com/document_detail/50452.html
 	cd ~/bin
 	wget http://docs-aliyun.cn-hangzhou.oss.aliyun-inc.com/assets/attach/50452/cn_zh/1524643963683/ossutil64?spm=a2c4g.11186623.2.6.TfLBVN -O ossutil
 	chmod +x ossutil
-
-## 数据下载指定目录
-
+    ## 数据下载指定目录
 	# 进入screen环境防断网
 	screen -d -r seq
 	# 设置下载目录，每次不同数据请修改此处
@@ -350,3 +554,54 @@
 	ossutil config -e oss.aliyuncs.com -i LTAIhcpcybDqnbxI -k c3oJcIIDzc9z3H7f8CENdC4taSqUoG
 	# 下载文件
 	ossutil cp oss://novo-data-nj/customer-sMIXvUoG/ $wd -r -f --jobs 3 --parallel 2
+    
+    # 通用诺禾改名
+    rename 's/clean.//' *gz
+    rename 's/_\w+_L\d_/_/' *.gz
+
+    # 质控和报告汇总
+    fastqc -t 48 *.fq.gz
+    multiqc ./ # 详见multiqc_report.html
+    # 提取各样品数据量，不同批数据量的列会有变化，可能要更改列的数值5、6等
+    l=`head -n1 multiqc_data/multiqc_fastqc.txt|sed 's/\t/\n/g'|awk '{print NR"\t"$0}'|grep 'Total Sequences'|cut -f 1`
+    cut -f 1,${l} multiqc_data/multiqc_fastqc.txt | sed 's/_.\t/\t/' | uniq > datasize.txt
+    cat datasize.txt
+
+    # 分双端统计md5值
+    md5sum *_1.fq.gz > md5sum1.txt
+    md5sum *_2.fq.gz > md5sum2.txt
+    paste md5sum1.txt md5sum2.txt | awk '{print $2"\t"$1"\t"$4"\t"$3}' > md5sum.txt
+    cat md5sum.txt
+
+# 备份
+
+## 1amplicon / 5Xiaoning 扩增子备份
+    
+    # 远程桌面 yongxin@210.75.224.110(biocloud)，挂载需使用bennyyu密码zpp...，可用sudo passwd重置
+
+    # novagene
+    cp -r ~/seq/novagene /media/yongxin/1amplicon/ # 121 samples, 232.4 GB, 也可选程桌面托拖拽复制
+
+    # BGI
+    cd ~/seq
+    # 链接所有数据至BGI目录
+    for i in `ls -d L*`; do ln ${i}/${i}* BGI/;done
+    ls BGI/*_1.fq.gz|wc # 331 文件
+    # 统计每组中样品
+    ls BGI/*_1.fq.gz | cut -f 1 -d '_' | uniq -c
+    # 质控汇总BGI
+    cp -r ~/seq/novagene /media/yongxin/1amplicon/ # 331 samples, 861.1 GB, 也可选程桌面托拖拽复制
+
+
+## 2meta5T / 6QinYuan 宏基因组去宿主后数据备份
+        
+    # 复制 yongxin@meta 中 ath 目录中的 2.5T/3T ， rice 目录中的 miniCore/nrt1.1b/wetdry ，这些目录中的submit目录，包括质控和去宿主后的clean文件，统计文件(质控和宿主比例)，实验设计metadata.txt和md5值。
+    # 将复制完成的2meta5T内容全盘复制到6QinYuan中
+
+## 3RNABSA / 7Zhiwen 其它：转录组、BSA测序结果备份
+    # yongxin@biocloud上
+    target=/media/yongxin/3RNABSA/
+    scp -r meta@192.168.0.32:~/data/rna/* ${target}
+    cd ~/seq
+    cp -r 180115.BSA.wx ${target}
+    cp -r 180601.ath.WGS ${target}

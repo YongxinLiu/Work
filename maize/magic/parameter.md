@@ -139,7 +139,7 @@ SHELL:=/bin/bash
 	# Calculate alpha diversity index
 	# alpha指数计算结果为 result/alpha/index.txt
 	# 稀释梯度抽样方法 richness (observed OTUs)-method fast / with_replacement / without_replacement , 结果位于 result/alpha/rare.txt
-	rare_method=without_replacement
+	rare_method=with_replacement
 
 ## 1.16. **beta_calc Beta多样性距离矩阵**
 

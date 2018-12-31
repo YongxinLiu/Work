@@ -369,19 +369,38 @@ SHELL:=/bin/bash
 
 ## 3.9 culture_graphlan 可培养菌
 	 
+#	# 可培养菌库类型，如组织root / rhizosphere / leaf, 品种A50 / IR24
+#	type=Root
+#	# 指定可培养菌库位置，fa为OTU，fasta为物种如rice
+#	culture_db=/mnt/bai/yongxin/culture/ath/result/${type}culture_select.fa
+#	# 可培养菌结果输出文件
+#	# 绘制Graphlan图的筛选阈值
+#	culture_thre=0.0005
+#
+#	filter=culture_${type}
+#	# 过滤方法，默认median，可选max, mean, median, min，数据依次减少
+#	filter_method=max
+#	thre2=0.001
+#	otu_table=`pwd`/result/otutab.txt
+
+## 3.9 culture 可培养菌
+	 
 	# 可培养菌库类型，如组织root / rhizosphere / leaf, 品种A50 / IR24
-	type=Root
-	# 指定可培养菌库位置，fa为OTU，fasta为物种如rice
-	culture_db=/mnt/bai/yongxin/culture/ath/result/${type}culture_select.fa
+	# 拟南芥填 Root
+	type="root"
+	# 指定可培养菌库位置，fa为OTU，fasta为物种如rice, ath
+	culture_db=/mnt/bai/yongxin/culture/ath/wet/${type}/merge.fa
 	# 可培养菌结果输出文件
 	# 绘制Graphlan图的筛选阈值
-	culture_thre=0.0005
-
+	graph_thre=0.001
 	filter=culture_${type}
 	# 过滤方法，默认median，可选max, mean, median, min，数据依次减少
-	filter_method=max
-	thre2=0.001
+	filter_method=median
 	otu_table=`pwd`/result/otutab.txt
 
+	# 指定具体的实验设计、列、组筛选
+	cg_design=${design}
+	cg_group_name=groupID
+	cg_group_list='"b3Col"'
 
 include /mnt/bai/yongxin/github/Amplicon/16Sv2/pipeline.md

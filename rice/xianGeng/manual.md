@@ -613,7 +613,7 @@ grep -P -v '^\s*#' script/compare_sub.R > fig1/script/compare.R
 	make plot_fa_barplot # 绘制单个功能的箱线图
 	# 修改alpha_boxplot.R为alpha_boxplot_far.R
 
-grep -P -v '^\s*#' script/alpha_boxplot_far.R > fig1/script/alpha_boxplot_far.R
+    grep -P -v '^\s*#' script/alpha_boxplot_far.R > fig1/script/alpha_boxplot_far.R
 
 ## 菌群与nrt关系
 
@@ -910,3 +910,11 @@ alpha_rare_sample.R
     /mnt/bai/yongxin/rice/xianGeng/fig1/随机森林分类方法描述.docx
 
 6. Nitrogene related KO STAMP: Welch's t-test, Storey FDR
+
+
+# 实验绘图
+
+    otu=`cat wet/181220functional.bac.id|tr '\t' '\n'|sort|uniq|awk '{print "\""$1"\""}'|tr "\n" ","|sed 's/,$//'`
+
+	alpha_boxplot.sh -i result/otutab.txt -d doc/design.txt -A groupID -B '"HTEJ","HIND","HSoil1","LTEJ","LIND","LSoil1","V3703HnCp6","ZH11HnCp6","A50LnCp7","A56LnCp7","V3703LnCp6","ZH11LnCp6","A50LnCp6","A56LnCp6"' \
+	-m $otu -t TRUE -o result/otu_boxplot/fuc_ -n TRUE 

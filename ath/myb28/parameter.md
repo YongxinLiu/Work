@@ -59,7 +59,7 @@ SHELL:=/bin/bash
 
 	# Remove redundancy
 	# 最小序列频率默认为8，去除低丰度，增加计算速度，整lane的序列推荐1/1M，即上一步最后一行的数据量
-	minuniquesize=8
+	minuniquesize=16
 
 ## 1.7. **otu_pick 挑选OTU**
 
@@ -83,7 +83,7 @@ SHELL:=/bin/bash
 ## 1.9. host_rm 去宿主
 
 	# Remove host original sequences
-	# 去宿主方法选择 blast / sintax_gg / sintax_silva，推荐：sintax_silva
+	# 去宿主方法选择 blast / sintax_gg / sintax_silva / sintax_silva_its / sintax_unite / none ，推荐：sintax_silva
 	host_method=sintax_silva
 	# 方法1. blast宿主基因组(含叶绿体/线粒体)去除同源序列，如水稻微生物，需要提供水稻基因组；可调相似度和覆盖度的阈值(百分数)
 	host=/mnt/bai/public/ref/rice/msu7/all.con
@@ -106,14 +106,14 @@ SHELL:=/bin/bash
 	# OTU表筛选日志文件
 	log_otutable=result/otutab.log
 	# 按样本量筛选，默认5000，根据otu_stats结果调整
-	min_sample_size=5000
+	min_sample_size=100
 	# 按矩阵中每个点count, freq筛选，低于阈值变为0
 	# 按OTU丰度和频率筛选，如OTU测序量至少8次，相对丰度百万分之一(建议挑选序列去冗余部分调高阈值更合理)
 	min_otu_size=8
 	# 按频率筛选，推荐十万分之一0.00001，范围千一至百分一0.001 - 0.000001之间
 	min_otu_freq=0.000001
 	# 抽样标准化的值，推荐最小10000，根据统计结果选择筛选后最小值或可保留大部分样品的值
-	sample_size=30000
+	sample_size=1000
 
 ## 1.12. tax_assign 物种注释
 
@@ -162,15 +162,17 @@ SHELL:=/bin/bash
 	# 绘图通用参数
 	# 实验设计文件位置，全局，其它图默认调此变量，也可单独修改；并选择表中的组列和具体分组
 	# 设置子版本目录
-	sub=""
+	sub=
 	doc=doc/${sub}
 	design=${wd}/${doc}/design.txt 
-	g1=groupID
-	# tail -n+2 ${doc}/design.txt|cut -f 5|sort|uniq|awk '{print "\""$1"\""}'|tr "\n" ","
+	g1=groupID2
+	# tail -n+2 ${doc}/design.txt|cut -f 6 -d '	'|sort|uniq|awk '{print "\""$1"\""}'|tr "\n" ","
 	# 绘图使用的实验组，顺序即图中显示顺序；为空时使用所有组和默认顺序
-	#g1_list='"Col","ThasKO2","ThahKO","ThadKO","ACT2KO"'
+	# g1_list='"ColPhyl2","MybPhyl2","ColTot1","MybTot1"'
+	g1_list='"ColPhyl2","MybPhyl2","ColTot1","MybTot1"'
 	# 从实验设计比较组中提取组名，自动获得目录组 (推荐)
-	g1_list=`cat doc/${sub}/compare.txt|tr '\t' '\n'|sort|uniq|awk '{print "\""$$1"\""}'|tr "\n" ","|sed 's/,$$//'`
+	# g1_list=`cat doc/${sub}/compare.txt|tr '\t' '\n'|sort|uniq|awk '{print "\""$$1"\""}'|tr "\n" ","|sed 's/,$$//'`
+	# cat doc/compare.txt|tr '\t' '\n'|sort|uniq|awk '{print "\""$1"\""}'|tr "\n" ","|sed 's/,$//
     # 从实验设计提取组(可选)
 	# g1_list=`tail -n+2 ${doc}/design.txt|cut -f 5|sort|uniq|awk '{print "\""$$1"\""}'|tr "\n" ","|sed 's/,$$//'`
 
@@ -180,27 +182,27 @@ SHELL:=/bin/bash
 	venn=${wd}/${doc}/venn.txt
 	# 图片长宽，按nature全面版、半版页面设置
 	# 图片长宽和字体大小，7组以下用默认，7组以上改为8x5或更大； figure size, recommend 4x2.5, 5x3(default), 8x5, 16x10, text_size 6, 7(default), 8
-	width=8
-	height=5
+	width=5
+	height=3
 	text_size=7
 
 	# 图中显示legend, 如taxonomy的数量，5，8(default)，10
 	legend_number=10
 	# 差异统计按丰度过滤 abundance filter，如丰度按万分之一过滤，减少计算量，提高OTU的FDR值，根据组数量多少可选十万5或万分之5
 	abundance_thre=0.01
-	# 差异比较方法，默认是 edgeR ，可选 wilcox秩和检验、t.test 
-	compare_method="wilcox"
+	# 差异比较方法，默认是 edgeR ，可选 wilcox 秩和检验、t.test 
+	compare_method="edgeR"
 	# 显著性P值过滤 threshold of P-value，可选0.05, 0.01, 0.001。采用FDR校正，此参数意义不大，即使0.001也没有FDR < 0.2过滤严格
 	pvalue=0.05
 	# 统计检验方式FDR，常用0.05, 0.1, 0.2; FDR < 0.1使用9.5万次，且为菌群近期的Nature和Sciences; 0.2使用7.7万次
-	FDR=0.2
+	FDR=0.1
 	# 差异变化倍数常用1.5, 2, 4倍，对应logFC为0.585, 1, 2；菌丰度变化倍数不明显，还可用1.3和1.7倍对应0.379和0.766
 	FC=1.2
 
 	# 统计绘图和网页报告版本控制
-	species="species"
-	keyword="keyword"
-	version=${species}_${keyword}_${sub}_v1
+	species=ath
+	keyword=myb
+	version=${species}_${keyword}_${compare_method}_v4
 
 
 ## 2.1 alpha_boxplot Alpha多样性指数箱线图 Alpha index in boxplot

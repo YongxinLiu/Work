@@ -13,10 +13,12 @@
 # 2018/12/1 medicago/AMF/its 苜宿AMF ITS数据
 # 2018/12/1 ehbio/qianxubo 肠道测试数据
 # 2018/12/7 ath/myb28 基因对叶际微生物的影响
+# 2018/12/8 wheat/FHB/perithecium 赤霉病子囊壳微生太
+# 2018/12/13 culture/ath/starting ath分菌起始样品比较 starting
+# 2018/12/13 culture/ath/leaf ath分菌起始叶样品比较分离菌 leaf
+# 2018/12/31 rice/timecourse/v2 水稻时间序列基于新数据格式和新版流程分析
 
-
-
-wd=ath/myb28
+wd=rice/timecourse/v2
 # 创建github目录，用于备份流程、文档
 cd 
 mkdir -p ~/github/Work/$wd
@@ -29,14 +31,11 @@ ln -s `pwd`/parameter.md ~/$wd/makefile
 ln -s `pwd`/manual.md ~/$wd/manual.sh
 cd ~/$wd
 
-
-
 # 备份代码
-
 # 文件加入缓冲区
 cd ~/github/Work
 git add . 
 # 提交修改
-git commit -m "2018/12/1" 
+git commit -m "2018/12/7" 
 # 推送到github
 git push origin master

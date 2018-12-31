@@ -1,36 +1,3 @@
-<!-- TOC -->
-
-- [1. 处理序列 Processing sequences](#1-处理序列-processing-sequences)
-    - [1.1. 按实验设计拆分lane为文库](#11-按实验设计拆分lane为文库)
-    - [1.2. 按实验设计拆分文库为样品](#12-按实验设计拆分文库为样品)
-    - [1.3. 样品双端合并、重命名、合并为单一文件](#13-样品双端合并重命名合并为单一文件)
-    - [1.4. 切除引物与标签](#14-切除引物与标签)
-    - [1.5. 质量控制](#15-质量控制)
-    - [1.6. 序列去冗余](#16-序列去冗余)
-    - [1.7. 挑选OTU](#17-挑选otu)
-    - [1.8. 有参去嵌合体](#18-有参去嵌合体)
-    - [1.9. 去除宿主](#19-去除宿主)
-    - [1.10. 生成OTU表](#110-生成otu表)
-    - [1.11. 过滤样本和OTUs](#111-过滤样本和otus)
-    - [1.12. 物种注释](#112-物种注释)
-    - [1.13. 物种统计](#113-物种统计)
-    - [1.14. 多序列比对和进化树](#114-多序列比对和进化树)
-    - [1.15. Alpha多样性指数计算](#115-alpha多样性指数计算)
-    - [1.16. Beta多样性距离矩阵计算](#116-beta多样性距离矩阵计算)
-    - [1.17. 有参考构建OTU表](#117-有参考构建otu表)
-- [2. 统计绘图 Statistics and plot](#2-统计绘图-statistics-and-plot)
-    - [2.1. Alpha多样性指数箱线图](#21-alpha多样性指数箱线图)
-    - [2.2. Alpha丰富度稀释曲线](#22-alpha丰富度稀释曲线)
-    - [2.3. 主坐标轴分析距离矩阵](#23-主坐标轴分析距离矩阵)
-    - [2.4. 限制性主坐标轴分析](#24-限制性主坐标轴分析)
-    - [2.5. 样品和组各级分类学堆叠柱状图](#25-样品和组各级分类学堆叠柱状图)
-    - [2.6. 组间差异比较](#26-组间差异比较)
-- [3. 高级分析](#3-高级分析)
-- [4. 个性分析](#4-个性分析)
-    - [4.1. 分蘖与菌相关性](#41-分蘖与菌相关性)
-
-<!-- /TOC -->
-
 	# 快速分析 Quick Start(所需文件准备好)
 	make fq_qc # 样本拆分、合并、去接头和引物、质控，获得纯净扩增子序列temp/filtered.fa
 	make host_rm # 序列去冗余、去噪、挑选代表序列、去嵌合、去宿主，获得OTU代表序列result/otu.fa
@@ -374,9 +341,37 @@
     # result/alpha/index.txt.fam 和 result/alpha/index.txt.fam.header
     
 
+    beta_pcoa.sh -i `pwd`/result/beta/ -m '"bray_curtis","unweighted_unifrac","weighted_unifrac"' \
+    -d `pwd`/doc/design.txt  -A groupID -E FALSE -o `pwd`/result/beta/ -h 5 -w 8 # 手动生成PC1-4
 
 
 ## 4.3 基因型与微生物组关联
+
+	# 注：gapit在R中太慢跑不动；gemma一直报数据格式不对；tassel跑的慢，拆分成100份还要2天，对PCoA报错；只有emmax跑通，详见云笔记“emmax GWAS分析流程”
+
+	
+
+## 4.4 关联结果注释和分析
+
+### 注释显著SNP对应SNP类型注释
+
+	# 顺序注释1-10号染色体，大约2m，而使用合并10条染色体注释文件则需30m
+	for i in `seq 1 10`; do \
+	awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$0} NR>FNR{if ($4<0.00001){print $4,a[$2]}}' snp/variant_effect/cubic_1404_chr${i}_vepOut.txt \
+	emmax_cov/alpha_richness.qqman | grep 'chr' >> result/alpha_richness.1e5.txt; done
+
+	# 批量注释表型
+	for j in alpha_richness alpha_chao1 alpha_shannon_e beta_bc2 beta_bc3 beta_bc4; do \
+	for i in `seq 1 10`; do \
+	awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$0} NR>FNR{if ($4<0.00001){print $4,a[$2]}}' snp/variant_effect/cubic_1404_chr${i}_vepOut.txt \
+	emmax_cov/${j}.qqman | grep 'chr' >> result/1e5.${j}.txt; done; done
+
+
+### 添加基因功能注释
+
+
+
+## 附录
 
     # gemma
     mkdir -p gemma
@@ -402,23 +397,11 @@
     mkdir -p tassel/16s
     cut -f 1,4,10,13 result/alpha/index.txt|sed '1 s/Sample/<Trait>/' > tassel/16s/alpha.txt
     cut -f 1,3  tassel/16s/alpha.txt >  tassel/16s/alpha_richness.txt
-    # 运行tassel于alpha多样性，10G/30G内存溢出，改为200/600G
-    rm -r tassel/alpha/
-    out=tassel/alpha
-    mkdir -p $out
-    ~/software/tassel-5-standalone/run_pipeline.pl \
-        -Xms200g -Xmx600g \
-        -fork1 -h snp/cubic_1404_hmp_maf0.02.hmp.txt \
-        -fork2 -r tassel/16s/alpha_richness.txt \
-        -fork3 -q snp/cubic_PopStructure.txt \
-        -fork4 -k snp/cubic_1404_Kinship.txt \
-        -combine5 -input1 -input2 -input3 -intersect \
-        -combine6 -input5 -input4 \
-        -mlm -mlmVarCompEst P3D -mlmCompressionLevel None \
-        -mlmOutputFile $out/mlmOut \
-        -export $out/mlmExport \
-        -runfork1 -runfork2 -runfork3 -runfork4 \
-        > $out/out
+    cut -f 1,2  tassel/16s/alpha.txt >  tassel/16s/alpha_chao1.txt
+    cut -f 1,4  tassel/16s/alpha.txt >  tassel/16s/alpha_shannon.txt
+    cut -f 1,2,3 result/beta/bray_curtis14.txt|sed '1 s/Samples/<Trait>/' > tassel/16s/beta_bc.txt
+    cut -f 1,2  tassel/16s/beta_bc.txt >  tassel/16s/beta_bc1.txt
+    cut -f 1,3  tassel/16s/beta_bc.txt >  tassel/16s/beta_bc2.txt
 
 
 # meta-gwas 在meta上分析GWAS
@@ -430,28 +413,6 @@
     scp -r yongxin@210.75.224.110:~/maize/magic/snp ./
     scp -r yongxin@210.75.224.110:~/maize/magic/tassel ./
     scp -r yongxin@210.75.224.110:~/maize/magic/result ./
-
-
-    cut -f 1,4,10,13 result/alpha/index.txt|sed '1 s/Sample/<Trait>/' > tassel/16s/alpha.txt
-    cut -f 1,3  tassel/16s/alpha.txt >  tassel/16s/alpha_richness.txt
-    # 运行tassel于alpha多样性，10G/30G内存溢出，改为200/600G
-    rm -r tassel/alpha/
-    out=tassel/alpha
-    mkdir -p $out
-    # 样本量和SNP太多，2天也运行不完
-    /home/meta/soft/tassel5/run_pipeline.pl \
-        -Xms200g -Xmx600g \
-        -fork1 -h snp/cubic_1404_hmp_maf0.02.hmp.txt \
-        -fork2 -r tassel/16s/alpha_richness.txt \
-        -fork3 -q snp/cubic_PopStructure.txt \
-        -fork4 -k snp/cubic_1404_Kinship.txt \
-        -combine5 -input1 -input2 -input3 -intersect \
-        -combine6 -input5 -input4 \
-        -mlm -mlmVarCompEst P3D -mlmCompressionLevel None \
-        -mlmOutputFile $out/mlmOut \
-        -export $out/mlmExport \
-        -runfork1 -runfork2 -runfork3 -runfork4 \
-        > $out/out
 
 
 ### 拆分snp批量运行tassel
@@ -466,13 +427,30 @@
     for i in `tail -n+2 split_list.txt`;do sed -i "1 i $header" split_hmp$i; done
     cd ..
 
-    out=tassel/alpha
+/home/meta/soft/tassel5/run_pipeline.pl \
+        -Xms10g -Xmx30g \
+        -fork1 -h snp/split_hmp00 \
+        -fork2 -r tassel/16s/${file}.txt \
+        -fork3 -q snp/cubic_PopStructure.txt \
+        -fork4 -k snp/cubic_1404_Kinship.txt \
+        -combine5 -input1 -input2 -input3 -intersect \
+        -combine6 -input5 -input4 \
+        -mlm -mlmVarCompEst P3D -mlmCompressionLevel None \
+        -mlmOutputFile $out/mlmOut00 \
+        -export $out/mlmExport00 \
+        -runfork1 -runfork2 -runfork3 -runfork4 \
+        > $out/out00
+# Data sets will not be joined because both phenotypes have values for PC1
+
+    out=tassel/beta
     mkdir -p $out
-    parallel --xapply -j 30 \
+    file=beta_bc1
+    mkdir -p $out
+    parallel --xapply -j 50 \
     "/home/meta/soft/tassel5/run_pipeline.pl \
         -Xms10g -Xmx30g \
         -fork1 -h snp/split_hmp{1} \
-        -fork2 -r tassel/16s/alpha_richness.txt \
+        -fork2 -r tassel/16s/${file}.txt \
         -fork3 -q snp/cubic_PopStructure.txt \
         -fork4 -k snp/cubic_1404_Kinship.txt \
         -combine5 -input1 -input2 -input3 -intersect \
@@ -483,32 +461,46 @@
         -runfork1 -runfork2 -runfork3 -runfork4 \
         > $out/out{1}" \
         ::: `cat snp/split_list.txt`
+    # 结果过滤与合并
+    echo -e "CHR\tSNP\tBP\tP" > tassel/$file.txt
+    for i in `cat snp/split_list.txt`;do
+    awk 'BEGIN{FS=OFS="\t"} {if($7>=0 && $7<=1){print $3,$2,$4,$7}}' ${out}/mlmOut${i}_split_hmp${i}_+_${file}_+_cubic_PopStructure_stats.txt >> tassel/$file.txt
+    echo -e "CHR\tSNP\tBP\tP" > tassel/$file.sig
+    awk '$4<0.001' tassel/$file.txt >> tassel/$file.sig
+    done
+    # 绘图
+    # cp /home/meta/soft/Metagenome/denovo1/script/qqman.R ./
+    /usr/bin/Rscript qqman.R -i tassel/${file}.sig
+
     # 类似的结果文件 tassel/alpha/mlmOut00_split_hmp00_+_alpha_richness_+_cubic_PopStructure_stats.txt
+
+    # 结果整理和可视化manhattan plot
 
 
 ## Reference
 
 ### Tassel参考流程
 
-TRAIT=$1
-ID=$2
+    TRAIT=$1
+    ID=$2
+    perl ~/software/tassel3-standalone/run_pipeline.pl \
+        -Xms1g -Xmx3g \
+        -fork1 -h ~/hjliu/cubic/geno/cubic_1404_maf0.02_ID$ID.hmp.gz \
+        -fork2 -r ~/hjliu/cubic/AllTrait/${TRAIT}.txt \
+        -fork3 -q ~/hjliu/cubic/GWAS/cubic_PopStructure.txt \
+        -fork4 -k ~/hjliu/cubic/GWAS/cubic_1404_Kinship.txt -combine5 -input1 -input2 -input3 -intersect -combine6 -input5 -input4 -mlm -mlmVarCompEst P3D -mlmCompressionLevel None \
+        -mlmOutputFile mlmOut_cubic_${TRAIT}_ID${ID} \
+        -export mlmExport_${TRAIT}_ID${ID} \
+        -runfork1 -runfork2 -runfork3 -runfork4 \
+        > out_${TRAIT}_ID${ID}
 
-perl ~/software/tassel3-standalone/run_pipeline.pl \
-	-Xms1g -Xmx3g \
-	-fork1 -h ~/hjliu/cubic/geno/cubic_1404_maf0.02_ID$ID.hmp.gz \
-	-fork2 -r ~/hjliu/cubic/AllTrait/${TRAIT}.txt \
-	-fork3 -q ~/hjliu/cubic/GWAS/cubic_PopStructure.txt \
-	-fork4 -k ~/hjliu/cubic/GWAS/cubic_1404_Kinship.txt -combine5 -input1 -input2 -input3 -intersect -combine6 -input5 -input4 -mlm -mlmVarCompEst P3D -mlmCompressionLevel None \
-	-mlmOutputFile mlmOut_cubic_${TRAIT}_ID${ID} \
-	-export mlmExport_${TRAIT}_ID${ID} \
-	-runfork1 -runfork2 -runfork3 -runfork4 \
-	> out_${TRAIT}_ID${ID}
 
 ### emma参考流程
+    
+    i=$1
+    ~/software/emmax-beta-07Mar2010/emmax -v -d 10 -t genotype/Plink/cubic_391_maf0.05.plk -p phenotype/${i}.rld.txt -k genotype/cubic_391_Kinship_emmax.txt -c genotype/cubic_PopStructure_391_peer_emmax.txt.bak -o GWAS/${i}.rld.peer
+    gzip GWAS/${i}.rld.peer.ps
 
-#!/bin/sh
-
-i=$1
-
-~/software/emmax-beta-07Mar2010/emmax -v -d 10 -t genotype/Plink/cubic_391_maf0.05.plk -p phenotype/${i}.rld.txt -k genotype/cubic_391_Kinship_emmax.txt -c genotype/cubic_PopStructure_391_peer_emmax.txt.bak -o GWAS/${i}.rld.peer
-gzip GWAS/${i}.rld.peer.ps
+### 基因组v3.25    ensemble plants 上可以找之前版本下载 ，是用的  ensemble 的vep 注释的
+阈值可以适当调整    1e-8 是非常严格的了        零星过阈值的不考虑
+我们是20Kb范围内至少要有两个显著位点  才算
