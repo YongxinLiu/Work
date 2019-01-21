@@ -17,8 +17,9 @@
 # 2018/12/13 culture/ath/starting ath分菌起始样品比较 starting
 # 2018/12/13 culture/ath/leaf ath分菌起始叶样品比较分离菌 leaf
 # 2018/12/31 rice/timecourse/v2 水稻时间序列基于新数据格式和新版流程分析
+# 2019/1/21 ath/jt.HuangAC/coevolve 回答审稿人是否
 
-wd=rice/timecourse/v2
+wd=ath/jt.HuangAC/coevolve
 # 创建github目录，用于备份流程、文档
 cd 
 mkdir -p ~/github/Work/$wd

@@ -355,13 +355,13 @@
 
 ### 注释显著SNP对应SNP类型注释
 
-	# 顺序注释1-10号染色体，大约2m，而使用合并10条染色体注释文件则需30m
+	# 顺序注释1-10号染色体的单个表型大约2m，而使用合并10条染色体注释文件则需30m
 	for i in `seq 1 10`; do \
 	awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$0} NR>FNR{if ($4<0.00001){print $4,a[$2]}}' snp/variant_effect/cubic_1404_chr${i}_vepOut.txt \
 	emmax_cov/alpha_richness.qqman | grep 'chr' >> result/alpha_richness.1e5.txt; done
 
-	# 批量注释表型
-	for j in alpha_richness alpha_chao1 alpha_shannon_e beta_bc2 beta_bc3 beta_bc4; do \
+	# 批量注释表型 alpha_richness alpha_chao1 alpha_shannon_e beta_bc2 beta_bc3 beta_bc4
+	for j in `cut -f 2 pheno/otu.id|tail -n+2`; do \
 	for i in `seq 1 10`; do \
 	awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$0} NR>FNR{if ($4<0.00001){print $4,a[$2]}}' snp/variant_effect/cubic_1404_chr${i}_vepOut.txt \
 	emmax_cov/${j}.qqman | grep 'chr' >> result/1e5.${j}.txt; done; done

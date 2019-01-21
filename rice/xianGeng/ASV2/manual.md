@@ -1,12 +1,115 @@
-	# 快速分析 Quick Start(所需文件准备好)
+# 2019/1/13 从头ASV过滤千分之一OTU进行beta多样性和差异分析
+
+## 准备文件
+
+make init
+
+# 原始OTU、代表序列和实验设计
+mkdir -p raw
+Rscript script/filter_otutab_by_sample.R # 按样本组筛选
+
+# alpha多样性
+usearch11 -otutab_rare result/otutab.txt -sample_size 5000 -output result/otutab_rare.txt 
+usearch10 -otutab_stats result/otutab_rare.txt -output result/otutab_rare.txt.stat
+# 计算14种alpha多样性指数
+mkdir -p result/alpha
+usearch10 -alpha_div result/otutab_rare.txt -output result/alpha/index.txt 
+
+# 按丰度筛选OTU表和物种注释，得到最终的表
+Rscript script/filter_otutab_by_OTU.R # 按丰度k1筛选，剩1260个OTU
+# 筛选rare的表和代表性序列
+cut -f 1 result/otutab.txt | sed 's/#//' > result/otutab.id
+usearch10 -fastx_getseqs ../ASV/result/otu.fa -labels result/otutab.id -fastaout result/otu.fa
+cut -f 1 result/otutab.txt | sed 's/#OTUID/#OTU ID/' > result/otutab.id
+# usearch10 -otutab_otu_subset result/otutab_rare.txt -labels result/otutab.id -output result/otutab_rare_k1.txt
+awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print a[$1]}' result/otutab_rare.txt result/otutab.id > result/otutab_rare_k1.txt
+
+# 建树
+align_seqs.py -i result/otu.fa -t /mnt/bai/public/ref/gg_13_8_otus/rep_set_aligned/97_otus.fasta -o temp/aligned/
+filter_alignment.py -i temp/aligned/otu_aligned.fasta -o temp/aligned/  # rep_seqs_align_pfiltered.fa, only very short conserved region saved
+make_phylogeny.py -i temp/aligned/otu_aligned_pfiltered.fasta -o result/otu.tree # generate tree by FastTree
+
+## 转换OTU表
+biom convert -i result/otutab_rare_k1.txt -o result/otutab_norm.biom --table-type="OTU table" --to-json
+beta_diversity.py -i result/otutab_norm.biom -o result/beta/ -t result/otu.tree -m bray_curtis,weighted_unifrac,unweighted_unifrac
+# 删除文件名中多余字符，以方法.txt为文件名
+rename 's/_otutab_norm//' result/beta/*.txt
+
+beta_pcoa.sh -i `pwd`/result/beta/ -m '"bray_curtis","weighted_unifrac","unweighted_unifrac"' \
+        -d `pwd`/doc/design.txt -A groupID -B '"HTEJ","HIND","HSoil1","LTEJ","LIND","LSoil1","V3703HnCp6","ZH11HnCp6","V3703LnCp6","ZH11LnCp6","A50LnCp7","A56LnCp7","A50LnCp6","A56LnCp6"' -E TRUE \
+        -c `pwd`/doc/compare.txt \
+        -o `pwd`/result/beta/ -h 3 -w 5
+
+# 物种注释汇总
+usearch10 -sintax result/otu.fa \
+        -db /mnt/bai/public/ref/rdp/rdp_16s_v16_sp.udb -sintax_cutoff 0.6 -strand both \
+        -tabbedout temp/otu.fa.tax -threads 64
+mkdir -p result/tax
+sed -i 's/\t$/\td:Unassigned/' temp/otu.fa.tax
+# 按门、纲、目、科、属水平分类汇总
+# 默认用otutab_norm.txt，用otutab.txt是不是更好呢？
+for i in p c o f g;do \
+        usearch10 -sintax_summary temp/otu.fa.tax -otutabin result/otutab.txt -rank ${i} \
+                -output result/tax/sum_${i}.txt; \
+done
+# 删除Taxonomy中异常字符如() " - /
+sed -i 's/(//g;s/)//g;s/\"//g;s/\/Chloroplast//g;s/\-/_/g;s/\//_/' result/tax/sum_*.txt
+# 格式化物种注释：去除sintax中置信值，只保留物种注释，替换:为_，删除引号
+cut -f 1,4 temp/otu.fa.tax | sed 's/\td/\tk/;s/:/__/g;s/,/;/g;s/"//g;s/\/Chloroplast//' > result/taxonomy_2.txt
+# 生成物种表格：注意OTU中会有末知为空白，补齐分类未知新物种为Unassigned
+awk 'BEGIN{OFS=FS="\t"} {delete a; a["k"]="Unassigned";a["p"]="Unassigned";a["c"]="Unassigned";a["o"]="Unassigned";a["f"]="Unassigned";a["g"]="Unassigned";a["s"]="Unassigned"; split($2,x,";");for(i in x){split(x[i],b,"__");a[b[1]]=b[2];} print $1,a["k"],a["p"],a["c"],a["o"],a["f"],a["g"],a["s"];}' result/taxonomy_2.txt | sed '1 i #OTU ID\tKingdom\tPhylum\tClass\tOrder\tFamily\tGenus\tSpecies' > result/taxonomy_8.txt
+# 去除#号和空格，会引起读取表格分列错误
+sed -i 's/#//g;s/ //g' result/taxonomy_8.txt
+# 添加物种注释
+biom add-metadata -i result/otutab.biom --observation-metadata-fp result/taxonomy_2.txt -o result/otutab_tax.biom --sc-separated taxonomy --observation-header OTUID,taxonomy
+# 添加物种注释
+biom add-metadata -i result/otutab_norm.biom --observation-metadata-fp result/taxonomy_2.txt -o result/otutab_norm_tax.biom --sc-separated taxonomy --observation-header OTUID,taxonomy
+# 制作门+变形菌纲混合比例文件
+cat <(grep -v 'Proteobacteria' result/tax/sum_p.txt) <(grep 'proteobacteria' result/tax/sum_c.txt) > result/tax/sum_pc.txt
+
+
+
+## 图表代码
+
+### 图1. 
+
+# 准备文件：
+# 品种地理信息
+cp fig1/ST/01.variety_geotable.csv ../ASV2/fig/data/variety_geotable.txt
+# alpha多样性
+ln result/alpha/index.txt fig/data/alpha.txt
+ln doc/design.txt fig/design.txt
+
+
+## 绘图Rmd
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# 快速分析 Quick Start(所需文件准备好)
 	make library_split # 样本拆分、
 	make fq_qc # 合并、去接头和引物、质控，获得纯净扩增子序列temp/filtered.fa
-	make host_rm # 序列去冗余、去噪、挑选代表序列、去嵌合、去宿主，获得OTU代表序列result/otu.fa
+    rm host_rm
+    make host_rm # 序列去冗余、去噪、挑选代表序列、去嵌合、去宿主，获得OTU代表序列result/otu.fa
+    rm otutab_create
+    rm otutab_filter
 	make beta_calc # 生成OTU表、过滤、物种注释、建库和多样性统计
 	# 清除统计绘图标记(重分析时使用)
 	rm -rf alpha_boxplot 
-	make DA_compare # 绘制alpha、beta、taxonomy和差异OTU比较
-	rm -f plot_volcano # 删除OTU差异比较可化标记
+    rm DA_compare
+    make DA_compare # 绘制alpha、beta、taxonomy和差异OTU比较
+	#rm -f plot_volcano # 删除OTU差异比较可化标记
 	make plot_manhattan # 绘制差异比较的火山图、热图、曼哈顿图
 	make plot_venn # 绘制OTU差异共有/特有维恩图
 	make DA_compare_tax # 高分类级差异比较，维恩图绘制，2为reads count负二项分布统计
@@ -21,147 +124,7 @@
 
 # 标准流程 Standard pipeline
 
-# 2019/1/15 添加土壤中富集菌
-
-# 比对IND和TEJ相对于土壤中富集的情况，这296个OTU仅包括了TEJ       IND      Soil 29.14521 47.47679 58.75728，这384个菌，土壤更富集？
-compare_OTU_ref.sh -i `pwd`/result/otutab.txt -c `pwd`/doc/compare_soil.txt -m "wilcox" \
-        -p 0.05 -q 0.05 -F 1.2 -t 0.1 \
-        -d `pwd`/doc/design.txt -A subspecies -B '"TEJ","IND","Soil"' \
-        -o `pwd`/result/compare_ref/ -r xiangeng_wilcoxon_main/result/compare/A50LnCp6-A56LnCp6_all.txt
-cat result/compare_ref/summary.txt # 多数为植物，小部分为土，极少为不变
-cp result/compare_ref/IND-Soil_all.txt fig1/data/
-cp result/compare_ref/TEJ-Soil_all.txt fig1/data/
-
-
-# 注释更换组，维恩图添加丰度注释，参考 http://210.75.224.110/report/16Sv2/xiangeng_wilcoxon_main
-
-# 比对IND和TEJ相对于土壤中富集的情况，这296个OTU仅包括了TEJ       IND      Soil 29.14521 47.47679 58.75728，这384个菌，土壤更富集？
-# 修正：A50LnCp6-A56LnCp6共30个样本只有3个差异，添加 A50HnCp7 - A56HnCp7 有差异
-# 只有有参，p0.01, q0.05, F1.2, t0.1与网页中结果一致
-compare_OTU_ref.sh -i `pwd`/result/otutab.txt -c `pwd`/doc/compare.txt -m "wilcox" \
-        -p 0.01 -q 0.05 -F 1.2 -t 0.1 \
-        -d `pwd`/doc/design.txt -A groupID -B '"HTEJ","HIND","HSoil1","LTEJ","LIND","LSoil1","V3703HnCp6","ZH11HnCp6","V3703LnCp6","ZH11LnCp6","A50LnCp7","A56LnCp7","A50HnCp7","A56HnCp7"' \
-        -o `pwd`/result/compare/ -r xiangeng_wilcoxon_main/result/compare/A50LnCp6-A56LnCp6_all.txt
-cat result/compare/summary.txt # 多数为植物，小部分为土，极少为不变
-
-# 制作带培养菌丰度和土壤富集信息的注释
-cp result/compare_ref/database.txt temp/soil_mean_abundance.txt
-paste result/compare/database.txt <(cut -f 6 result/compare_ref/IND-Soil_all.txt) <(cut -f 6 result/compare_ref/TEJ-Soil_all.txt) | sed '1 s/level\tlevel/IND-soil\tTEJ-soil/' | less > temp/mean_type.txt
-awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print $0,a[$1]}' temp/mean_type.txt result/39culture/otu.txt | less -S > result/39culture/otu.txt.bak
-
-# 统计IND中对应数量，在soil中汇总对应的丰度
-tail -n 141 xiangeng_wilcoxon_main1/result/compare/diff.list.vennHTEJ_HIND_DLTEJ_LIND_D.xls.xls|cut -f 22|sort|uniq -c
-tail -n 141 xiangeng_wilcoxon_main1/result/compare/diff.list.vennHTEJ_HIND_DLTEJ_LIND_D.xls.xls|cut -f 23|sort|uniq -c
-tail -n 16 xiangeng_wilcoxon_main1/result/compare/diff.list.vennHTEJ_HIND_ELTEJ_LIND_E.xls.xls|cut -f 22|sort|uniq -c
-tail -n 16 xiangeng_wilcoxon_main1/result/compare/diff.list.vennHTEJ_HIND_ELTEJ_LIND_E.xls.xls|cut -f 23|sort|uniq -c
-
-
-# 2019/1/15  测试nrt overlap IND enriched与选菌序列相似性
-
-# 所有IND富集
-grep 'HTEJ_HIND_D_V3703HnCp6_ZH11HnCp6_D-specific_to_others' -A 1000 xiangeng_wilcoxon_main/result/compare/diff.list.vennHTEJ_HIND_DLTEJ_LIND_DV3703HnCp6_ZH11HnCp6_D.xls.xls |cut -f 1|grep 'OTU' > wet/otuid296.id
-wc -l wet/otuid296.id # 统计筛选部分数量109，重复运行上部确定一致性
-
-# 所有TEJ富集
-grep 'HTEJ_HIND_D_V3703HnCp6_ZH11HnCp6_D-specific_to_others' -A 1000 xiangeng_wilcoxon_main/result/compare/diff.list.vennHTEJ_HIND_DLTEJ_LIND_DV3703HnCp6_ZH11HnCp6_D.xls.xls |cut -f 1|grep 'OTU' > wet/otuid296.id
-wc -l wet/otuid296.id # 统计筛选部分数量109，重复运行上部确定一致性
-
-
-# 确定选菌是否与OTU一致
-usearch10 -fastx_getseqs result/otu.fa -labels wet/otuid296.id -fastaout wet/otuid296.fa
-# cp result/otu.fa wet/otuid296.fa
-makeblastdb -in wet/otuid296.fa -dbtype nucl
-blastn -query ASV/wet/Syncom25.fa -db wet/otuid296.fa -out temp/Syncom25.blastn -outfmt '6 qseqid sseqid pident qcovs length mismatch gapopen qstart qend sstart send evalue bitscore' -num_alignments 1 -evalue 1 -num_threads 9 
-# less temp/Syncom25.blastn # 18/24，6个相似并对，Co7无法比对；改为万5为3/24，万4为2/24，万1和3只差土全包括1/24
-awk '$3>97' temp/Syncom25.blastn | wc -l
-
-# TS6. 添加土壤对应的菌
-# 整理好的两个品种比较的见 result/39culture/otu.txt.bak
-head -n 1 result/39culture/otu.txt.bak|sed 's/\t/\n/g'|awk '{print NR,$0}' # 22/23列
-cp xiangeng_wilcoxon_main/result/compare/LIND-LTEJ_all.txt fig1/ST/05.LIND-LTEJ_all.txt
-awk '{FS=OFS="\t"} NR==FNR{a[$1]=$22"\t"$23} NR>FNR{print $1,a[$1]}' result/39culture/otu.txt.bak fig1/ST/05.LIND-LTEJ_all.txt > fig1/ST/05.LIND-LTEJ_all_soil.txt
-awk '{FS=OFS="\t"} NR==FNR{a[$1]=$22"\t"$23} NR>FNR{print $1,a[$1]}' result/39culture/otu.txt.bak fig1/ST/05.HIND-HTEJ_all.txt > fig1/ST/05.HIND-HTEJ_all_soil.txt
-
-# 图4
-
-# 图4a. 基因型与Nrt1.1b对应关系
-cut -f 8,10,14 result/nitrogen_cor/design.txt | awk '{print $2,$1,$3}' | less
-# IND为A，TEJ为G；找相反的如IND G有L4105,N4126；TEJ为A的研究中没有
-
-# 图4对应的附图8 replication beta diversity重新绘图
-mkdir -p fig1/3S
-beta_pcoa.sh -i `pwd`/result/beta/ -m '"bray_curtis","weighted_unifrac","unweighted_unifrac"' \
-        -d `pwd`/doc/design.txt -A groupID -B '"V3703LnCp6","ZH11LnCp6","A50HnCp7","A56HnCp7"' -E TRUE \
-        -c `pwd`/doc/compare.txt \
-        -o `pwd`/fig1/3S/ -h 3 -w 5
-beta_cpcoa.sh -i `pwd`/result/otutab.txt -m '"bray","jaccard"' \
-        -d `pwd`/doc/design.txt -A groupID -B '"V3703LnCp6","ZH11LnCp6","A50HnCp7","A56HnCp7"' -E TRUE \
-        -o `pwd`/fig1/3S/  -h 3 -w 5
-
-# 用新菌库注释 IND enriched overlap with NRT1.1b enriched，查看可培养比例
-wget http://bailab.genetics.ac.cn/culture_collection/data/16S_rice_culture_collection.fasta -O culture_/16S_rice_culture_collection.fasta 
-dos2unix culture_/16S_rice_culture_collection.fasta 
-makeblastdb -in culture_/16S_rice_culture_collection.fasta -dbtype nucl
-
-blastn -query result/otu.fa -db culture_/16S_rice_culture_collection.fasta -out temp/culture_otu.blastn -outfmt '6 qseqid sseqid pident qcovs length mismatch gapopen qstart qend sstart send evalue bitscore' -num_alignments 1 -evalue 1 -num_threads 36
-# 添加blastn结果表头，最主要前4列：OTUID，培养菌ID，相似度，覆盖度
-sed -i '1 i OTUID\tsseqid\tpident\tqcovs\tlength\tmismatch\tgapopen\tqstart\tqend\tsstart\tsend\tevalue\tbitscore' temp/culture_otu.blastn
-# 统计可培养菌所占种类和丰度比例
-echo -ne "Total OTUs\t" > culture_/summary.txt
-grep '>' -c result/otu.fa >> culture_/summary.txt
-echo -ne "Cultured OTUs\t" >> culture_/summary.txt
-awk '$3>=97 && $4>=99' temp/culture_otu.blastn|wc -l >> culture_/summary.txt
-# IND overlap NRT原来存在48个可培养的菌
-tail -n+203 xiangeng_wilcoxon_main1/result/compare/diff.list.vennHTEJ_HIND_DLTEJ_LIND_DV3703HnCp6_ZH11HnCp6_D.xls.xls|awk '$3>=97 && $4>=99' |wc -l
-# 与培养菌只有30个可培养的菌
-awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print a[$1]}' temp/culture_otu.blastn <(tail -n+203 xiangeng_wilcoxon_main1/result/compare/diff.list.vennHTEJ_HIND_DLTEJ_LIND_DV3703HnCp6_ZH11HnCp6_D.xls.xls) | awk '$3>=97 && $4>=99' |wc -l
-# TEJ 原来存在10个可培养的菌 diff.list.vennHTEJ_HIND_ELTEJ_LIND_E.xls.xls
-tail -n 16 xiangeng_wilcoxon_main1/result/compare/diff.list.vennHTEJ_HIND_ELTEJ_LIND_E.xls.xls|awk '$3>=97 && $4>=99' |wc -l
-# 与培养菌只有9个可培养的菌
-awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print a[$1]}' temp/culture_otu.blastn <(tail -n 16 xiangeng_wilcoxon_main1/result/compare/diff.list.vennHTEJ_HIND_ELTEJ_LIND_E.xls.xls) | awk '$3>=97 && $4>=99' |wc -l
-
-
-# 图5 菌保
-
-## Table S11统计OTU数量和Order数量
-sed -i 's/^/R/' fig1/181118/TableS11-old.txt
-awk '{FS=OFS="\t"} NR==FNR{a[$1]=$2"\t"$9} NR>FNR{print $2,a[$2]}' fig1/181118/TableS11-old.txt fig1/190117/TableS11.txt | tail -n +3 | cut -f 2 | sort|uniq -c |wc -l # 439个OTU
-awk '{FS=OFS="\t"} NR==FNR{a[$1]=$2"\t"$9} NR>FNR{print $2,a[$2]}' fig1/181118/TableS11-old.txt fig1/190117/TableS11.txt | tail -n +3 | cut -f 3 | sort|uniq -c |wc -l # 23个目
-tail -n+3 fig1/190117/TableS11.txt|cut -f 10|sort|uniq|wc -l # 非冗余1077个吗？
-tail -n+3 fig1/181118/TableS11-old.txt|cut -f 13|sort|uniq|wc -l # 非冗余1096个吗？
-# 原来文中截取1098个V5-V7非冗余序列519条，现在1079条是？？？，参考~/culture/rice/makefile.man 519部分
-tail -n+3 fig1/190117/TableS11.txt|cut -f 1,10|sed 's/^/>/'|sed 's/\t/\n/' > temp/stock.fa
-revseq -sequence temp/stock.fa -outseq temp/stock_rc.fa -tag N
-        # 转换为单行
-        format_fasta_1line.pl -i temp/stock_rc.fa -o temp/stock_rc1.fa
-cutadapt -g AACMGGATTAGATACCCKG -e 0.2 temp/stock_rc1.fa -o temp/stock_rc1.P5.fa
-cutadapt -a TGYACACACCGCCCGTC -e 0.2 temp/stock_rc1.P5.fa -o temp/stock_rc1.P3.fa
-grep -v '>' temp/stock_rc1.P3.fa | sort|uniq -c|wc -l # 515条非冗余序列V5-V7，少了18个菌，少了4个非冗余序列
-
-## 附网站
-
-These culture collections also stock in the following National Culture Collection Center:
-
-China National GeneBank (Shenzhen) http://www.accc.org.cn/
-
-Agricultural Culture Collection of China (Beijing) http://www.accc.org.cn/
-
-
-# 附表
-
-## 附表2. 品种信息添加
-awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$2]=$7} NR>FNR{print $0,a[$2]}' ~/rice/miniCore/doc/minicore_list.txt fig1/190117/modified/TableS2.txt | sed '1 s/$/Variety/' > fig1/190117/modified/TableS2.csv
-## 附表4. 更新完整的门纲数据
-
-
-
-
-
-
-
-
-
-# 处理序列 Processing sequencing data
+	处理序列 Processing sequencing data
 
 	# 1. 准备工作 Preparation
 
@@ -396,6 +359,13 @@ awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$2]=$7} NR>FNR{print $0,a[$2]}' ~/rice/miniCor
 
 # 高级分析 Advanced analysis
 
+## 元素循环预测
+
+    make faprotax_calc
+    ## 整理faprotax中菌的功能列表
+	grep -v '^#' /mnt/bai/yongxin/software/FAPROTAX_1.1/FAPROTAX.txt|sed 's/\*/_/g' > culture/faprotax.tax
+
+
 ## 添加可培养菌
 
 	awk 'BEGIN{OFS=FS="\t"} NR==FNR {a[$1]=$2} NR>FNR {print $0,a[$1]}' temp/otutab.mean temp/culture_otu.blastn | cut -f 1-4,14 > result/41culture/otu.txt
@@ -410,9 +380,6 @@ awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$2]=$7} NR>FNR{print $0,a[$2]}' ~/rice/miniCor
 
 	# 制作有平均丰度，和物种注释的表
 	awk 'BEGIN{OFS=FS="\t"} NR==FNR {a[$1]=$2} NR>FNR {print $1,$5,a[$1]}' result/taxonomy_2.txt result/41culture/otu.txt > result/41culture/otu_mean_tax.txt
-
-## 整理faprotax中菌的功能列表
-	grep -v '^#' /mnt/bai/yongxin/software/FAPROTAX_1.1/FAPROTAX.txt|sed 's/\*/_/g' > culture/faprotax.tax
 
 
 ## 绘制网络
@@ -508,10 +475,6 @@ beta_pcoa.sh -i result/beta/ -m '"bray_curtis","weighted_unifrac"' \
 	alpha_boxplot.sh -i result/otutab_norm.txt -d doc/design.txt -A groupID -B '"HSoil1","HSoil2","LSoil1","LSoil2","soilHnCp7","soilLnCp7","soilHnCp6","soilLnCp6","soilLnSz7","soilHnSz7"' -m '"OTU_11"' -t TRUE -o temp/soil_ -n TRUE
 
 
-## 新发现OTU_8的物种很像OTU_11
-	less result/faprotax/report# 但按物种注释0.6注释到科无法识别；改为0.3阈值
-
-
 ## 筛选各品种最好的3个样品
 
 	# 结果备份，并筛选3个样品看结果
@@ -555,164 +518,9 @@ beta_pcoa.sh -i result/beta/ -m '"bray_curtis","weighted_unifrac"' \
 	10m21759092,10,21759092,0.962618742911769,0.46,50,0.856299549567109,0.85630648832468,1
 	# 可能从样本量、数据波动程度、SNP背景均无法满足
 
-## /5/28 筛选HN/LN下可高丰度菌及是否可培养
+## 筛选HN/LN下可高丰度菌及是否可培养
 	# core_microbiome_culture.R筛选中位数并排序 
 	awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print $0,a[$1]}' result/41culture/otu.txt culture/core.txt > culture/core_culture.txt
-
-
-
-# 图表整理 Figures and legends
-
-## 图1. 籼粳稻分型
-
-### a, b 模式图
-	
-	地图，种植模式图——秦媛
-
-
-### beta多样性
-	
-	# 不同加土，否则主要差异为土壤；不能两块地混合，否则主要差异为不同地块
-	# HN下TEJ和IND
-	beta_pcoa.sh -i `pwd`/result/beta/ -m '"bray_curtis","weighted_unifrac","unweighted_unifrac"' \
-	-d `pwd`/doc/design.txt -A groupID -B '"HIND","HTEJ"' -E TRUE \
-	-c `pwd`/doc/compare.txt \
-	-o `pwd`/fig1/1subspecies/beta_HN_ -h 3 -w 5
-	# 匹配非注释行，输出用于发表
-	grep -P '^\s*#' script/beta_pcoa.R | less
-	grep -P -v '^\s*#' script/beta_pcoa.R > fig1/script/beta_pcoa_fieldII.R
-		# LN下TEJ和IND
-	beta_pcoa.sh -i `pwd`/result/beta/ -m '"bray_curtis","weighted_unifrac","unweighted_unifrac"' \
-		-d `pwd`/doc/design.txt -A groupID -B '"LIND","LTEJ"' -E TRUE \
-		-c `pwd`/doc/compare.txt \
-		-o `pwd`/fig1/1subspecies/beta_LN_ -h 3 -w 5
-	grep -P -v '^\s*#' script/beta_pcoa.R > fig1/script/beta_pcoa_fieldI.R
-
-
-### alpha多样性
-	
-	箱线图、稀释取线、样品稀释取线
-
-	alpha_boxplot.sh -i `pwd`/result/alpha/index.txt -m '"chao1","richness","shannon_e"' \
-	-d `pwd`/doc/design.txt -A groupID -B '"LTEJ","LIND","LSoil1","HTEJ","HIND","HSoil1"' \
-	-o `pwd`/fig1/1/alpha_ -h 3 -w 5
-	# 稀释曲线
-	alpha_rare.sh -i `pwd`/result/alpha/rare.txt \
-	-d `pwd`/doc/design.txt -A groupID -B '"LTEJ","LIND","LSoil1","HTEJ","HIND","HSoil1"' \
-	-o `pwd`/fig/1/alpha_ -h 3 -w 5
-
-### Taxonomy 门+变形菌纲
-	cut -f 3-4 result/taxonomy_8.txt|sort|uniq|grep 'Proteobacteria' # 为什么会有这么多结果，只选5类继续分析
-	cat <(grep -v 'Proteobacteria' result/tax/sum_p.txt) <(grep 'proteobacteria' result/tax/sum_c.txt) > result/tax/sum_pc.txt
-tax_stackplot.sh -i `pwd`/result/tax/sum_ -m '"pc"' -n 10 \
-	-d `pwd`/doc/design.txt -A groupID -B '"LTEJ","LIND","LSoil1","HTEJ","HIND","HSoil1"' -O FALSE \
-	-o `pwd`/fig1/1/tax_pc_ -h 3 -w 5
-
-
-### 门及纲水平差异
-
-
-## 图2. 随机森林分类
-	
-	# 用family水平建模，用HN数据training，用LN验证。randomForest_family.R
-	randomForest_class.R
-	1. 纲水平建模，展示贡献度，和样品中热图
-	使用高HN和HN下籼粳稻纲水平0.3%丰度的15个Feature机器学习；保存预测结果confusion.txt，整理16.4%错误率，TEJ 37.4%错误；
-	2018/5/21 删除三个澳大亚利(纬度为负)粳稻, D4032, D4038, F4053; 标记A50/ZH11为TEJ，而IR24为IND，各分为Hn/Ln两种情况；
-	错误率降低为15.3%，TEJ为36%;Top1 feature也变为了Nitrospira，Deltaproteobacteria
-	2. Top feature：用各组柱状图/箱线图分类展示，再加梯度排序
-	3. 在nrt和时间序列中验证
-
-	
-## 图3. 亚种差异与氮相关
-
-	1. 差异OTUs曼哈顿图，维恩图
-	由筛选组，改为筛选亚组(品种)中位数的OTUs: 原万5为343个OTUs，万一为942个；最终丰度为0.2%
-	compare_sub.R # 修改丰度筛选group为groupID2，接下来 rm plot_volcano ; make plot_venn; make rmd
-
-grep -P -v '^\s*#' script/compare_sub.R > fig1/script/compare.R
-
-	差异OTUs在两块地曼哈顿、韦恩图;	曼哈顿图要写标颜色为门、纲,	plot_manhattan_pc.r
-	plot_manhattan.sh -i result/compare/LTEJ-LIND_all.txt
-	# 我们重点是突出IND，大多数是IND特异的，添加IND vs TEJ的组，重画曼哈顿图，让IND为向上实心三角
-
-	# 曼哈顿图的代码和数据
-	grep -P -v '^\s*#' script/plot_manhattan_pc.r > fig1/script/plot_manhattan_pc.r
-	cp result/tax/sum_pc.txt fig1/data/
-	cp result/compare/*IND-*TEJ_all.txt fig1/data/
-
-	# 维恩图的代码和数据
-	cp result/compare/diff.list* fig1/data/
-	diff.list.vennHTEJ_HIND_DLTEJ_LIND_DCDE.r
-
-	2. 差异OTUs在时间序列中变化
-	alpha_boxplot.sh -i result/tax/sum_c.txt -d `pwd`/doc/design.txt -A groupID -B '"A50Cp0","A50Cp1","A50Cp2","A50Cp3","A50Cp7","A50Cp10","A50Cp14","A50Cp21","A50Cp28","A50Cp35","A50Cp42","A50Cp49","A50Cp63","A50Cp70","A50Cp77","A50Cp84","A50Cp91","A50Cp98","A50Cp112","A50Cp119"' \
-	-m '"Deltaproteobacteria","Actinobacteria","Alphaproteobacteria","Clostridia","Betaproteobacteria","Nitrospira"' -t TRUE -o result/randomForest/time_ -n TRUE # 42以后没有数据呢？改用alpha_boxplot.sh
-
-	3. 绘制维恩图的共有饼图
-	# fig1/3compare.rmd 绘制时间序列的图，最后添加共有的成份
-	# 筛选HL/LN下TEJ-IND共同下调的菌
-	cat result/compare/?TEJ-?IND_sig.txt | grep 'Depleted' | cut -f 1 | sort | uniq -d > fig1/3compare/otu_IND_common_specific.txt
-	cat result/compare/?TEJ-?IND_sig.txt | grep 'Enriched' | cut -f 1 | sort | uniq -d > fig1/3compare/otu_TEJ_common_specific.txt
-	# 两块地保守上调、下调的OTUs
-	cat fig1/3compare/otu_IND_common_specific.txt fig1/3compare/otu_TEJ_common_specific.txt > fig1/3compare/otu_common.txt
-	# 并用faprotax注释
-	# 绘制nrt和A50差异与籼粳稻共有
-	tail -n 70 ~/rice/xianGeng/fig1/ST/07.vennHTEJ_HIND_DLTEJ_LIND_DV3703HnCp6_ZH11HnCp6_D.txt | cut -f 1 > fig1/4nrt/venn_nrt_indiaHL.txt
-	tail -n 6 ~/rice/xianGeng/fig1/ST/07.vennHTEJ_HIND_DLTEJ_LIND_DA50LnCp7_A56LnCp7_D.txt | cut -f 1 > fig1/4nrt/venn_NRTsnp_indiaHL.txt
-
-	5. 差异菌功能有无热图 plot_heatmap_timecourse.R
-	filter_otus_by_sample.sh -f result/faprotax/element_tab.txt -o result/faprotax/xiaogeng -d doc/design.txt -A groupID -B '"HTEJ","HIND","HSoil1","LTEJ","LIND","LSoil1"'
-	# 结果可用STAMP进一步探索
-	
-	# 筛选时间序列中上/下调两大类的OTU进行功能分析
-	mkdir -p fig/3
-	awk '$2>0' fig/2/otu_IND_common_specific_time_cor6.txt | cut -f 1 > fig/3/timecournse_increase.id
-	awk '$2<0' fig/2/otu_IND_common_specific_time_cor6.txt | cut -f 1 > fig/3/timecournse_decrease.id
-	# 以Incease为例, decrease
-	type=decrease
-	filter_otus_from_otu_table.py -i result/otutab_norm_tax.biom -o timecourse/${type}.biom --otu_ids_to_exclude_fp fig/3/timecournse_${type}.id --negate_ids_to_exclude
-	/usr/bin/python2.7 /mnt/bai/yongxin/software/FAPROTAX_1.1/collapse_table.py -i timecourse/${type}.biom -o timecourse/${type}.faprotax -g /mnt/bai/yongxin/software/FAPROTAX_1.1/FAPROTAX.txt --collapse_by_metadata 'taxonomy' -v --force # --out_report result/faprotax/report 
-	filter_otus_by_sample.sh -f timecourse/${type}.faprotax -o fig/3/timecournse_faprotax_${type} -d doc/design.txt -A groupID -B '"HTEJ","HIND","HSoil1","LTEJ","LIND","LSoil1"'
-	# increase的差异功能类型均为IND>TEJ>soil，且以芳香、氮 相关
-	compare.sh -i `pwd`/result/otutab.txt -c `pwd`/doc/compare.txt -m "wilcox" \
-	-p 0.01 -q 0.01 -F 1.2 -t 0.0005 \
-	-d `pwd`/doc/design.txt -A groupID -B '"HTEJ","HIND","HSoil1","LTEJ","LIND","LSoil1"' \
-	-o `pwd`/result/compare/
-	# decrease的差异，stamp打开报错，但有时成功；下调无N循环相关，有
-	
-	# 可视化菌的功能有无
-	## 筛选report为功能有无表
-	grep 'OTU_' -B 1 result/faprotax/report | grep -v -P '^--$' > result/faprotax/report.clean
-	faprotax_report_sum.pl -i result/faprotax/report.clean -o result/faprotax/report
-	#OTU功能注释列表：result/faprotax/report.otu_func
-	#功能包含OTU列表：result/faprotax/report.func_otu
-	#OTU功能有无矩阵：result/faprotax/report.mat
-	# plot_heatmap_timecourse.R 绘制时间序列的图，再添加相应菌的主要功能，
-	# 同时对时间序列中不表达的也可视化功能:IND的功能绘制于 fig/2/otu_IND_common_specific_time_faprotax_noabundance.txt，TEJ单一条目录为 fig/2/otu_TEJ_common_specific_time_faprotax_noabundance.txt"
-	# 再对时间序列中0点去掉重新计算，发现分为了4组，在原文件基础上添加-0标志
-
-
-	# 菌种功能注释整体差异
-	rm result/compare_far/diff.list
-	compare.sh -i `pwd`/result/faprotax/element_tab.txt -c `pwd`/doc/compare.txt -m "wilcox" \
-	-p 0.01 -q 0.05 -F 1.2 -t 0.0005 \
-	-d `pwd`/doc/design.txt -A groupID -B '"HTEJ","HIND","HSoil1","LTEJ","LIND","LSoil1","V3703HnCp6","ZH11HnCp6","A50LnCp7","A56LnCp7","V3703LnCp6","ZH11LnCp6","A50LnCp6","A56LnCp6"' \
-	-o `pwd`/result/compare_far/ -N FALSE
-	batch_venn.pl -i doc/venn.txt -d result/compare_far/diff.list
-	# 注释比较结果
-	rm result/compare_far/diff.list.venn*.xls.*
-	batch2.pl -i 'result/compare_far/diff.list.venn*.xls' -d result/compare_far/database.txt -o result/compare_far/ -p vennNumAnno.pl
-	# 绘制箱线图
-	# 确定要展示的Features，两组共有
-	tail -n 39 result/compare_far/diff.list.vennHTEJ_HIND_DLTEJ_LIND_D.xls.xls|cut -f 1 > result/compare_far/IND.list
-	tail -n 9 result/compare_far/diff.list.vennHTEJ_HIND_ELTEJ_LIND_E.xls.xls|cut -f 1 > result/compare_far/TEJ.list
-	make plot_fa_barplot # 绘制单个功能的箱线图
-	# 修改alpha_boxplot.R为alpha_boxplot_far.R
-
-    grep -P -v '^\s*#' script/alpha_boxplot_far.R > fig1/script/alpha_boxplot_far.R
-
-## 菌群与nrt关系
 
 ### 差异菌/功能与氮相关基因显著相关
 	
@@ -745,6 +553,204 @@ grep -P -v '^\s*#' script/compare_sub.R > fig1/script/compare.R
 
 	grep -P -v '^\s*#' script/nitrogen_cor.r > fig1/script/nitrogen_cor.R
 
+
+
+# 图表整理 Figures and legends
+
+http://210.75.224.110/submit/rice_microbiome/
+
+## 图1. 籼粳稻分型
+
+### a, b 模式图
+	
+	地图，种植模式图——秦媛
+
+### beta多样性
+	
+	# 不同加土，否则主要差异为土壤；不能两块地混合，否则主要差异为不同地块
+	# HN下TEJ和IND
+	beta_pcoa.sh -i `pwd`/result/beta/ -m '"bray_curtis","weighted_unifrac","unweighted_unifrac"' \
+	-d `pwd`/doc/design.txt -A groupID -B '"HIND","HTEJ"' -E TRUE \
+	-c `pwd`/doc/compare.txt \
+	-o `pwd`/fig1/1subspecies/beta_HN_ -h 3 -w 5
+	# 匹配非注释行，输出用于发表
+	grep -P '^\s*#' script/beta_pcoa.R | less
+	grep -P -v '^\s*#' script/beta_pcoa.R > fig1/script/beta_pcoa_fieldII.R
+		# LN下TEJ和IND
+	beta_pcoa.sh -i `pwd`/result/beta/ -m '"bray_curtis","weighted_unifrac","unweighted_unifrac"' \
+    -d `pwd`/doc/design.txt -A groupID -B '"LIND","LTEJ"' -E TRUE \
+    -c `pwd`/doc/compare.txt \
+    -o `pwd`/fig1/1subspecies/beta_LN_ -h 3 -w 5
+	grep -P -v '^\s*#' script/beta_pcoa.R > fig1/script/beta_pcoa_fieldI.R
+
+### alpha多样性
+	
+	箱线图、稀释取线、样品稀释取线
+
+	alpha_boxplot.sh -i `pwd`/result/alpha/index.txt -m '"chao1","richness","shannon_e"' \
+	-d `pwd`/doc/design.txt -A groupID -B '"LTEJ","LIND","LSoil1","HTEJ","HIND","HSoil1"' \
+	-o `pwd`/fig1/1/alpha_ -h 3 -w 5
+	# 稀释曲线
+#	alpha_rare.sh -i `pwd`/result/alpha/rare.txt \
+#	-d `pwd`/doc/design.txt -A groupID -B '"LTEJ","LIND","LSoil1","HTEJ","HIND","HSoil1"' \
+#	-o `pwd`/fig/1/alpha_ -h 3 -w 5
+
+### Taxonomy 门+变形菌纲
+	cut -f 3-4 result/taxonomy_8.txt|sort|uniq|grep 'Proteobacteria' # 为什么会有这么多结果，只选5类继续分析
+	cat <(grep -v 'Proteobacteria' result/tax/sum_p.txt) <(grep 'proteobacteria' result/tax/sum_c.txt) > result/tax/sum_pc.txt
+tax_stackplot.sh -i `pwd`/result/tax/sum_ -m '"pc"' -n 10 \
+	-d `pwd`/doc/design.txt -A groupID -B '"LTEJ","LIND","LSoil1","HTEJ","HIND","HSoil1"' -O FALSE \
+	-o `pwd`/fig1/1/tax_pc_ -h 3 -w 5
+
+
+## 图2. 随机森林分类
+	
+	# 用family水平建模，用HN数据training，用LN验证。randomForest_family.R
+	randomForest_class.R
+	1. 纲水平建模，展示贡献度，和样品中热图
+	使用高HN和HN下籼粳稻纲水平0.3%丰度的15个Feature机器学习；保存预测结果confusion.txt，整理16.4%错误率，TEJ 37.4%错误；
+	2018/5/21 删除三个澳大亚利(纬度为负)粳稻, D4032, D4038, F4053; 标记A50/ZH11为TEJ，而IR24为IND，各分为Hn/Ln两种情况；
+	错误率降低为15.3%，TEJ为36%;Top1 feature也变为了Nitrospira，Deltaproteobacteria
+	2. Top feature：用各组柱状图/箱线图分类展示，再加梯度排序
+	3. 在nrt和时间序列中验证
+
+	
+## 图3. 亚种差异与氮相关
+
+	1. 差异OTUs曼哈顿图，维恩图
+	由筛选组，改为筛选亚组(品种)中位数的OTUs: 原万5为343个OTUs，万一为942个；最终丰度为0.2%, 381个OTUs
+	compare_sub.R # 修改丰度筛选group为groupID2，接下来 
+    rm plot_volcano
+    make plot_venn
+    make rmd
+    grep -P -v '^\s*#' script/compare_sub.R > fig1/script/compare.R
+    # 差异见xiangengASV_wilcoxon_main/result/compare/
+    source=result/compare/
+    target=fig1/data/
+    cp $source/* $target/
+    cp result/tax/sum_pc.txt $target/
+    # A50LnCp6-A56LnCp6原来仅有3个差异刚过0.05，现在没差异：和之前的对比，是因为OTU拆分为ASV差异变小，OTU数量增加导致FDR减少
+    sort -k5,5n result/compare/A50LnCp6-A56LnCp6_all.txt|less -S
+    sort -k5,5n ../xiangeng/xiangeng_wilcoxon_main/result/compare/A50LnCp6-A56LnCp6_all.txt | less -S
+    # 尝试另两组比较
+    # "HTEJ","HIND","HSoil1","LTEJ","LIND","LSoil1","V3703HnCp6","ZH11HnCp6","V3703LnCp6","ZH11LnCp6","A50LnCp7","A56LnCp7","A50LnCp6","A56LnCp6"
+    # 新增 "A50HnCp7","A56HnCp7","A50HnCp6","A56HnCp6","HSoil1","LSoil1"
+    # 新增 "nrtHnCp7","ZH11HnCp7","nrtLnCp7","ZH11LnCp7",
+    # 新增 "nrtHnCp7","ZH11HnCp7","nrtLnCp7","ZH11LnCp7",
+    # 新增 "nrtHnSz7","ZH11HnSz7","nrtLnSz7","ZH11LnSz7","A50HnSz7","A56HnSz7","A50LnSz7","A56LnSz7", 结果差异极小，暂不考虑
+    # cp doc/venn.txt doc/venn.txt.190109
+    # cp doc/compare.txt doc/compare.txt.190109
+    # 手动修改比较组和venn
+compare_OTU_ref.sh -i `pwd`/result/otutab.txt -c `pwd`/doc/compare.txt -m "wilcox" \
+        -p 0.01 -q 0.05 -F 1.2 -t 0.2 \
+        -d `pwd`/doc/design.txt -A groupID -B '"HTEJ","HIND","LTEJ","LIND","V3703HnCp6","ZH11HnCp6","V3703LnCp6","ZH11LnCp6","nrtHnCp7","ZH11HnCp7","nrtLnCp7","ZH11LnCp7","A50LnCp7","A56LnCp7","A50LnCp6","A56LnCp6","A50HnCp7","A56HnCp7","A50HnCp6","A56HnCp6"' \
+        -o `pwd`/result/compare/ -r xiangengASV_wilcoxon_main/result/compare/LIND-LTEJ_all.txt
+
+# 新增四8组，ASV从361变为484；改为0.1增长至853
+compare_OTU.sh -i `pwd`/result/otutab.txt -c `pwd`/doc/compare.txt -m "wilcox" \
+        -p 0.05 -q 0.05 -F 1.2 -t 0.1 \
+        -d `pwd`/doc/design.txt -A groupID -B '"HTEJ","HIND","LTEJ","LIND","V3703HnCp6","ZH11HnCp6","V3703LnCp6","ZH11LnCp6","nrtHnCp7","ZH11HnCp7","nrtLnCp7","ZH11LnCp7","A50LnCp7","A56LnCp7","A50HnCp7","A56HnCp7"' \
+        -o `pwd`/result/compare/ -C "groupID2"
+cat result/compare/summary.txt
+
+# 2019/1/10 制作科水平维恩
+    # 制作对应科和差异列表
+    awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$6} NR>FNR{print a[$1],$2}' result/taxonomy_8.txt result/compare/diff.list \
+    | tail -n+2 | sort | uniq > result/compare/Fdiff.list  #  less -S
+    # 绘制维恩图
+    batch_venn.pl -i `pwd`/doc/venn.txt -d result/compare/Fdiff.list
+    # 批量展示
+    out=xiangengASV_wilcoxon_main_k1F
+report_16S_Family.pl -g groupID -b ${out} -m "wilcox" -d `pwd`/doc/design.txt -c `pwd`/doc/compare.txt -v `pwd`/doc/venn.txt -a 0.2 -F 1.2 -p 0.01 -q 0.05 # -D  -F  -l  -S  -s   -t 
+ln -sf `pwd`/${out}/ /var/www/html/report/16Sv2/${out}
+rm -f ${out}/${out}
+
+
+
+	差异OTUs在两块地曼哈顿、韦恩图;	曼哈顿图要写标颜色为门、纲,	plot_manhattan_pc.r
+	plot_manhattan.sh -i result/compare/LTEJ-LIND_all.txt
+	# 我们重点是突出IND，大多数是IND特异的，添加IND vs TEJ的组，重画曼哈顿图，让IND为向上实心三角
+
+	# 曼哈顿图的代码和数据
+	grep -P -v '^\s*#' script/plot_manhattan_pc.r > fig1/script/plot_manhattan_pc.r
+	cp result/tax/sum_pc.txt fig1/data/
+	cp result/compare/*IND-*TEJ_all.txt fig1/data/
+
+	# 维恩图的代码和数据
+	cp result/compare/diff.list* fig1/data/
+	diff.list.vennHTEJ_HIND_DLTEJ_LIND_DCDE.r
+
+	2. 差异OTUs在时间序列中变化
+	alpha_boxplot.sh -i result/tax/sum_c.txt -d `pwd`/doc/design.txt -A groupID -B '"A50Cp0","A50Cp1","A50Cp2","A50Cp3","A50Cp7","A50Cp10","A50Cp14","A50Cp21","A50Cp28","A50Cp35","A50Cp42","A50Cp49","A50Cp63","A50Cp70","A50Cp77","A50Cp84","A50Cp91","A50Cp98","A50Cp112","A50Cp119"' \
+	-m '"Deltaproteobacteria","Actinobacteria","Alphaproteobacteria","Clostridia","Betaproteobacteria","Nitrospira"' -t TRUE -o result/randomForest/time_ -n TRUE # 42以后没有数据呢？改用alpha_boxplot.sh
+
+	3. 绘制维恩图的共有饼图
+	# fig1/3compare.rmd 绘制时间序列的图，最后添加共有的成份
+	# 筛选HL/LN下TEJ-IND共同下调的菌
+	cat result/compare/?TEJ-?IND_sig.txt | grep 'Depleted' | cut -f 1 | sort | uniq -d > fig1/3compare/otu_IND_common_specific.txt
+	cat result/compare/?TEJ-?IND_sig.txt | grep 'Enriched' | cut -f 1 | sort | uniq -d > fig1/3compare/otu_TEJ_common_specific.txt
+	# 两块地保守上调、下调的OTUs
+	cat fig1/3compare/otu_IND_common_specific.txt fig1/3compare/otu_TEJ_common_specific.txt > fig1/3compare/otu_common.txt
+	# 并用faprotax注释
+	# 绘制nrt和A50差异与籼粳稻共有
+	tail -n 70 ~/rice/xianGeng/fig1/ST/07.vennHTEJ_HIND_DLTEJ_LIND_DV3703HnCp6_ZH11HnCp6_D.txt | cut -f 1 > fig1/4nrt/venn_nrt_indiaHL.txt
+	tail -n 6 ~/rice/xianGeng/fig1/ST/07.vennHTEJ_HIND_DLTEJ_LIND_DA50LnCp7_A56LnCp7_D.txt | cut -f 1 > fig1/4nrt/venn_NRTsnp_indiaHL.txt
+
+
+	5. 差异菌功能有无热图 plot_heatmap_timecourse.R
+    make -B faprotax_calc 
+    # 筛选IND和TEJ的注释，比较找出功能差异类
+#	filter_otus_by_sample.sh -f result/faprotax/element_tab.txt -o result/faprotax/xiangeng -d doc/design.txt -A groupID -B '"HTEJ","HIND","HSoil1","LTEJ","LIND","LSoil1"'
+#	# 结果可用STAMP进一步探索
+#	
+#	# 筛选时间序列中上/下调两大类的OTU进行功能分析
+#	mkdir -p fig/3
+#	awk '$2>0' fig/2/otu_IND_common_specific_time_cor6.txt | cut -f 1 > fig/3/timecournse_increase.id
+#	awk '$2<0' fig/2/otu_IND_common_specific_time_cor6.txt | cut -f 1 > fig/3/timecournse_decrease.id
+#	# 以Incease为例, decrease
+#	type=decrease
+#	filter_otus_from_otu_table.py -i result/otutab_norm_tax.biom -o timecourse/${type}.biom --otu_ids_to_exclude_fp fig/3/timecournse_${type}.id --negate_ids_to_exclude
+#	/usr/bin/python2.7 /mnt/bai/yongxin/software/FAPROTAX_1.1/collapse_table.py -i timecourse/${type}.biom -o timecourse/${type}.faprotax -g /mnt/bai/yongxin/software/FAPROTAX_1.1/FAPROTAX.txt --collapse_by_metadata 'taxonomy' -v --force # --out_report result/faprotax/report 
+#	filter_otus_by_sample.sh -f timecourse/${type}.faprotax -o fig/3/timecournse_faprotax_${type} -d doc/design.txt -A groupID -B '"HTEJ","HIND","HSoil1","LTEJ","LIND","LSoil1"'
+#	# increase的差异功能类型均为IND>TEJ>soil，且以芳香、氮 相关
+#	compare.sh -i `pwd`/result/otutab.txt -c `pwd`/doc/compare.txt -m "wilcox" \
+#	-p 0.01 -q 0.01 -F 1.2 -t 0.0005 \
+#	-d `pwd`/doc/design.txt -A groupID -B '"HTEJ","HIND","HSoil1","LTEJ","LIND","LSoil1"' \
+#	-o `pwd`/result/compare/
+#	# decrease的差异，stamp打开报错，但有时成功；下调无N循环相关，有
+#	
+	# 可视化菌的功能有无
+	## 筛选report为功能有无表
+	grep 'OTU_' -B 1 result/faprotax/report | grep -v -P '^--$' > result/faprotax/report.clean
+	faprotax_report_sum.pl -i result/faprotax/report.clean -o result/faprotax/report
+	#OTU功能注释列表：result/faprotax/report.otu_func
+	#功能包含OTU列表：result/faprotax/report.func_otu
+	#OTU功能有无矩阵：result/faprotax/report.mat
+	# plot_heatmap_timecourse.R 绘制时间序列的图，再添加相应菌的主要功能，
+	# 同时对时间序列中不表达的也可视化功能:IND的功能绘制于 fig/2/otu_IND_common_specific_time_faprotax_noabundance.txt，TEJ单一条目录为 fig/2/otu_TEJ_common_specific_time_faprotax_noabundance.txt"
+	# 再对时间序列中0点去掉重新计算，发现分为了4组，在原文件基础上添加-0标志
+
+	# 菌种功能注释整体差异
+	rm result/compare_far/diff.list
+    compare.sh -i `pwd`/result/faprotax/element_tab.txt -c `pwd`/doc/compare.txt -m "wilcox" \
+        -p 0.05 -q 0.05 -F 1.2 -t 0.0005 \
+        -d `pwd`/doc/design.txt -A groupID -B '"HTEJ","HIND","HSoil1","LTEJ","LIND","LSoil1","V3703HnCp6","ZH11HnCp6","A50LnCp7","A56LnCp7","V3703LnCp6","ZH11LnCp6","A50LnCp6","A56LnCp6"' \
+        -o `pwd`/result/compare_far/ -N FALSE
+	batch_venn.pl -i doc/venn.txt -d result/compare_far/diff.list
+	# 注释比较结果
+	rm result/compare_far/diff.list.venn*.xls.*
+	batch2.pl -i 'result/compare_far/diff.list.venn*.xls' -d result/compare_far/database.txt -o result/compare_far/ -p vennNumAnno.pl
+	# 绘制箱线图
+	# 确定要展示的Features，两组共有
+	tail -n 36 result/compare_far/diff.list.vennHTEJ_HIND_DLTEJ_LIND_D.xls.xls|cut -f 1 > result/compare_far/IND.list
+	tail -n 9 result/compare_far/diff.list.vennHTEJ_HIND_ELTEJ_LIND_E.xls.xls|cut -f 1 > result/compare_far/TEJ.list
+	make plot_fa_barplot # 绘制单个功能的箱线图
+    grep -P -v '^\s*#' script/alpha_boxplot_far.R > fig1/script/alpha_boxplot_far.R
+	# 修改alpha_boxplot.R为alpha_boxplot_far.R
+
+
+
+## 菌群与nrt关系
 
 ### 关键氮高效基因NRT不同形态、突变体可部分解析亚种差异
 
@@ -891,7 +897,7 @@ alpha_rare_sample.R
 	cd fig1/ST
 	paste 09.tiller_cor.txt 09.tiller_cor_p.txt | cut -f 1,2,4> 09.tiller_cor_pr.txt
 
-## 上传数据至NCBI PRJNA478068
+## 上传数据 PRJNA478068
 
 	# 整理的最终上传实验设计 fig1/metadata.txt
 	cut -f 16 fig1/metadata.txt|sort|uniq -c # 587个亚种数据来自miniCore，127+114=241来自nrt
@@ -910,39 +916,8 @@ alpha_rare_sample.R
 	done
 
 
-## 上传数据至基因组所 PRJCA001214
 
-# 宏基因组数据上传，共36个样品，其中只比较了HnZH11 vs HnNrt共6个样品，原始212GB，过滤后172GB [yongxin@meta:~/rice/nrt1.1b/submit]$
-
-# 扩增子数据，828个样品上传
-
-	# 整理的最终上传实验设计 fig1/metadata.txt
-	cut -f 16 fig1/metadata.txt|sort|uniq -c # 587个亚种数据来自miniCore，127(随机森林)+114=241来自nrt
-	wc -l fig1/metadata.txt # 检查是否有样品重名
-	cut -f 1 fig1/metadata.txt|sort|uniq|wc -l 
-	mkdir -p seq/submitGSA # 创建提交数据目录
-
-	# 1. 籼粳稻样本，587个
-	for i in `grep 'minicore' fig1/ST/02.design.txt|cut -f 1`; do
-        ln /mnt/bai/yongxin/rice/miniCore/clean_data/sample/${i}.fq.gz seq/submitGSA/ ;done
-
-	# 2. 时间序列己上传，见 https://www.ncbi.nlm.nih.gov/bioproject/?term=PRJNA435900
-	for i in `grep 'nrt' fig1/ST/02.design.txt|cut -f 1`; do
-        ln /mnt/bai/yongxin/rice/zjj.nitrogen/180116/clean_data/sample/${i}.fq.gz seq/submitGSA/ ; done
-    md5sum seq/submitGSA/* > seq/submitGSA_md5.txt
-    sed -i 's/seq\/submitGSA\///' seq/submitGSA_md5.txt
-    sed 's/.fq.gz//' seq/submitGSA_md5.txt > seq/temp.txt
-    paste seq/temp.txt seq/submitGSA_md5.txt |sed 's/  /\t/g'| cut -f 2-4| less > seq/temp1.txt
-    awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print $0,a[$1]}' seq/temp1.txt fig1/metadata.txt > fig1/metadata_md5.txt 
-
-+--------+-----------+----------------------------------------------------------------------------------+
-| cra_id | accession | alias                                                                            |
-+--------+-----------+----------------------------------------------------------------------------------+
-|   1357 | CRA001362 | Rice nrt1.1b related root metagenome                                             |
-|   1369 | CRA001372 | Rice subspecies indica and japonica, and NRT1.1b related 16S amplicon sequencing |
-+--------+-----------+----------------------------------------------------------------------------------+
-
-# 共享中间文件和分析流程代码 submit用于投稿，publish用于正式发表后共享
+	# 共享中间文件和分析流程代码 submit用于投稿，publish用于正式发表后共享
 
 	## 在fig1中创建index.Rmd并生成网页 http://210.75.224.110/submit/rice_microbiome, username: rice, password: microbiome
 	cd ~/rice/xianGeng/fig1 # 共享目录
@@ -959,10 +934,6 @@ alpha_rare_sample.R
 	## 根据最新实验设计和OTU表整理结果
 	cd fig1/
 	cp /mnt/bai/yongxin/github/Amplicon/16Sv2/script/stat_plot_functions.R script/
-
-
-
-
 
 
 ## 补充结果2018/10/29 
@@ -1050,46 +1021,3 @@ alpha_rare_sample.R
 
 	alpha_boxplot.sh -i result/otutab.txt -d doc/design.txt -A groupID -B '"HTEJ","HIND","HSoil1","LTEJ","LIND","LSoil1","V3703HnCp6","ZH11HnCp6","A50LnCp7","A56LnCp7","V3703LnCp6","ZH11LnCp6","A50LnCp6","A56LnCp6"' \
 	-m $otu -t TRUE -o result/otu_boxplot/fuc_ -n TRUE 
-
-
-# 2019/1/5 NBT审稿意义补充
-
-文章结果： http://210.75.224.110/submit/rice_microbiome/
-
-原主图：
-
-## IND和TEJ富集菌在根中富集吗？分别比较HN和HN下水稻vsSoil
-	
-	# 修改实验设计，添加新比较组
-rm -fr `pwd`/result/compare/
-mkdir -p `pwd`/result/compare/
-	# 丰度默认0.2，结果从381个OTU变为了224，代码与原来一样，可能compare_OTU.sh修改，改用compare.sh也不行？查也没找到原因；改为0.02也有很多无法对应；改有有参方法
-compare_OTU_ref.sh -i `pwd`/result/otutab.txt -c `pwd`/doc/compare_soil.txt -m "wilcox" \
-        -p 0.01 -q 0.05 -F 1.2 -t 0.2 \
-        -d `pwd`/doc/design.txt -A groupID -B '"HTEJ","HIND","HSoil1","LTEJ","LIND","LSoil1","V3703HnCp6","ZH11HnCp6","V3703LnCp6","ZH11LnCp6","A50LnCp7","A56LnCp7","A50LnCp6","A56LnCp6"' \
-        -o `pwd`/result/compare/ -r xiangeng_wilcoxon_main/result/compare/LIND-LTEJ_all.txt
-	# 添加LN下比较土壤LN下情况
-	awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$6} NR>FNR{print a[$1],$0}' result/compare/LIND-LSoil1_all.txt xiangeng_wilcoxon_main/result/compare/LIND-LTEJ_sig.txt | sed '1 s/^/LIND-LSoil/' >  xiangeng_wilcoxon_main/result/compare/LIND-LTEJ_sig1.txt
-	cut -f 1 xiangeng_wilcoxon_main/result/compare/LIND-LTEJ_sig1.txt|sort|uniq -c # LN下相比土壤133下调，111上调，28个不显著
-	cut -f 7 xiangeng_wilcoxon_main/result/compare/LIND-LTEJ_sig1.txt|sort|uniq -c # LN下相比TEJ 34下调，244上调
-	awk '$7=="Enriched"' xiangeng_wilcoxon_main/result/compare/LIND-LTEJ_sig1.txt|cut -f 1 |sort|uniq -c # LN下IND富集的244个菌，139下调，82上调，23个缺失
-
-	# 追加特异的 fig1/ST/05.HIND-HTEJ_all.txt
-	awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$6} NR>FNR{print a[$1],$0}' result/compare/HIND-HSoil1_all.txt xiangeng_wilcoxon_main/result/compare/HIND-HTEJ_sig.txt | sed '1 s/^/HIND-HSoil1/' >  xiangeng_wilcoxon_main/result/compare/HIND-HIND-HTEJ_sig1.txt
-	cut -f 1 xiangeng_wilcoxon_main/result/compare/HIND-HIND-HTEJ_sig1.txt|sort|uniq -c # HN下79下调，73上调，16个不显著
-	# 筛选IND富集的
-	cut -f 7 xiangeng_wilcoxon_main/result/compare/HIND-HIND-HTEJ_sig1.txt|sort|uniq -c # 147上调，71下调
-	awk '$7=="Enriched"' xiangeng_wilcoxon_main/result/compare/HIND-HIND-HTEJ_sig1.txt|cut -f 1 |sort|uniq -c # HN下IND富集的147个菌，79下调，56上调，12个缺失
-
-    # 查看共有部分土壤中富集情况
-    awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$6} NR>FNR{print a[$1],$0}' result/compare/HIND-HSoil1_all.txt fig1/ST/05.vennHTEJ_HIND_ELTEJ_LIND_E.txt > fig1/ST/05.vennHTEJ_HIND_ELTEJ_LIND_E_HNsoil.txt
-    tail -n 16 fig1/ST/05.vennHTEJ_HIND_ELTEJ_LIND_E_HNsoil.txt | cut -f 1 |sort|uniq -c # IND共有的16个14个富含，2个不显著
-    awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$6} NR>FNR{print a[$1],$0}' result/compare/HIND-HSoil1_all.txt fig1/ST/05.vennHTEJ_HIND_DLTEJ_LIND_D.txt > fig1/ST/05.vennHTEJ_HIND_DLTEJ_LIND_D_HNsoil.txt
-    tail -n 141 fig1/ST/05.vennHTEJ_HIND_DLTEJ_LIND_D_HNsoil.txt | cut -f 1 | sort | uniq -c # TEJ共有的51个IND富集，79个土壤富集，11个不显著
-
-    # 查看IND特征与NRT调控共有的菌 fig4, ts8
-    awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$6} NR>FNR{print a[$1],$0}' result/compare/HIND-HSoil1_all.txt fig1/ST/07.vennHTEJ_HIND_DLTEJ_LIND_DA50LnCp7_A56LnCp7_D.txt > fig1/ST/07.vennHTEJ_HIND_DLTEJ_LIND_DA50LnCp7_A56LnCp7_D_HNsoil.txt
-    tail -n 6 fig1/ST/07.vennHTEJ_HIND_DLTEJ_LIND_DA50LnCp7_A56LnCp7_D_HNsoil.txt | cut -f 1 |sort|uniq -c # IND共有的6个5个富含，1个不显著
-    awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$6} NR>FNR{print a[$1],$0}' result/compare/HIND-HSoil1_all.txt fig1/ST/07.vennHTEJ_HIND_DLTEJ_LIND_DV3703HnCp6_ZH11HnCp6_D.txt > fig1/ST/07.vennHTEJ_HIND_DLTEJ_LIND_DV3703HnCp6_ZH11HnCp6_D_HNsoil.txt
-    tail -n 70 fig1/ST/07.vennHTEJ_HIND_DLTEJ_LIND_DV3703HnCp6_ZH11HnCp6_D_HNsoil.txt | cut -f 1 | sort | uniq -c # TEJ共有的37个IND富集，27个土壤富集，6个不显著
- 

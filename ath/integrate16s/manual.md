@@ -448,23 +448,23 @@ tax_stackplot.sh -i `pwd`/result/tax/sum_ -m '"p","pc"' -n 10 \
 	# 此目录三萜数据来自~/ath/jt.HuangAC/batch3all，它又来自~/ath/jt.HuangAC/batch2、3
 	cd ~/ath/jt.HuangAC/batch3
 	mkdir -p clean_data/submit
-parallel --xapply -j 8 \
-"split_libraries_fastq.py -i temp/{1}_barcode/reads.fastq \
- -b temp/{1}_barcode/barcodes.fastq \
- -o temp/{1}_barcode \
- -m doc/{1}.txt --store_demultiplexed_fastq --barcode_type 10
-split_fastq_qiime.pl -i temp/{1}_barcode/seqs.fastq -o clean_data/submit/" \
-::: `tail -n+2 doc/library.txt | cut -f 1`
-# compress
-cd clean_data/submit/
-pigz *
-# 检查ID是否唯一且一致
-ls *.gz|cut -f 1 -d '.'|sort|uniq|wc -l
-ls *.gz|cut -f 1 -d '.'|sort|uniq>sampleID1
-cut -f 1 ../../doc/design.txt |tail -n+2|sort|uniq|wc -l
-cut -f 1 ../../doc/design.txt |tail -n+2|sort|uniq>sampleID2
-# 显示是否名称有不对应的样本
-cat sampleID?|sort|uniq -u
+    parallel --xapply -j 8 \
+    "split_libraries_fastq.py -i temp/{1}_barcode/reads.fastq \
+     -b temp/{1}_barcode/barcodes.fastq \
+     -o temp/{1}_barcode \
+     -m doc/{1}.txt --store_demultiplexed_fastq --barcode_type 10
+    split_fastq_qiime.pl -i temp/{1}_barcode/seqs.fastq -o clean_data/submit/" \
+    ::: `tail -n+2 doc/library.txt | cut -f 1`
+    # compress
+    cd clean_data/submit/
+    pigz *
+    # 检查ID是否唯一且一致
+    ls *.gz|cut -f 1 -d '.'|sort|uniq|wc -l
+    ls *.gz|cut -f 1 -d '.'|sort|uniq>sampleID1
+    cut -f 1 ../../doc/design.txt |tail -n+2|sort|uniq|wc -l
+    cut -f 1 ../../doc/design.txt |tail -n+2|sort|uniq>sampleID2
+    # 显示是否名称有不对应的样本
+    cat sampleID?|sort|uniq -u
 
 
 ## 实验菌对应OTU的箱线图
@@ -505,3 +505,14 @@ cat sampleID?|sort|uniq -u
 
     # 3T/index.Rmd - Supplement Table
     
+
+
+
+
+
+# 2.5 T
+
+    2018/8/22 http://210.75.224.110/report/16Sv2/ath_2.5.3soil_edgeR_unoisev1/
+    ## 突变体和WT中差异OTU在土壤中丰度
+    cd ath_2.5.3soil_edgeR_unoisev1
+    awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print $0,a[$1]}' result/compare/WT4b3-Soil1b3_all.txt doc/common_OTU.id|less -S > doc/common_OTU.anno.txt

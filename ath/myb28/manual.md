@@ -282,6 +282,29 @@ http://210.75.224.110/report/16Sv2/ath_myb_wilcox_v2
     # 过滤所有宿主，1000条抽样
 http://210.75.224.110/report/16Sv2/ath_myb_wilcox_v3
 http://210.75.224.110/report/16Sv2/ath_myb_edgeR_v3
+
+
+## 文中统计
+
+grep -P 'ColTot1|MybTot1|ColPhyl2|MybPhyl2' doc/design.txt | cut -f 3 | uniq -c # 每个组12个样
+grep -P 'ColTot1|MybTot1|ColPhyl2|MybPhyl2' doc/design.txt | grep -v '#'| cut -f 3 | uniq -c # 每个组样品数
+grep -P 'ColTot1|MybTot1|ColPhyl2|MybPhyl2' doc/design.txt | grep -v '#' > doc/filter_metadata.tsv
+wc -l doc/filter_metadata.tsv # 45个样品
+dos2unix doc/*
+# 样品测序数据量
+awk 'BEGIN{FS=OFS="\t"} ARGIND==1{a[$1]=$2} ARGIND==2{print $1,a[$1]}' result/sample_split.log doc/filter_metadata.tsv | awk '{a=a+$2} END {print a}' # 4119595
+awk 'BEGIN{FS=OFS="\t"} ARGIND==1{a[$1]=$2} ARGIND==2{print $1,a[$1]}' result/sample_split.log doc/filter_metadata.tsv | sort -k2,2nr
+# OTU表中数据总量
+sed -i 's/: /\t/' result/otutab.biom.sum
+awk 'BEGIN{FS=OFS="\t"} ARGIND==1{a[$1]=$2} ARGIND==2{print $1,a[$1]}' result/otutab.biom.sum doc/filter_metadata.tsv | awk '{a=a+$2} END {print a}'
+
+
+
+
+# 结果中要输出筛选后的实验设计和OTU表，用于统计和发表文章
+# 把数据量、alpha多样性、beta多样性等属性追加到metadata.txt
+
+
 # 问题汇总
 
 ## otutab_filter过滤小于5000后样本减少，但样本数据量大于5万

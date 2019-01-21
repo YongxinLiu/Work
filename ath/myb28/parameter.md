@@ -165,7 +165,7 @@ SHELL:=/bin/bash
 	sub=
 	doc=doc/${sub}
 	design=${wd}/${doc}/design.txt 
-	g1=groupID2
+	g1=groupID
 	# tail -n+2 ${doc}/design.txt|cut -f 6 -d '	'|sort|uniq|awk '{print "\""$1"\""}'|tr "\n" ","
 	# 绘图使用的实验组，顺序即图中显示顺序；为空时使用所有组和默认顺序
 	# g1_list='"ColPhyl2","MybPhyl2","ColTot1","MybTot1"'
@@ -173,7 +173,7 @@ SHELL:=/bin/bash
 	# 从实验设计比较组中提取组名，自动获得目录组 (推荐)
 	# g1_list=`cat doc/${sub}/compare.txt|tr '\t' '\n'|sort|uniq|awk '{print "\""$$1"\""}'|tr "\n" ","|sed 's/,$$//'`
 	# cat doc/compare.txt|tr '\t' '\n'|sort|uniq|awk '{print "\""$1"\""}'|tr "\n" ","|sed 's/,$//
-    # 从实验设计提取组(可选)
+   # 从实验设计提取组(可选)
 	# g1_list=`tail -n+2 ${doc}/design.txt|cut -f 5|sort|uniq|awk '{print "\""$$1"\""}'|tr "\n" ","|sed 's/,$$//'`
 
 	# 组间比较列表
@@ -195,14 +195,14 @@ SHELL:=/bin/bash
 	# 显著性P值过滤 threshold of P-value，可选0.05, 0.01, 0.001。采用FDR校正，此参数意义不大，即使0.001也没有FDR < 0.2过滤严格
 	pvalue=0.05
 	# 统计检验方式FDR，常用0.05, 0.1, 0.2; FDR < 0.1使用9.5万次，且为菌群近期的Nature和Sciences; 0.2使用7.7万次
-	FDR=0.1
+	FDR=0.05
 	# 差异变化倍数常用1.5, 2, 4倍，对应logFC为0.585, 1, 2；菌丰度变化倍数不明显，还可用1.3和1.7倍对应0.379和0.766
 	FC=1.2
 
 	# 统计绘图和网页报告版本控制
 	species=ath
 	keyword=myb
-	version=${species}_${keyword}_${compare_method}_v4
+	version=${species}_${keyword}_${compare_method}_v6
 
 
 ## 2.1 alpha_boxplot Alpha多样性指数箱线图 Alpha index in boxplot

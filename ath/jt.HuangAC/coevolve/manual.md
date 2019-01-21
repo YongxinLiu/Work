@@ -27,7 +27,7 @@
 	## 0.1 准备流程配置文件
 
 	# 设置工作目录
-	wd=rice/timecourse/v2
+	wd=rice/miniCore
 	# 创建环境代码见~/github/Work/initial_project.sh
 
 	## 准备实验设计
@@ -36,15 +36,43 @@
 	# Initialize the working directory
 	make init
 
-	# 保存模板中basic页中3. 测序文库列表library为doc/library.txt 
-	sed -i 's/\t/\tL180108_/' doc/library.txt
+	# 保存模板中basic页中3. 测序文库列表library为doc/library.txt
 	# 按library中第二列index准备测序文库，如果压缩要添加.gz，并用gunzip解压
-	awk 'BEGIN{OFS=FS="\t"}{system("ln -s /mnt/bai/yongxin/seq/BGI/"$2"_1.fq.gz seq/"$1"_1.fq.gz");}' <(tail -n+2 doc/library.txt )
-	awk 'BEGIN{OFS=FS="\t"}{system("ln -s /mnt/bai/yongxin/seq/BGI/"$2"_2.fq.gz seq/"$1"_2.fq.gz");}' <(tail -n+2 doc/library.txt )
+	awk 'BEGIN{OFS=FS="\t"}{system("ln -s /mnt/bai/yongxin/seq/181009.lane14/"$4"_1.fq.gz seq/"$1"_1.fq.gz");}' <(tail -n+2 doc/library.txt )
+	awk 'BEGIN{OFS=FS="\t"}{system("ln -s /mnt/bai/yongxin/seq/181009.lane14/"$4"_2.fq.gz seq/"$1"_2.fq.gz");}' <(tail -n+2 doc/library.txt )
     # 检查数据链接，全红为错误，绿色为正常
     ll seq/*
 	# 如果压缩文件，要强制解压链接
 	gunzip -f seq/*.gz
+
+	# 标准多文库实验设计拆分，保存模板中design页为doc/design_raw.txt
+	split_design.pl -i doc/design_raw.txt
+	# 从其它处复制实验设计
+	cp ~/ath/jt.HuangAC/batch3/doc/L*.txt doc/
+	# 删除多余空格，windows换行符等
+	sed -i 's/ //g;s/\r/\n/' doc/*.txt 
+	head -n3 doc/L1.txt
+	# 依据各文库L*.txt文件生成实验设计
+	cat <(head -n1 doc/L1.txt | sed 's/#//g') <(cat doc/L* |grep -v '#'|grep -v -P '^SampleID\t') > doc/design.txt
+	# 检查是否相等
+	wc -l doc/design.txt
+	cut -f 1 doc/design.txt|sort|uniq|wc -l
+
+	## 准备原始数据
+
+	# 拆lane和质量转换归为原始seq目录中处理
+	# Prepare raw data
+	#ln ~/seq/180210.lane9.ath3T/Clean/CWHPEPI00001683/lane_* ./
+	#cp ~/ath/jt.HuangAC/batch3/doc/library.txt doc/
+	
+	# 检查数据质量，转换为33
+	#determine_phred-score.pl seq/lane_1.fq.gz
+	# 如果为64，改原始数据为33
+	rename 's/lane/lane_33/' seq/lane_*
+	# 关闭质量控制，主要目的是格式转换64至33，不然usearch无法合并
+	#time fastp -i seq/lane_64_1.fq.gz -I seq/lane_64_2.fq.gz \
+	#	-o seq/lane_1.fq.gz -O seq/lane_2.fq.gz -6 -A -G -Q -L -w 9
+	# 1lane 80GB, 2 threads, 102min
 
 ## 1.1. 按实验设计拆分lane为文库
 

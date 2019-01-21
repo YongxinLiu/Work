@@ -12,7 +12,7 @@ SHELL:=/bin/bash
 	# make init # 建立分析所需子目录
 
 	# 设置任务最大运行任务/线程数，超过CPU数量效率反而会降低
-	p=36
+	p=64
 	
 	# 数据库
 	# Greengene 13 May database, fa for usearch format, udb for usearch index
@@ -55,13 +55,15 @@ SHELL:=/bin/bash
 
 	# Remove redundancy
 	# 最小序列频率miniuniqusize默认为8，去除低丰度，增加计算速度，整lane的序列可更改为30，甚至100
-	minuniquesize=30
+	minuniquesize=211
+	# 100条件下，211147447 seqs, 25377669 uniques, 21184572 singletons (83.5%)，78706个，而OTU只有6000；
+	# 改为211，1/M，有23446个唯一序列，14619个ASV
 
 ## 1.7. otu_pick 挑选OTU
 
 	# Pick OTUs
 	# 可选97% cluster_otus 和 unoise3 ，默认unoise3
-	otu_method=cluster_otus
+	otu_method=unoise3
 	# OTU日志文件，记录从挑选至过滤为最终的过程
 	otu_log=result/otu.log
 
@@ -161,12 +163,14 @@ SHELL:=/bin/bash
 	g1=groupID
 	# tail -n+2 doc/design.txt|cut -f 9|sort|uniq|awk '{print "\""$1"\""}'|tr "\n" ","
 	# 绘图使用的实验组，顺序即图中显示顺序；为空时使用所有组和默认顺序"HIND","HTEJ","LIND","LTEJ" 
-	# 根据实验比对较获得实验组列表: cat doc/compare.txt|tr '\t' '\n'|sort|uniq|awk '{print "\""$1"\""}'|tr "\n" "," # ,"A50HnCp7","A56HnCp7","A50LnCp7","A56LnCp7","A50LnSz7","A56LnSz7","A50HnCp6","A56HnCp6","A50HnCp7","A56HnCp7","A50HnSz7","A56HnSz7","V3703HnCp6","ZH11HnCp6","V3703LnCp6","ZH11LnCp6","nrtHnCp7","ZH11HnCp7","ZH11LnCp7","nrtLnCp7","nrtHnSz7","ZH11HnSz7","nrtLnSz7","ZH11LnSz7"
+	# 根据实验比对较获得实验组列表: cat doc/compare.txt|tr '\t' '\n'|sort|uniq|awk '{print "\""$1"\""}'|tr "\n" "," # ,"A50LnCp6","A56LnCp6","A50LnCp7","A56LnCp7","A50LnSz7","A56LnSz7","A50HnCp6","A56HnCp6","A50HnCp7","A56HnCp7","A50HnSz7","A56HnSz7","V3703HnCp6","ZH11HnCp6","V3703LnCp6","ZH11LnCp6","nrtHnCp7","ZH11HnCp7","ZH11LnCp7","nrtLnCp7","nrtHnSz7","ZH11HnSz7","nrtLnSz7","ZH11LnSz7"
 	# 籼粳稻："HTEJ","HIND","HSoil1","LTEJ","LIND","LSoil1"
-	# 最后确定组："HTEJ","HIND","HSoil1","LTEJ","LIND","LSoil1","V3703HnCp6","ZH11HnCp6","V3703LnCp6","ZH11LnCp6","A50LnCp7","A56LnCp7","A50HnCp7","A56HnCp7"
+	# 最后确定组差异比较："HTEJ","HIND","HSoil1","LTEJ","LIND","LSoil1","V3703HnCp6","ZH11HnCp6","V3703LnCp6","ZH11LnCp6","A50LnCp7","A56LnCp7","A50HnCp7","A56HnCp7",
+	# 机器学习验证："IR24HnCp7", "IR24LnCp7", "IR24HnSz7", "IR24LnSz7", "ZH11HnCp7", "ZH11LnCp7", "ZH11HnSz7", "ZH11LnSz7",
+	# 时间序列:"A50Cp1","A50Cp2","A50Cp3","A50Cp7","A50Cp10","A50Cp14","A50Cp21","A50Cp28","A50Cp35","A50Cp42","A50Cp49","A50Cp63","A50Cp70","A50Cp77","A50Cp84","A50Cp91","A50Cp98","A50Cp112","A50Cp119"
 	# 主图："V3703HnCp6","ZH11HnCp6","A50LnCp7","A56LnCp7"
 	# 附图："V3703LnCp6","ZH11LnCp6","A50HnCp7","A56HnCp7"
-	g1_list='"HTEJ","HIND","HSoil1","LTEJ","LIND","LSoil1","V3703HnCp6","ZH11HnCp6","V3703LnCp6","ZH11LnCp6","A50LnCp7","A56LnCp7","A50HnCp7","A56HnCp7"'
+	g1_list='"HTEJ","HIND","HSoil1","LTEJ","LIND","LSoil1","V3703HnCp6","ZH11HnCp6","V3703LnCp6","ZH11LnCp6","A50LnCp7","A56LnCp7","A50LnCp6","A56LnCp6"'
 
 	# 组间比较列表
 	compare=${wd}/doc/compare.txt
@@ -196,7 +200,8 @@ SHELL:=/bin/bash
 	sub=""
 	doc=doc/${sub}
 	# 报告输出目录
-	version=xiangeng_wilcoxon_main2
+	version=xiangengASV_wilcoxon_main_k1
+
 
 ## 2.1 alpha_boxplot Alpha多样性指数箱线图 Alpha index in boxplot
 
@@ -335,6 +340,7 @@ SHELL:=/bin/bash
 
 ## 2.9 plot_manhattan 绘制OTU按门着色曼哈顿图
 	pm_yax=20
+
 ## 2.10 plot_boxplot 基于差异OTU表绘制火山图
 	pb_input=result/otutab.txt
 	pb_list='"OTU_4","OTU_3","OTU_6","OTU_11","OTU_7","OTU_9"'
@@ -356,8 +362,8 @@ SHELL:=/bin/bash
 
 # 2.10 plot_venn 维恩图
 
-	# venn OTU注释数据库，如差异比较result/compare/database.txt、菌库result/39culture/otu.txt等
-	venn_anno=result/39culture/otu.txt.bak
+	# venn OTU注释数据库，如差异比较result/compare/database.txt、菌库result/39culture/otu.txt
+	venn_anno=result/39culture/otu.txt
 # 3 高级分析
 
 ## 3.3 faprotax 元素循环预测
@@ -369,9 +375,8 @@ SHELL:=/bin/bash
 ## 3.9 culture_graphlan 可培养菌
 	 
 	# 可培养菌库类型，如组织root / rhizosphere / leaf, 品种A50 / IR24
-	# 拟南芥填 Root
 	type=""
-	# 指定可培养菌库位置，fa为OTU，fasta为物种如rice, ath
+	# 指定可培养菌库位置，fa为OTU，fasta为物种如rice
 	culture_db=/mnt/bai/yongxin/culture/rice/result/${type}culture_select.fasta
 	# 可培养菌结果输出文件
 	# 绘制Graphlan图的筛选阈值
@@ -380,11 +385,12 @@ SHELL:=/bin/bash
 	# 过滤方法，默认median，可选max, mean, median, min，数据依次减少
 	filter_method=max
 	otu_table=`pwd`/result/otutab.txt
-
 	# 指定具体的实验设计、列、组筛选
 	cg_design=${design}
 	cg_group_name=${g1}
 	cg_group_list=${ab_group_list}
+
+
 
 # 9. 其它
 

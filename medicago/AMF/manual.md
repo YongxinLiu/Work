@@ -357,31 +357,31 @@ sed -i 's/#//' doc/design.txt
 
 # 5. 发表图版
 
-## 样本描述description
+## 1. 样本描述description
 
-    # 使用7个基因型2，3批进行分析 "A17","Anfp","lyk3","dmi3","R108","lyk9","lyr4" # ,"dmi2","Rnfp","lyk9nfp"
-    # 2018/12/11 使用7个基因型2，3批进行分析 "A17","Anfp","lyk3","dmi3","R108","lyk9","lyr4" 去掉,"dmi2"，两批次差别极大，一批像WT
+    # 2018/12/11 使用7个基因型2，3批进行分析 "A17","Anfp","lyk3","dmi3","R108","lyk9","lyr4" 去掉"dmi2","Rnfp","lyk9nfp"，备份为fig-7
+    # 2019/1/3 删除lyk3共6个基因型分析
 
 ### PCoA compartment shape, genotype color
     # fig/beta_pcoa_all.R 绘制根、根际、土间差异
     # fig/beta_pcoa_root.R 表现基因型可变
-    # 组间距离箱线图的 beta_boxplot.R
+    # 组间距离箱线图的 beta_boxplot.R, 结果 箱线图太单一，用echart绘制beta_boxplot.txt
 
 ### 物种组成
     # tax_stackplot_all.R
 
 ### 附图
     # Constrained PCoA: fig/beta_cpcoa_all.R 绘制根、根际、土间差异
-    # Constrained PCoA: fig/beta_pcoa_root.R 表现基因型可变
+    # Constrained PCoA: fig/beta_cpcoa_root.R 表现基因型可变
     # Alpha diversity: fig/alpha_boxplot.R 7个基因型两批次
 
-## 差异比较compare
+## 2. 差异比较compare
     
 ### 差异比较曼哈顿图(2/3批混合筛选点后10个基因型8组edgeR比较) http://210.75.224.110/report/16Sv2/med_b23r10_edgeR_v1/
 
 ### 饼形图，见 fig/plot_bar_pie.R
 
-## 绘制单菌的丰度图
+### 绘制单菌的丰度图
     # 前10个菌有5个重点关注，Pseudomonadaceae 1(相反但不显著), **3(目标菌)**, 7(不显著); **Bacillus 2**, 5(趋势一致)
     # 绘制菌在7个基因型中变化
     alpha_boxplot.sh -i result/otutab.txt -d doc/b23r/design.txt -A genotype -B '"A17","nfp","lyk3","dmi3","R108","lyk9","lyr4"' -m '"OTU_2","OTU_3"' -t TRUE -o fig/boxplot_ -n TRUE -U 100
@@ -389,7 +389,7 @@ sed -i 's/#//' doc/design.txt
     alpha_boxplot.sh -i result/otutab.txt -d doc/design.txt -A groupID -B '"soilB3S","R108b3rs","R108b3r","lyk9b3rs","lyk9b3r","soilB2S","R108b2rs","R108b2r","lyk9b2rs","lyk9b2r"' -m '"OTU_2","OTU_3"' -t TRUE -o fig/OTU_box -n TRUE -U 100
 
 
-## 分菌
+## 3. 分菌
     
     # 工作量和稀释曲线 /mnt/bai/yongxin/culture/medicago/result/sample_rarefracation_boxplot.pdf
     # 详细：/mnt/bai/yongxin/culture/medicago/makefile.man
@@ -398,16 +398,21 @@ sed -i 's/#//' doc/design.txt
     # 3.9 culture和culture_graphlan，只需修改A17r或R108r
 
 
-## 实验数据分析
+## 4. 实验数据分析
 
     # 2018/12/19 绘制定殖实验批次1-5的箱线+统计，文件来源云：苜宿-2.colonization_data_20181218
     # 保存 wet/colonization181218 ，代码见 phenotype.Rmd
     # 先分析第4批，保存为文本 b4.txt，
 
-## 文中数据统计
+## 其它
+
+### 文中数据统计
     grep 'b[23]' doc/design.txt|wc -l # 360个样，有一个数据量太少，359
     grep 'b[23]' result/split/L*txt|awk '{a=a+$2} END {print a}' # 75245220
     cat result/otu.log  # 查看OTU数据 9622
     grep 'b[23]' result/alpha/index.txt|cut -f 9|awk '{a=a+$1} END {print a/359}' # 9531，这些也基本都有了
 
 
+### 数据上传
+    # GSA注册项目
+    http://bigd.big.ac.cn/gsub/submit/bioproject/new
