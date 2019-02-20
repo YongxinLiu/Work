@@ -12,7 +12,7 @@ SHELL:=/bin/bash
 	# make init # 建立分析所需子目录
 
 	# 设置任务最大运行任务/线程数，超过CPU数量效率反而会降低
-	p=32
+	p=45
 	
 	# 数据库
 	# Greengene 13 May database, fa for usearch format, udb for usearch index
@@ -59,13 +59,13 @@ SHELL:=/bin/bash
 
 	# Remove redundancy
 	# 最小序列频率默认为8，去除低丰度，增加计算速度，整lane的序列推荐1/1M，即上一步最后一行的数据量
-	minuniquesize=8
+	minuniquesize=300
 
 ## 1.7. **otu_pick 挑选OTU**
 
 	# Pick OTUs
 	# 可选97% cluster_otus 和 unoise3 ，默认unoise3
-	otu_method=unoise3
+	otu_method=cluster_otus
 	# OTU日志文件，记录从挑选至过滤为最终的过程
 	otu_log=result/otu.log
 
@@ -97,7 +97,7 @@ SHELL:=/bin/bash
 
 	# Creat OTUs table
 	# 有 usearch10 和 vsearch 两个软件可选，默认 usearch10 ，vsearch多线程会更快些
-	map_method=usearch10
+	map_method=vsearch
 	map_identify=0.97
 
 ## 1.11. otutab_filter OTU表筛选
@@ -165,7 +165,7 @@ SHELL:=/bin/bash
 	sub=""
 	doc=doc/${sub}
 	design=${wd}/${doc}/design.txt 
-	g1=groupID
+	g1=groupID2
 	# tail -n+2 ${doc}/design.txt|cut -f 5|sort|uniq|awk '{print "\""$1"\""}'|tr "\n" ","
 	# 绘图使用的实验组，顺序即图中显示顺序；为空时使用所有组和默认顺序
 	#g1_list='"Col","ThasKO2","ThahKO","ThadKO","ACT2KO"'
@@ -189,7 +189,7 @@ SHELL:=/bin/bash
 	# 差异统计按丰度过滤 abundance filter，如丰度按万分之一过滤，减少计算量，提高OTU的FDR值，根据组数量多少可选十万5或万分之5
 	abundance_thre=0.01
 	# 差异比较方法，默认是 edgeR ，可选 wilcox秩和检验、t.test 
-	compare_method="wilcox"
+	compare_method="edgeR"
 	# 显著性P值过滤 threshold of P-value，可选0.05, 0.01, 0.001。采用FDR校正，此参数意义不大，即使0.001也没有FDR < 0.2过滤严格
 	pvalue=0.05
 	# 统计检验方式FDR，常用0.05, 0.1, 0.2; FDR < 0.1使用9.5万次，且为菌群近期的Nature和Sciences; 0.2使用7.7万次
@@ -198,9 +198,9 @@ SHELL:=/bin/bash
 	FC=1.2
 
 	# 统计绘图和网页报告版本控制
-	species="species"
-	keyword="keyword"
-	version=${species}_${keyword}_${sub}_v1
+	species="multispecies"
+	keyword="evolve"
+	version=${species}_${keyword}_${sub}_v10
 
 
 ## 2.1 alpha_boxplot Alpha多样性指数箱线图 Alpha index in boxplot

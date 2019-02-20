@@ -416,3 +416,30 @@ sed -i 's/#//' doc/design.txt
 ### 数据上传
     # GSA注册项目
     http://bigd.big.ac.cn/gsub/submit/bioproject/new
+
+## Sanger测序验证菌 2019/1/30
+cd ~/medicago/AMF/wet/stock_sanger
+ls contig/*.txt|wc # 307条拼接好的序列，查看为fasta格式
+ls raw_27F_515R_1492R/*|cut -f 2 -d '/'|cut -f 1 -d '.'|uniq > list.txt
+wc -l list.txt # 测了有376条序列
+# cap3拼接
+mkdir -p cap3
+for file in `cat list.txt`; do
+    echo $file
+    format_seq2fasta.pl -i "raw_27F_515R_1492R/${file}.*.seq" -o ${file}.fa
+    cap3 ${file}.fa > /tmp/temp.txt
+    # 改名
+    sed -i "1 s/Contig1/${file}/" ${file}.fa.cap.contigs
+    # 移至目录
+    mv ${file}.fa.cap.contigs cap3/
+    # 删除其它临时文件
+    rm ${file}.*
+done
+ls cap3/*|wc # 329个文件
+# 序列合并
+cat cap3/* > 16s_full_length_list.fa
+format_fasta_1line.pl -i 16s_full_length_list.fa -o 16s_full_length_list1.fa # 还生成16s_full_length_list1.fa.tsv
+grep '>' -c 16s_full_length_list1.fa # 326条序列
+
+
+

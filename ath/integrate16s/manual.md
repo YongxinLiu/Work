@@ -506,10 +506,6 @@ tax_stackplot.sh -i `pwd`/result/tax/sum_ -m '"p","pc"' -n 10 \
     # 3T/index.Rmd - Supplement Table
     
 
-
-
-
-
 # 2.5 T
 
     2018/8/22 http://210.75.224.110/report/16Sv2/ath_2.5.3soil_edgeR_unoisev1/

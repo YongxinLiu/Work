@@ -56,11 +56,11 @@ tail -n 16 xiangeng_wilcoxon_main1/result/compare/diff.list.vennHTEJ_HIND_ELTEJ_
 tail -n 16 xiangeng_wilcoxon_main1/result/compare/diff.list.vennHTEJ_HIND_ELTEJ_LIND_E.xls.xls|cut -f 23|sort|uniq -c
 
 
-# 2019/1/15  测试nrt overlap IND enriched与选菌序列相似性
+# 2019/1/15 测试nrt overlap IND enriched与选菌序列相似性
 
 # 所有IND富集
 grep 'HTEJ_HIND_D_V3703HnCp6_ZH11HnCp6_D-specific_to_others' -A 1000 xiangeng_wilcoxon_main/result/compare/diff.list.vennHTEJ_HIND_DLTEJ_LIND_DV3703HnCp6_ZH11HnCp6_D.xls.xls |cut -f 1|grep 'OTU' > wet/otuid296.id
-wc -l wet/otuid296.id # 统计筛选部分数量109，重复运行上部确定一致性
+wc -l wet/otuid296.id # 统计筛选部分数量119，重复运行上部确定一致性
 
 # 所有TEJ富集
 grep 'HTEJ_HIND_D_V3703HnCp6_ZH11HnCp6_D-specific_to_others' -A 1000 xiangeng_wilcoxon_main/result/compare/diff.list.vennHTEJ_HIND_DLTEJ_LIND_DV3703HnCp6_ZH11HnCp6_D.xls.xls |cut -f 1|grep 'OTU' > wet/otuid296.id
@@ -119,6 +119,107 @@ awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print a[$1]}' temp/culture_otu.
 tail -n 16 xiangeng_wilcoxon_main1/result/compare/diff.list.vennHTEJ_HIND_ELTEJ_LIND_E.xls.xls|awk '$3>=97 && $4>=99' |wc -l
 # 与培养菌只有9个可培养的菌
 awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print a[$1]}' temp/culture_otu.blastn <(tail -n 16 xiangeng_wilcoxon_main1/result/compare/diff.list.vennHTEJ_HIND_ELTEJ_LIND_E.xls.xls) | awk '$3>=97 && $4>=99' |wc -l
+
+
+
+## 2019/1/27 IND和TEJ选菌与OTU关系详细，同 # 2019/1/15 测试nrt overlap IND enriched与选菌序列相似性
+
+# 比对stock有多少可培养, stock_1492r.fa 函数truncate：取反向，并单行，截取V5-V7为 stock_1492r_v57.fa
+cd ~/rice/xianGeng/select_bac
+makeblastdb -in stock_1492r_v57.fa -dbtype nucl
+# indica(IR24) isolate and japonica(Nipponbare) isolate
+makeblastdb -in stock_ind.fa -dbtype nucl
+makeblastdb -in stock_tej.fa -dbtype nucl
+
+# IND富集与nrt下调仍意两者共有的OTU分别为3，46，70，共119，见附表8。
+grep 'HTEJ_HIND_D_V3703HnCp6_ZH11HnCp6_D-specific_to_others' -A 1000 ../xiangeng_wilcoxon_main/result/compare/diff.list.vennHTEJ_HIND_DLTEJ_LIND_DV3703HnCp6_ZH11HnCp6_D.xls.xls |cut -f 1|grep 'OTU' > ../wet/otuid119.id
+wc -l ../wet/otuid119.id # 统计筛选部分数量119，确定一致性
+usearch10 -fastx_getseqs ../result/otu.fa -labels ../wet/otuid119.id -fastaout ../wet/otuid119.fa
+blastn -query ../wet/otuid119.fa -db stock_ind.fa -out indica_nrt_otu119.blastn -outfmt '6 qseqid sseqid pident qcovs length mismatch gapopen qstart qend sstart send evalue bitscore' -num_alignments 1 -evalue 1 -num_threads 9 
+awk '$3>=97' indica_nrt_otu119.blastn | wc -l # 30个stocks in All， IND(IR24) 28个
+
+# TEJ富集与nrt下调仍意两者共有的OTU分别为3，46，70，共119，见附表8。
+grep 'HTEJ_HIND_E_V3703HnCp6_ZH11HnCp6_D-specific_to_others' -A 1000 ../result/compare/diff.list.vennHTEJ_HIND_ELTEJ_LIND_EV3703HnCp6_ZH11HnCp6_D.xls.xls |cut -f 1|grep 'OTU' > ../wet/otuid16.id
+wc -l ../wet/otuid16.id # 统计筛选部分数量16，确定一致性
+usearch10 -fastx_getseqs ../result/otu.fa -labels ../wet/otuid16.id -fastaout ../wet/otuid16.fa
+blastn -query ../wet/otuid16.fa -db stock_tej.fa -out indica_nrt_otu16.blastn -outfmt '6 qseqid sseqid pident qcovs length mismatch gapopen qstart qend sstart send evalue bitscore' -num_alignments 1 -evalue 1 -num_threads 9 
+awk '$3>=97' indica_nrt_otu16.blastn|wc -l # 11个stock, TEJ(Nipponbare)10个stocks
+
+
+
+# 菌保与实验菌交叉验证
+
+cd ~/rice/xianGeng/select_bac
+
+# 1. Symcom使用菌
+# select_bac/水稻syncom第一批测序结果.xlsx 中有20个菌的编号，对应关系和正反向, 保存1492R的序列为 syncom_1492r.fa
+# 建立重组20个菌数据库
+makeblastdb -in syncom_1492r.fa -dbtype nucl
+# 函数truncate：取反向，并单行(存在冗余序列)，截取V5-V7为 syncom_1492r_v57.fa
+makeblastdb -in syncom_1492r_v57.fa -dbtype nucl
+
+
+# 2. Stock对应菌：提取对应菌库序列数据库
+# 提取对应菌保编号 syncom_stock.id，原始菌保序列 stock_1492r.fa
+usearch10 -fastx_getseqs stock_1492r.fa -labels syncom_stock.id -fastaout syncom_stock_1492r.fa
+# 函数truncate：取反向，并单行，截取V5-V7为 syncom_stock_1492r_v57.fa
+makeblastdb -in syncom_stock_1492r_v57.fa -dbtype nucl
+
+# 3. OTU序列
+usearch10 -fastx_getseqs ../result/otu.fa -labels otu.id -fastaout otu.fa
+makeblastdb -in otu.fa -dbtype nucl
+makeblastdb -in ../result/otu.fa -dbtype nucl
+
+# 4. Rice COTU序列，仅查看rice_700
+
+
+# 2vs1 比对序列菌保列表与实验是否一致（1492R）
+blastn -query syncom_stock_1492r.fa -db syncom_1492r.fa -out syncom_stock_1492r.blastn -outfmt '6 qseqid sseqid pident qcovs length mismatch gapopen qstart qend sstart send evalue bitscore' -num_alignments 20 -evalue 1 -num_threads 9 
+# 查看结果，发现I1/6/7/10，S20不是最佳匹配没有在结果中；放在上面num_alignments为20，又发现了I1/10正确；但I6和S20相差较多，且I7没有发现
+sort -k2,2 -k3,3nr syncom_stock_1492r.blastn|less -S 
+awk '$3>97' syncom_stock_1492r.blastn | wc -l
+
+# 2vs1 比对序列: Symcom使用菌与Stock对应菌是否一致（V5-V7）
+blastn -query syncom_stock_1492r_v57.fa -db syncom_1492r_v57.fa -out syncom_stock_1492r_v57.blastn -outfmt '6 qseqid sseqid pident qcovs length mismatch gapopen qstart qend sstart send evalue bitscore' -num_alignments 20 -evalue 1 -num_threads 9 
+# 查看结果，发现I1/6/7/10，S20不是最佳匹配没有在结果中；放在上面num_alignments为20，又发现了I1/10正确；但I6和S20相差较多，且I7没有发现
+sort -k2,2 -k3,3nr syncom_stock_1492r_v57.blastn|less -S 
+
+# 3vs2 OTU对菌库v5-v7
+blastn -query otu.fa -db syncom_stock_1492r_v57.fa -out otu.blastn -outfmt '6 qseqid sseqid pident qcovs length mismatch gapopen qstart qend sstart send evalue bitscore' -num_alignments 20 -evalue 1 -num_threads 9 
+# 查看结果，只有OTU_95与R2217a相似不大于97%
+sort -k2,2 -k3,3nr otu.blastn|less -S 
+
+# 3vs4 OTU对应COTU
+blastn -query otu.fa -db /mnt/bai/yongxin/culture/rice/result/culture_select.fasta -out otu_cotu.blastn -outfmt '6 qseqid sseqid pident qcovs length mismatch gapopen qstart qend sstart send evalue bitscore' -num_alignments 1000 -evalue 1 -num_threads 9 
+# 查看结果OTU95 100%对应rice_262，97.84%对应635，与rice700仅有77%相似
+less otu_cotu.blastn
+
+# 1vs3 实验菌vsOTU，鉴定错误的实验菌来自那些OTU?，找原因
+blastn -query syncom_1492r_v57.fa -db ../result/otu.fa -out syncom_otu.blastn -outfmt '6 qseqid sseqid pident qcovs length mismatch gapopen qstart qend sstart send evalue bitscore' -num_alignments 100 -evalue 1 -num_threads 9 
+# 查看结果OTU95 100%对应rice_262，97.84%对应635，与rice700仅有77%相似
+less syncom_otu.blastn
+
+# 2vs3 实验菌vsOTU，鉴定错误的实验菌来自那些OTU?，找原因
+blastn -query syncom_stock_1492r_v57.fa -db ../result/otu.fa -out syncom_stock_otu.blastn -outfmt '6 qseqid sseqid pident qcovs length mismatch gapopen qstart qend sstart send evalue bitscore' -num_alignments 100 -evalue 1 -num_threads 9 
+# 查看结果OTU95 100%对应rice_262，97.84%对应635，与rice700仅有77%相似
+less syncom_stock_otu.blastn
+
+
+# 函数truncate，快速截取V7-V7, 799-1192
+	# 设置起始文件名
+	i=stock_1492r
+	# 取反向互补
+	revseq -sequence ${i}.fa -outseq /tmp/seq_rc.fa -tag N
+	# 转换为单行
+	format_fasta_1line.pl -i /tmp/seq_rc.fa -o /tmp/seq_rc1.fa
+	# 检查序列冗余度，最好没有，有就存在重复序列
+	grep -v '>' /tmp/seq_rc1.fa|sort|uniq -c|awk '$1>1'
+	# 长度分布，正常为800-1200
+	grep -v '>' /tmp/seq_rc1.fa|awk '{print length($0)}'|sort -n|uniq -c
+	# 正向引物如799F AACMGGATTAGATACCCKG ，检索GGATTAGATACCC位于第3行前方>250bp
+	cutadapt -g AACMGGATTAGATACCCKG -e 0.2 /tmp/seq_rc1.fa -o /tmp/seq_rc1.P5.fa
+	# 反向时先切反向引物，1193R ACGTCATCCCCACCTTCC RC GGAAGGTGGGGATGACGT，正常为1492R GGTTACCTTGTTACGACTT找不到，改用1391R GACGGGCGGTGTGTRCA F TGYACACACCGCCCGTC
+	cutadapt -a GGAAGGTGGGGATGACGT -e 0.2 /tmp/seq_rc1.P5.fa -o ${i}_v57.fa
 
 
 # 图5 菌保
@@ -776,7 +877,7 @@ grep -P -v '^\s*#' script/compare_sub.R > fig1/script/compare.R
 	alpha_boxplot.sh -i ko.txt -m '"K02568","K02567","K00363","K10535","K00362"' \
 	-d design.txt -A group -B '"HnZH11","HnNrt"' \
 	-o ./ -h 2 -w 2.5 -t TRUE -n TRUE -U 1000000
-
+    K02567 NapA;K02568 NapB;K00363 NirD
 
     # 2018/11/14 完整KO表
 	cd ~/rice/xianGeng/meta
@@ -1092,4 +1193,92 @@ compare_OTU_ref.sh -i `pwd`/result/otutab.txt -c `pwd`/doc/compare_soil.txt -m "
     tail -n 6 fig1/ST/07.vennHTEJ_HIND_DLTEJ_LIND_DA50LnCp7_A56LnCp7_D_HNsoil.txt | cut -f 1 |sort|uniq -c # IND共有的6个5个富含，1个不显著
     awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$6} NR>FNR{print a[$1],$0}' result/compare/HIND-HSoil1_all.txt fig1/ST/07.vennHTEJ_HIND_DLTEJ_LIND_DV3703HnCp6_ZH11HnCp6_D.txt > fig1/ST/07.vennHTEJ_HIND_DLTEJ_LIND_DV3703HnCp6_ZH11HnCp6_D_HNsoil.txt
     tail -n 70 fig1/ST/07.vennHTEJ_HIND_DLTEJ_LIND_DV3703HnCp6_ZH11HnCp6_D_HNsoil.txt | cut -f 1 | sort | uniq -c # TEJ共有的37个IND富集，27个土壤富集，6个不显著
- 
+
+# 2019/1/30 水稻序列拼接
+
+cd ~/rice/xianGeng/wet
+cp -r /mnt/bai/haoran/20190111_16sBlast/seq ./
+
+# 安装cap3 在线版http://doua.prabi.fr/software/cap3 本地版 http://seq.cs.iastate.edu/cap3.html 
+conda install cap3
+
+# 制作输入fa文件，将同一序列来源的多条测序结果合并，可以手动制作，也可以使用perl脚本自动批量
+file=RiceP14C02
+format_seq2fasta.pl -i "seq/${file}_*.seq" -o ${file}.fa
+cap3 ${file}.fa # 拼接结果在屏幕上，且保存了一系列文件，*.fa.cap.contigs即可
+sed -i "1 s/Contig1/${file}/" ${file}.fa.cap.contigs
+
+# 批处理拼接
+mkdir -p contigs
+for file in `cut -f 2 16s_full_length_list.txt`; do
+    echo $file
+    format_seq2fasta.pl -i "seq/${file}_*.seq" -o ${file}.fa
+    cap3 ${file}.fa > /temp/temp.txt
+    # 改名
+    sed -i "1 s/Contig1/${file}/" ${file}.fa.cap.contigs
+    # 移至目录
+    mv ${file}.fa.cap.contigs contigs/
+    # 删除其它临时文件
+    rm ${file}.*
+done
+
+# 序列合并
+cat contigs/* > 16s_full_length_list.fa
+format_fasta_1line.pl -i 16s_full_length_list.fa -o 16s_full_length_list1.fa # 还生成16s_full_length_list1.fa.tsv
+# 追加菌ID
+awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$2]=$1} NR>FNR{print a[$1],$0}' 16s_full_length_list.txt 16s_full_length_list1.fa.tsv > 16s_full_length_list2.fa.tsv
+# 追加到菌保表TableS11
+sed -i 's/_//g' 16s_full_length_list2.fa.tsv
+awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$3} NR>FNR{print $0,a[$3]}' 16s_full_length_list2.fa.tsv tableS11_1492.txt > tableS11_full.txt
+# 有些ID没有对应上，统计数量
+cut -f 11 tableS11_full.txt|sort|uniq -c|less # 99个空值
+
+# 2019/2/18 根据编辑部分意见修改 统计、图点、具体P值和数值
+
+# Talbe S10. 补充 13512 信息 CFU，原始数据：culture/rice/result/culture_bacteria.xls
+# 添加每个CFU的物种注释：门、目、属
+cd ~/rice/xianGeng/fig1/190218/table_raw
+awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$3"\t"$5"\t"$7} NR>FNR{print $0,a[$4]}' tableS10_cotu.txt tableS10_cfu.txt > tableS10_cfu_anno.txt
+
+# 与Indica enriched菌多少和N相关，3compare_en.rmd ### Stat 141 Indica commmon
+awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$5} NR>FNR{print $1,a[$1]}' result/compare/database.txt fig1/ST/S07.otu_TEJ_common_faprotax.txt > fig1/ST/S07.otu_TEJ_common_faprotax_mean.txt
+
+
+
+# 2019/2/20 检验和整理文件和最终代码，提交github
+
+cd ~/github
+git clone git@github.com:YongxinLiu/Zhang2019NBT.git
+cd ~/github/Zhang2019NBT
+mkdir -p data fig1 fig2 fig3 fig4 fig5 fig6 script
+
+# 通用数据
+cp ~/rice/xianGeng/ASV2/fig/design.txt data/
+cp ~/rice/xianGeng/fig1/ST/02.otu.fa data/otu.fa
+cp ~/rice/xianGeng/fig1/ST/02.otutab.txt data/otutab.txt
+cp /mnt/bai/yongxin/rice/xianGeng/result/taxonomy_8.txt data/
+cp /mnt/bai/yongxin/rice/xianGeng/result/tax/sum_pc.txt data/
+cp /mnt/bai/yongxin/rice/xianGeng/fig1/data/diff.list data/
+
+# 脚本
+cp ~/rice/xianGeng/fig1/script/stat_plot_functions.R script/
+cp ~/rice/xianGeng/fig1/script/compare.R script/
+
+# 图1.
+cp data/TableS1varieties_geo.txt fig1/varieties_geo.txt
+cp ~/rice/xianGeng/ASV2/fig/data/bray_curtis.txt fig1/
+cp ~/rice/xianGeng/ASV2/fig/data/alpha.txt fig1/
+
+# 图2.
+cp /mnt/bai/yongxin/rice/xianGeng/result/tax/sum_f.txt fig2/
+cp /mnt/bai/yongxin/rice/xianGeng/xiangeng0wilcox/result/compare_f/HTEJ-HIND_all.txt fig2/f_HTEJ-HIND_all.txt 
+
+# 图3.
+cp ~/rice/xianGeng/fig1/data/HIND-HTEJ_all.txt data/
+cp ~/rice/xianGeng/fig1/data/LIND-LTEJ_all.txt data/
+
+
+# push
+git add .
+git commit -m "190220"
+git push origin master

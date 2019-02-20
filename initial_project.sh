@@ -18,8 +18,9 @@
 # 2018/12/13 culture/ath/leaf ath分菌起始叶样品比较分离菌 leaf
 # 2018/12/31 rice/timecourse/v2 水稻时间序列基于新数据格式和新版流程分析
 # 2019/1/21 ath/jt.HuangAC/coevolve 回答审稿人是否
+# 2019/2/1 ath/SA 水杨酸定量课题，2017年7月，
 
-wd=ath/jt.HuangAC/coevolve
+wd=ath/SA
 # 创建github目录，用于备份流程、文档
 cd 
 mkdir -p ~/github/Work/$wd
@@ -37,6 +38,6 @@ cd ~/$wd
 cd ~/github/Work
 git add . 
 # 提交修改
-git commit -m "2018/12/7" 
+git commit -m "2018/1/21" 
 # 推送到github
 git push origin master

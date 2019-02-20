@@ -6,14 +6,11 @@
 	make beta_calc # 生成OTU表、过滤、物种注释、建库和多样性统计
 	# 清除统计绘图标记(重分析时使用)
 	rm -rf alpha_boxplot 
-    rm DA_compare
 	make DA_compare # 绘制alpha、beta、taxonomy和差异OTU比较
-    cat result/compare/summary.txt
 	#rm -f plot_volcano # 删除OTU差异比较可化标记
 	make plot_manhattan # 绘制差异比较的火山图、热图、曼哈顿图
-	rm plot_venn
-    make plot_venn # 绘制OTU差异共有/特有维恩图
-	#make DA_compare_tax # 高分类级差异比较，维恩图绘制，2为reads count负二项分布统计
+	make plot_venn # 绘制OTU差异共有/特有维恩图
+	make DA_compare_tax # 高分类级差异比较，维恩图绘制，2为reads count负二项分布统计
 	make rmd # 生成网页报告，必须依赖的只有alpha, beta, taxonomy
 
 	# 提取脚本
@@ -30,7 +27,7 @@
 	## 0.1 准备流程配置文件
 
 	# 设置工作目录
-	wd=rice/miniCore
+	wd=ath/SA
 	# 创建环境代码见~/github/Work/initial_project.sh
 
 	## 准备实验设计
@@ -41,8 +38,12 @@
 
 	# 保存模板中basic页中3. 测序文库列表library为doc/library.txt
 	# 按library中第二列index准备测序文库，如果压缩要添加.gz，并用gunzip解压
-	awk 'BEGIN{OFS=FS="\t"}{system("ln -s /mnt/bai/yongxin/seq/181009.lane14/"$4"_1.fq.gz seq/"$1"_1.fq.gz");}' <(tail -n+2 doc/library.txt )
-	awk 'BEGIN{OFS=FS="\t"}{system("ln -s /mnt/bai/yongxin/seq/181009.lane14/"$4"_2.fq.gz seq/"$1"_2.fq.gz");}' <(tail -n+2 doc/library.txt )
+	awk 'BEGIN{OFS=FS="\t"}{system("ln -s /mnt/bai/yongxin/seq/181009.lane14/"$4"_1.fq.gz seq/"$1"_1.fq.gz");}' <(tail -n+2 doc/library.txt)
+	awk 'BEGIN{OFS=FS="\t"}{system("ln -s /mnt/bai/yongxin/seq/181009.lane14/"$4"_2.fq.gz seq/"$1"_2.fq.gz");}' <(tail -n+2 doc/library.txt)
+~/ath/SA/seq]$ln ~/seq/novagene/L170831_BacSA50-TTAGGC_*.gz ./
+
+rename 's/L170831_BacSA50-TTAGGC/L1/' *.gz
+
     # 检查数据链接，全红为错误，绿色为正常
     ll seq/*
 	# 如果压缩文件，要强制解压链接
@@ -67,35 +68,7 @@
 	# Prepare raw data
 	#ln ~/seq/180210.lane9.ath3T/Clean/CWHPEPI00001683/lane_* ./
 	#cp ~/ath/jt.HuangAC/batch3/doc/library.txt doc/
-	# 数据准备CP多物种数据： ath3T + Ler + rice + wheat
-    # 1. 拟南芥三萜最新版 ~/ath/integrate16s/ 包括2.5和3T，引用原为~/ath/jt.HuangAC/batch3all/
-    # 1.1 三萜
-    id=ath3t
-    wd=ath/jt.HuangAC/batch3all
-    cp ~/${wd}/doc/design.txt doc/design_${id}.txt
-    ln ~/${wd}/temp/seqs_usearch.fa temp/seq_${id}.fa
-    # 2. 水稻
-    # 2.1 水稻时间序列CP ~/rice/timecourse/v2
-    id=riceTC
-    wd=rice/timecourse/v2
-    cp ~/${wd}/doc/design.txt doc/design_${id}.txt
-    ln ~/${wd}/temp/filtered.fa temp/seq_${id}.fa
-    cut -f 5 doc/design_${id}.txt |grep A50Cp|uniq # 统计组类别
-    # 3. 小麦
-    # 3.1 小麦2016 CP 时间序列
-    id=wheatTC
-    wd=wheat/profile
-    cp ~/${wd}/doc/design.txt doc/design_${id}.txt
-    ln ~/${wd}/temp/seqs_usearch.fa temp/seq_${id}.fa
-    cut -f 5 doc/design_${id}.txt |grep -v "soil"|grep 'XY54'|grep 'L1' | uniq # 统计组类别
-
-
-    # 合并
-    cat doc/design_* > doc/design_raw.txt # 手动修改
-    cut -f 1 doc/design.txt |sort|uniq -d
-    cat temp/seq_* > temp/filtered.fa
-
-
+	
 	# 检查数据质量，转换为33
 	#determine_phred-score.pl seq/lane_1.fq.gz
 	# 如果为64，改原始数据为33
@@ -299,32 +272,23 @@
 
 # 4. 个性分析
 
-## 4.1. 维恩比较三萜多基因型共有与水稻、小麦overlap
-cp result/compare/diff.list result/compare/diff.list.bak
-grep 'OTU' multispecies_evolve_otu__v2/result/compare/diff.list.vennb3ACT2KO_b3Col_Db3ThadKO_b3Col_Db3ThahKO_b3Col_Db3ThasKO2_b3Col_D.xls.xls | cut -f 1 | sed 's/$/\tAll3T_D/' >>result/compare/diff.list
-#grep 'OTU' multispecies_evolve_otu__v2/result/compare/diff.list.vennb3ACT2KO_b3Col_Db3ThadKO_b3Col_Db3ThahKO_b3Col_Db3ThasKO2_b3Col_D.xls.xls |tail -n 9| cut -f 1 | sed 's/$/\tCommon3T_D/'>>result/compare/diff.list
-grep 'OTU' multispecies_evolve_otu__v2/result/compare/diff.list.vennb3ACT2KO_b3Col_Eb3ThadKO_b3Col_Eb3ThahKO_b3Col_Eb3ThasKO2_b3Col_E.xls.xls | cut -f 1 | sed 's/$/\tAll3T_E/' >>result/compare/diff.list
-#grep 'OTU' multispecies_evolve_otu__v2/result/compare/diff.list.vennb3ACT2KO_b3Col_Eb3ThadKO_b3Col_Eb3ThahKO_b3Col_Eb3ThasKO2_b3Col_E.xls.xls |tail -n 28| cut -f 1 | sed 's/$/\tCommon3T_E/'>>result/compare/diff.list
-sed -i '/^\t/d' result/compare/diff.list
+## 4.1. 分蘖与菌相关性
 
-# 注释共有OTU的物种
-awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print $0,a[$1]}' result/taxonomy_8.txt multispecies_evolve__v8/result/compare/diff.list.vennRiceCp35_b3Col_DWheatD35L1_b3Col_DAll3T_D.xls.xls > multispecies_evolve__v8/RiceCp35_b3Col_DWheatD35L1_b3Col_DAll3T_D.txt
-awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print $0,a[$1]}' result/taxonomy_8.txt multispecies_evolve__v8/result/compare/diff.list.vennRiceCp35_b3Col_EWheatD35L1_b3Col_EAll3T_E.xls.xls > multispecies_evolve__v8/RiceCp35_b3Col_EWheatD35L1_b3Col_EAll3T_E.txt
+	# 准备相关输入文件
+	cd ~/rice/miniCore/180718
+	# 硬链数据文件，保持可同步修改和可备份
+	# miniCore分蘖数据整理
+	ln ~/rice/xianGeng/doc/phenotype_sample_raw.txt doc/
+	# LN otu表和实验设计
+	mkdir -p data
+	cp ~/rice/miniCore/180319/LN/otutab.txt data/LN_otutab.txt
+	cp ~/rice/miniCore/180319/doc/design.txt doc/design_miniCore.txt
+	mkdir -p data/cor/LN
+	# 物种注释
+	cp ~/rice/miniCore/180319/temp/otus_no_host.tax data/
 
-
-## 4.2 属水平差异分析和维恩图
-cp result/compare_g/diff.list result/compare_g/diff.list.bak
-grep -v -P '^\d' result/compare_g/diff.list.vennb3ACT2KO_b3Col_Db3ThadKO_b3Col_Db3ThahKO_b3Col_Db3ThasKO_b3Col_D.xls.xls|grep -P -v '^b3'|grep -v -P '^\t'|grep -v -P '^$' | cut -f 1 | sed 's/$/\tAll3T_D/' >>result/compare_g/diff.list
-grep -v -P '^\d' result/compare_g/diff.list.vennb3ACT2KO_b3Col_Eb3ThadKO_b3Col_Eb3ThahKO_b3Col_Eb3ThasKO_b3Col_E.xls.xls|grep -P -v '^b3'|grep -v -P '^\t'|grep -v -P '^$' | cut -f 1 | sed 's/$/\tAll3T_E/' >>result/compare_g/diff.list
-sed -i '/^\t/d' result/compare_g/diff.list
-make DA_compare_tax4
-
-## 4.3 筛选拟南芥Col中高表达0.01%，再看多少是拟南芥相对水稻、小麦特异的；多少被三萜调控
-
-# script/compare_athCol.R 输出 result/compare/athCol.txt，共768个OTU
-awk '{a=a+$3} END{print a}' result/compare/athCol.txt # 72.31%
-# 筛选diff.list只在拟南芥中高表达的
-awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=1} NR>FNR{print $0,a[$1]}' result/compare/athCol.txt result/compare/diff.list | awk '$3==1' | less | grep -P 'RiceCp35_b3Col|WheatD35L1_b3Col|All3T' > result/compare/diff.list.col.txt
-# 在线Venn比较，看到了显著的趋势，本地绘制并注释OTU
-cp result/compare/database.txt result/compare/database.txt.bak
-awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$2} NR>FNR{print $0,a[$1]}' result/taxonomy_2.txt result/compare/database.txt.bak | cut -f 1-7,10,13 > result/compare/database.txt
+	# 统计见script/cor_tiller_LN.Rmd
+	# 相关系数，添加物种注释
+	awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$4} NR>FNR{print $0,a[$1]}' result/otus_no_host.tax data/cor/LN/otu_mean_pheno_cor.r.txt | less -S > result/cor/LN/otu_mean_pheno_cor.r.txt.tax
+	# 再添加可培养相关菌
+	awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print $0,a[$1]}' result/39culture/otu.txt data/cor/LN/otu_mean_pheno_cor.r.txt.tax | less -S > data/cor/LN/otu_mean_pheno_cor.r.txt.tax
