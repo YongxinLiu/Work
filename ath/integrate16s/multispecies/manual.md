@@ -367,6 +367,7 @@ mkdir -p doc/coevolve
 cp ~/ath/jt.HuangAC/coevolve/doc/design.txt doc/coevolve/
 cp ~/ath/jt.HuangAC/coevolve/doc/compare.txt doc/coevolve/
 cp ~/ath/jt.HuangAC/coevolve/doc/venn.txt doc/coevolve/
+# 2019/2/22 cp doc/coevolve/compare.txt doc/coevolve/compare.txt.bak
 # 修改sub版本为 coevolve, 实验组为groupID2
 make DA_compare
 make plot_venn
@@ -374,17 +375,17 @@ make plot_venn
 grep 'OTU' result/compare/diff.list.vennb3ACT2KO_b3Col_Db3ThadKO_b3Col_Db3ThahKO_b3Col_Db3ThasKO_b3Col_D.xls.xls | cut -f 1 | sed 's/$/\tAll3T_D/' >>result/compare/diff.list
 grep 'OTU' result/compare/diff.list.vennb3ACT2KO_b3Col_Eb3ThadKO_b3Col_Eb3ThahKO_b3Col_Eb3ThasKO_b3Col_E.xls.xls | cut -f 1 | sed 's/$/\tAll3T_E/' >>result/compare/diff.list
 sed -i '/^\t/d' result/compare/diff.list
-# 筛选拟南芥中高丰度的OTU
-cp ~/ath/jt.HuangAC/coevolve/script/compare_athCol.R script/compare_athCol.R
-# script/compare_athCol.R 输出 result/compare/athCol.txt，共768个OTU，新版本为773个
-awk '{a=a+$3} END{print a}' result/compare/athCol.txt # 72.31%
-# 筛选diff.list只在拟南芥中高表达的
-awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=1} NR>FNR{print $0,a[$1]}' result/compare/athCol.txt result/compare/diff.list | awk '$3==1' | less | grep -P 'RiceCp35_b3Col|WheatD35L1_b3Col|All3T' > result/compare/diff.list.col.txt
-mv result/compare/diff.list result/compare/diff.list190211
-cp result/compare/diff.list.col.txt result/compare/diff.list
-# 在线Venn比较，看到了显著的趋势，本地绘制并注释OTU
-cp result/compare/database.txt result/compare/database.txt.bak
-awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$2} NR>FNR{print $0,a[$1]}' result/taxonomy_2.txt result/compare/database.txt.bak | cut -f 1-7,10,13 > result/compare/database.txt
+## 筛选拟南芥中高丰度的OTU
+#cp ~/ath/jt.HuangAC/coevolve/script/compare_athCol.R script/compare_athCol.R
+## script/compare_athCol.R 输出 result/compare/athCol.txt，共768个OTU，新版本为773个
+#awk '{a=a+$3} END{print a}' result/compare/athCol.txt # 72.31%
+## 筛选diff.list只在拟南芥中高表达的
+#awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=1} NR>FNR{print $0,a[$1]}' result/compare/athCol.txt result/compare/diff.list | awk '$3==1' | less | grep -P 'RiceCp35_b3Col|WheatD35L1_b3Col|All3T' > result/compare/diff.list.col.txt
+#mv result/compare/diff.list result/compare/diff.list190211
+#cp result/compare/diff.list.col.txt result/compare/diff.list
+## 在线Venn比较，看到了显著的趋势，本地绘制并注释OTU
+#cp result/compare/database.txt result/compare/database.txt.bak
+#awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$2} NR>FNR{print $0,a[$1]}' result/taxonomy_2.txt result/compare/database.txt.bak | cut -f 1-7,10,13 > result/compare/database.txt
 # 重新绘图
 rm plot_venn
 make plot_venn
@@ -448,4 +449,29 @@ http://210.75.224.110/report/16Sv2/multispecies_evolve_coevolve_v2
         -o fig/S24/"$1"-"$2" -w 7 -h 5 -C FALSE");}' \
         <(grep -v '^$' `pwd`/doc/"3.1"/compare.txt)
 
-## 
+## 2019/2/21 重新提取 design, otutab, otu.fa和taxonomy
+# fig/index.Rmd ### Metadata, OTU table and taxonomy
+
+# 2019/2/26 数据上传基因组所，拟南芥，水稻，小麦
+# 样品列表见fig/table/metadata.txt
+mkdir -p GSA
+wc -l fig/table/metadata.txt
+grep 'ath3t' fig/table/metadata.txt|wc -l
+grep 'riceTC' fig/table/metadata.txt|wc -l
+grep 'wheat' fig/table/metadata.txt|wc -l
+# 共140个样品，分别为108，12和20
+	# 1. 拟南芥3t
+    # 找原始数据没找到，找上次提交NCBI目录也没找到，找到原始数据来自lane9
+    # 从头目录中分析
+	for i in `grep 'minicore' fig1/ST/02.design.txt|cut -f 1`; do
+        ln /mnt/bai/yongxin/rice/miniCore/clean_data/sample/${i}.fq.gz seq/submitGSA/ ;done
+
+	# 2. 时间序列己上传，见 https://www.ncbi.nlm.nih.gov/bioproject/?term=PRJNA435900
+	for i in `grep 'nrt' fig1/ST/02.design.txt|cut -f 1`; do
+        ln /mnt/bai/yongxin/rice/zjj.nitrogen/180116/clean_data/sample/${i}.fq.gz seq/submitGSA/ ; done
+    md5sum seq/submitGSA/* > seq/submitGSA_md5.txt
+    sed -i 's/seq\/submitGSA\///' seq/submitGSA_md5.txt
+    sed 's/.fq.gz//' seq/submitGSA_md5.txt > seq/temp.txt
+    paste seq/temp.txt seq/submitGSA_md5.txt |sed 's/  /\t/g'| cut -f 2-4| less > seq/temp1.txt
+    awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print $0,a[$1]}' seq/temp1.txt fig1/metadata.txt > fig1/metadata_md5.txt 
+

@@ -161,15 +161,16 @@ SHELL:=/bin/bash
 
 	# 绘图通用参数
 	# 实验设计文件位置，全局，其它图默认调此变量，也可单独修改；并选择表中的组列和具体分组
-	# 设置子版本目录，3.1为比较三萜3批筛选结果；soil为比较三种土壤
-	sub="soil"
+	# 设置子版本目录，3.1为比较三萜3批筛选结果；soil为比较三种土壤, coevolve 为比较水稻、小麦35天
+	sub="coevolve"
 	doc=doc/${sub}
 	design=${wd}/${doc}/design.txt 
-	g1=groupID
+	g1=groupID2
 	# tail -n+2 ${doc}/design.txt|cut -f 5|sort|uniq|awk '{print "\""$1"\""}'|tr "\n" ","
 	# 绘图使用的实验组，顺序即图中显示顺序；为空时使用所有组和默认顺序
 	#g1_list='"Col","ThasKO2","ThahKO","ThadKO","ACT2KO"'
 	# 从实验设计比较组中提取组名，自动获得目录组 (推荐)
+	# cat doc/${sub}/compare.txt|tr '\t' '\n'|sort|uniq|awk '{print "\""$1"\""}'|tr "\n" ","|sed 's/,$//'
 	g1_list=`cat doc/${sub}/compare.txt|tr '\t' '\n'|sort|uniq|awk '{print "\""$$1"\""}'|tr "\n" ","|sed 's/,$$//'`
     # 从实验设计提取组(可选)
 	# g1_list=`tail -n+2 ${doc}/design.txt|cut -f 5|sort|uniq|awk '{print "\""$$1"\""}'|tr "\n" ","|sed 's/,$$//'`

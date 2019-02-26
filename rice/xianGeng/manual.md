@@ -874,13 +874,14 @@ grep -P -v '^\s*#' script/compare_sub.R > fig1/script/compare.R
 	awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$2} NR>FNR{print $0,a[$1]}' KO_description.txt ko.txt > ko.anno
 
 	# 绘制单个KO和箱线图
+    cd ~/rice/xianGeng/meta/nitrogen/
 	alpha_boxplot.sh -i ko.txt -m '"K02568","K02567","K00363","K10535","K00362"' \
 	-d design.txt -A group -B '"HnZH11","HnNrt"' \
 	-o ./ -h 2 -w 2.5 -t TRUE -n TRUE -U 1000000
     K02567 NapA;K02568 NapB;K00363 NirD
 
     # 2018/11/14 完整KO表
-	cd ~/rice/xianGeng/meta
+	cd ~/rice/xianGeng/meta/compare/
     # 制作kotab.txt, design.txt, compare.txt
     rm -r compare
     compare.sh -i kotab.txt -d design.txt -c compare.txt \
@@ -1078,7 +1079,7 @@ alpha_rare_sample.R
 	2.菌保图：树吗？
 	~/culture/rice/makefile.man 中 	# 绘制物种树，不带丰度和可培养 ，绘制进化树，无论科62，目22，都不能确保位于树的同一分枝上。
 	改为graphlan绘制物种树，并添加标签，保存为fig1/graphlan.ai/pdf
-
+	# graphlan绘制培养菌对应样本比例 /mnt/bai/yongxin/culture/jingmei171208.rice.med.soy/makefile.16s中sub分别为A50和IR24绘制；
 
 	附图
 
@@ -1253,16 +1254,28 @@ cd ~/github/Zhang2019NBT
 mkdir -p data fig1 fig2 fig3 fig4 fig5 fig6 script
 
 # 通用数据
-cp ~/rice/xianGeng/ASV2/fig/design.txt data/
+# cp ~/rice/xianGeng/ASV2/fig/design.txt data/
+cp ~/rice/xianGeng/fig1/ST/02.design.txt data/design.txt
 cp ~/rice/xianGeng/fig1/ST/02.otu.fa data/otu.fa
 cp ~/rice/xianGeng/fig1/ST/02.otutab.txt data/otutab.txt
-cp /mnt/bai/yongxin/rice/xianGeng/result/taxonomy_8.txt data/
-cp /mnt/bai/yongxin/rice/xianGeng/result/tax/sum_pc.txt data/
-cp /mnt/bai/yongxin/rice/xianGeng/fig1/data/diff.list data/
+cp ~/rice/xianGeng/result/taxonomy_8.txt data/
+cp ~/rice/xianGeng/result/faprotax/element_tab.txt data/
+cp ~/rice/xianGeng/result/tax/sum_pc.txt data/
+cp ~/rice/xianGeng/fig1/data/diff.list data/
+cp ~/rice/xianGeng/fig1/data/HIND-HTEJ_all.txt data/
+cp ~/rice/xianGeng/fig1/data/LIND-LTEJ_all.txt data/
+cat data/?IND-?TEJ_all.txt | grep 'Enriched' | cut -f 1 | sort | uniq -d > data/otu_IND_common_specific.txt
+cat data/?IND-?TEJ_all.txt | grep 'Depleted' | cut -f 1 | sort | uniq -d > data/otu_TEJ_common_specific.txt
+cp ~/rice/xianGeng/result/faprotax/report.mat data/faprotax_report.mat
+# 不考虑地块，亚种与土比较
+cp ~/rice/xianGeng/fig1/data/*Soil* data/
+# 基于OTU表群体丰度均值和物种注释
+cp ~/rice/xianGeng/result//41culture/otu_mean_tax.txt data/
 
 # 脚本
 cp ~/rice/xianGeng/fig1/script/stat_plot_functions.R script/
 cp ~/rice/xianGeng/fig1/script/compare.R script/
+cp ~/rice/xianGeng/fig1/script/alpha_boxplot_far.R script/
 
 # 图1.
 cp data/TableS1varieties_geo.txt fig1/varieties_geo.txt
@@ -1274,11 +1287,28 @@ cp /mnt/bai/yongxin/rice/xianGeng/result/tax/sum_f.txt fig2/
 cp /mnt/bai/yongxin/rice/xianGeng/xiangeng0wilcox/result/compare_f/HTEJ-HIND_all.txt fig2/f_HTEJ-HIND_all.txt 
 
 # 图3.
-cp ~/rice/xianGeng/fig1/data/HIND-HTEJ_all.txt data/
-cp ~/rice/xianGeng/fig1/data/LIND-LTEJ_all.txt data/
+# 筛选用于分析和可视化的通路
+cp ~/rice/xianGeng/doc/faprotax.id fig3/
+# IND/TEJ在LN和HN中共同变化的通路
+cp ~/rice/xianGeng/result/compare_far/???.list fig3/
+
+# 图4
+cp ~/rice/xianGeng/result/nitrogen_cor/good_snp.geno fig4/
+cp ~/rice/xianGeng/fig1/4nrt/venn_nrt_indiaHL.txt fig4/
+cp ~/rice/xianGeng/fig1/4nrt/venn_NRTsnp_indiaHL.txt fig4/
+cp ~/rice/xianGeng/meta/nitrogen/ko.txt fig4/
+cp ~/rice/xianGeng/meta/nitrogen/design.txt ~/github/Zhang2019NBT/fig4/meta_design.txt
+
+# 图5.
+
+
+# 图6.
+cp ~/rice/xianGeng/wet/Xu-NbSycomFunctionData.txt fig6/Sycom.txt
 
 
 # push
 git add .
-git commit -m "190220"
+git commit -m "final submit"
 git push origin master
+
+
