@@ -454,21 +454,42 @@ http://210.75.224.110/report/16Sv2/multispecies_evolve_coevolve_v2
 
 # 2019/2/26 数据上传基因组所，拟南芥，水稻，小麦
 # 样品列表见fig/table/metadata.txt
-mkdir -p GSA
+mkdir -p seq/submitGSA/
 wc -l fig/table/metadata.txt
 grep 'ath3t' fig/table/metadata.txt|wc -l
 grep 'riceTC' fig/table/metadata.txt|wc -l
 grep 'wheat' fig/table/metadata.txt|wc -l
 # 共140个样品，分别为108，12和20
-	# 1. 拟南芥3t
-    # 找原始数据没找到，找上次提交NCBI目录也没找到，找到原始数据来自lane9
-    # 从头目录中分析
-	for i in `grep 'minicore' fig1/ST/02.design.txt|cut -f 1`; do
-        ln /mnt/bai/yongxin/rice/miniCore/clean_data/sample/${i}.fq.gz seq/submitGSA/ ;done
+     1. 拟南芥108个样品
+    for i in `grep 'ath3t' fig/table/metadata.txt|cut -f 1`; do
+        ln /mnt/bai/yongxin/ath/jt.HuangAC/batch3/clean_data/submit/${i}.fq.gz seq/submitGSA/ ;done
+	 2. 时间序列己上传，见 https://www.ncbi.nlm.nih.gov/bioproject/?term=PRJNA435900，新版本整理数据 ~/rice/timecourse/v2/seq/merge
+	for i in `grep 'riceTC' fig/table/metadata.txt|cut -f 1`; do
+        ln /mnt/bai/yongxin/rice/timecourse/v2/seq/merge/${i}.fq.gz seq/submitGSA/ ; done
+    # 3. 小麦挑选20个样品
+	for i in `grep 'wheat' fig/table/metadata.txt|cut -f 1`; do
+        cp /mnt/bai/qinyuan/wheat/profile/seq/merge/${i}.fq seq/submitGSA/ ; done
+    pigz seq/submitGSA/*.fq
+    mv seq/submitGSA/ seq/submitGSAold/
 
-	# 2. 时间序列己上传，见 https://www.ncbi.nlm.nih.gov/bioproject/?term=PRJNA435900
-	for i in `grep 'nrt' fig1/ST/02.design.txt|cut -f 1`; do
-        ln /mnt/bai/yongxin/rice/zjj.nitrogen/180116/clean_data/sample/${i}.fq.gz seq/submitGSA/ ; done
+# 拟南芥旧版本的没有去掉引物，重新按标准流程重跑，并同样标准处理水稻和小麦
+mkdir -p seq/submitGSA/
+	# 1. 拟南芥3t
+    # 上次提交NCBI目录/mnt/bai/yongxin/ath/jt.HuangAC/batch3/clean_data/submit/
+    # 找到原始数据来自lane9从头分析~/seq/L180210，详细excel work/seq/SeqLibraryList.xlsx
+    # 在~/github/Work/initial_project.sh新建项目
+    # ~/data/temp/3tb3 数据来自lane9姜婷三萜第三批
+
+    # 2. 水稻时间序列 ~/rice/timecourse/v2
+	for i in `grep 'riceTC' fig/table/metadata.txt|cut -f 1`; do
+        ln /mnt/bai/yongxin/rice/timecourse/v2/seq/sample/${i}*.fq.gz seq/submitGSA/ ; done
+
+    # 3. 小麦挑选20个样品
+	for i in `grep 'wheat' fig/table/metadata.txt|cut -f 1`; do
+        cp /mnt/bai/qinyuan/wheat/profile/seq/merge/${i}.fq seq/submitGSA/ ; done
+
+
+
     md5sum seq/submitGSA/* > seq/submitGSA_md5.txt
     sed -i 's/seq\/submitGSA\///' seq/submitGSA_md5.txt
     sed 's/.fq.gz//' seq/submitGSA_md5.txt > seq/temp.txt

@@ -20,8 +20,9 @@
 # 2019/1/21 ath/jt.HuangAC/coevolve 回答审稿人是否
 # 2019/2/1 ath/SA 水杨酸定量课题
 # 2019/2/26 data/temp/3tb3 三萜第三批，拆分原始数据提交GSA
+# 2019/2/27 wheat/profile 小麦时间序列重复分析
 
-wd=data/temp/3tb3
+wd=wheat/profile
 # 创建github目录，用于备份流程、文档
 cd ~
 mkdir -p ~/github/Work/$wd
@@ -39,6 +40,6 @@ cd ~/$wd
 cd ~/github/Work
 git add . 
 # 提交修改
-git commit -m "2018/1/21" 
+git commit -m "2019/2/26" 
 # 推送到github
 git push origin master
