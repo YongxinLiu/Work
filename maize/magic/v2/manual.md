@@ -28,7 +28,7 @@
 	## 0.1 准备流程配置文件
 
 	# 设置工作目录
-	wd=wheat/profile
+	wd=rice/miniCore
 	# 创建环境代码见~/github/Work/initial_project.sh
 
 	## 准备实验设计

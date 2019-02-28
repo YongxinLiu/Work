@@ -479,20 +479,34 @@ mkdir -p seq/submitGSA/
     # 找到原始数据来自lane9从头分析~/seq/L180210，详细excel work/seq/SeqLibraryList.xlsx
     # 在~/github/Work/initial_project.sh新建项目
     # ~/data/temp/3tb3 数据来自lane9姜婷三萜第三批
+    for i in `grep 'ath3t' fig/table/metadata.txt|cut -f 1`; do
+        cp /mnt/bai/yongxin/data/temp/3tb3/seq/sample/${i}_?.fq.gz seq/submitGSA/ ;done
 
     # 2. 水稻时间序列 ~/rice/timecourse/v2
 	for i in `grep 'riceTC' fig/table/metadata.txt|cut -f 1`; do
-        ln /mnt/bai/yongxin/rice/timecourse/v2/seq/sample/${i}*.fq.gz seq/submitGSA/ ; done
+        ln /mnt/bai/yongxin/rice/timecourse/v2/seq/sample/${i}_?.fq.gz seq/submitGSA/ ; done
 
     # 3. 小麦挑选20个样品
 	for i in `grep 'wheat' fig/table/metadata.txt|cut -f 1`; do
-        cp /mnt/bai/qinyuan/wheat/profile/seq/merge/${i}.fq seq/submitGSA/ ; done
+        cp /mnt/bai/yongxin/wheat/profile/seq/sample/${i}_?.fq.gz seq/submitGSA/ ; done
+
+    # 分双端统计md5值
+    cd seq/submitGSA/
+    md5sum *_1.fq.gz > md5sum1.txt
+    md5sum *_2.fq.gz > md5sum2.txt
+    paste md5sum1.txt md5sum2.txt | awk '{print $2"\t"$1"\t"$4"\t"$3}' > md5sum.txt
+    cat md5sum.txt
 
 
+# 2019/2/27 整理数据和表发布github Huang2019Science
+cd ~/github/Huang2019SCIENCE
+mkdir -p data fig4 script
+cp ~/github/Amplicon/16Sv2/script/stat_plot_functions.R script/
+cp ~/ath/integrate16s/multispecies/fig/table/* data/
+cp ~/ath/integrate16s/multispecies/fig/fig4/c.tax_pc_raw.txt data/taxonomy_pc.txt
+cp ~/ath/integrate16s/multispecies/result/compare/diff.list data/
 
-    md5sum seq/submitGSA/* > seq/submitGSA_md5.txt
-    sed -i 's/seq\/submitGSA\///' seq/submitGSA_md5.txt
-    sed 's/.fq.gz//' seq/submitGSA_md5.txt > seq/temp.txt
-    paste seq/temp.txt seq/submitGSA_md5.txt |sed 's/  /\t/g'| cut -f 2-4| less > seq/temp1.txt
-    awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print $0,a[$1]}' seq/temp1.txt fig1/metadata.txt > fig1/metadata_md5.txt 
-
+# push
+git add .
+git commit -m "final submit"
+git push origin master

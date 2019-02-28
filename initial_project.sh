@@ -21,8 +21,11 @@
 # 2019/2/1 ath/SA 水杨酸定量课题
 # 2019/2/26 data/temp/3tb3 三萜第三批，拆分原始数据提交GSA
 # 2019/2/27 wheat/profile 小麦时间序列重复分析
+# 2019/2/28 maize/magic/v2 玉米拔节期MAGIC群体数据
 
-wd=wheat/profile
+
+
+wd=maize/magic/v2
 # 创建github目录，用于备份流程、文档
 cd ~
 mkdir -p ~/github/Work/$wd
