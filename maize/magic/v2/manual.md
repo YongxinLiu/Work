@@ -28,7 +28,7 @@
 	## 0.1 准备流程配置文件
 
 	# 设置工作目录
-	wd=rice/miniCore
+	wd=maize/magic/v2/
 	# 创建环境代码见~/github/Work/initial_project.sh
 
 	## 准备实验设计
@@ -40,8 +40,8 @@
 	# 保存模板中basic页中3. 测序文库列表library为doc/library.txt
 	sed -i 's/\t/\tL171121_/' doc/library.txt # time check SeqLibraryList.xlsx
 	# 按library中第二列index准备测序文库，如果压缩要添加.gz，并用gunzip解压
-	awk 'BEGIN{OFS=FS="\t"}{system("ln -s /mnt/bai/yongxin/seq/BGI/"$2"_1.fq.gz seq/"$1"_1.fq.gz");}' <(tail -n+2 doc/library.txt )
-	awk 'BEGIN{OFS=FS="\t"}{system("ln -s /mnt/bai/yongxin/seq/BGI/"$2"_2.fq.gz seq/"$1"_2.fq.gz");}' <(tail -n+2 doc/library.txt )
+	awk 'BEGIN{OFS=FS="\t"}{system("ln -s /mnt/bai/yongxin/seq/L190220/"$2"_1.fq seq/"$1"_1.fq");}' <(tail -n+2 doc/library.txt )
+	awk 'BEGIN{OFS=FS="\t"}{system("ln -s /mnt/bai/yongxin/seq/L190220/"$2"_2.fq seq/"$1"_2.fq");}' <(tail -n+2 doc/library.txt )
     # 检查数据链接，全红为错误，绿色为正常
     ll seq/*
 	# 如果压缩文件，要强制解压链接
@@ -98,9 +98,9 @@
 	# 输入为seq/L*.fq，输出为seq/sample/*.fq
 	make library_split
 	make library_split_stat
-	# 统计结果见result/split有txt/pdf/png，推荐看png方便快速查看每张位图
+	# 统计结果见result/split有txt/pdf/png，推荐看png方便快速查看每张位图，主要缺失来自1，2号库
 	# 查看样本量排序
-	sort -k2,2n result/sample_split.log|less
+	sort -k2,2n result/sample_split.log|less # 有40多个样本少于10000
 
 ## 1.3. 样品双端合并、重命名、合并为单一文件
 
@@ -128,7 +128,14 @@
 	# 输入为temp/stripped.fq，输出为temp/filtered.fa
 	make fq_qc
 
-
+# 获得了新lane的数据，重命名，并合并叶丝期数据
+mv temp/filtered.fa temp/filtered_JT.fa # 拔节期jointing state, JT
+ln /mnt/bai/yongxin/maize/magic/temp/filtered.fa temp/filtered_Sk.fa # 叶丝期 silking, SK
+cat temp/filtered_JT.fa temp/filtered_Sk.fa > temp/filtered.fa
+# 合并实验设计
+mv doc/design.txt doc/design_JT.txt
+ln /mnt/bai/yongxin/maize/magic/doc/design.txt doc/design_Sk.txt # 叶丝期 silking, SK
+cat doc/design_Sk.txt <(tail -n+2 doc/design_JT.txt) > doc/design.txt 
 
     # (第一阶段结束，获得纯净扩增子序列temp/filtered.fa，可提供此文件从下面开始)
 
@@ -138,7 +145,7 @@
 	# Remove redundancy, get unique reads
 	# 输入为temp/filtered.fa，输出为temp/uniques.fa
 	make fa_unqiue
-
+    # mini=300, Unique 27761
 
 ## 1.7. 挑选OTU
 
@@ -146,7 +153,7 @@
 	# unoise3速度比cluster_otus慢上百倍，更精细但结果也更多
 	# 输入为temp/uniques.fa，输出为temp/Zotus.fa
 	make otu_pick
-
+    # 再次修改mini=500, Amplicon为9655
 
 ## 1.8. 有参去嵌合体
 

@@ -332,6 +332,25 @@
     rename 's/FCHHH57BCX2_L2_CWHPEPI00001961/lane/' *.fq.gz
     # 按附录代码操作
 
+## 190123.lane18
+
+    wd=L190123
+    cd ~/seq/$wd
+    mv Clean/W18NP_N8R_WTCBAC_ems541/FCHNCTYBCX2_L2_CWHPEPI00001985_* .
+    rename 's/FCHNCTYBCX2_L2_CWHPEPI00001985/lane/' *.fq.gz
+    sed -i 's/Clean\/W18NP_N8R_WTCBAC_ems541\/FCHNCTYBCX2_L2_CWHPEPI00001985/lane/' md5.txt
+    # 按下方`扩增子lane处理通用代码代码`操作
+
+
+## 190220.lane19
+
+    wd=L190220
+    cd ~/seq/$wd
+    mv Clean/DYMJTR18-WTCBAC2/FCHT7YTBCX2_L1_CWHPEPI00001995_* ./
+    rename 's/FCHT7YTBCX2_L1_CWHPEPI00001995/lane/' *.fq.gz
+    sed -i 's/Clean\/DYMJTR18-WTCBAC2\/FCHT7YTBCX2_L1_CWHPEPI00001995/lane/' md5.txt
+    # 按下方`扩增子lane处理通用代码代码`操作
+
 
 
 ## 扩增子lane处理通用代码
@@ -347,7 +366,6 @@
 	# 情况1：如保存ID列为index.ID，获取index和IndexRC，并补充到实验设计
     awk 'BEGIN{FS=OFS="\t"} NR==FNR {a[$1]=$0} NR>FNR {print a[$1]}' \
         /mnt/bai/yongxin/ref/culture/IlluminaIndex48.txt index.ID > index.txt
-    cat index.txt
     # 情况2：如保存Index序列，保存为index，获取indexID和IndexRC，并补充到实验设计
     awk 'BEGIN{FS=OFS="\t"} NR==FNR {a[$2]=$0} NR>FNR {print a[$1]}' \
         /mnt/bai/yongxin/ref/culture/IlluminaIndex48.txt index > index.txt

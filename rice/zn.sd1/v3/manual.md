@@ -1,5 +1,8 @@
+
 	# 快速分析 Quick Start(所需文件准备好)
-	make fq_qc # 样本拆分、合并、去接头和引物、质控，获得纯净扩增子序列temp/filtered.fa
+	find . -name "*" -type f -size 0c | xargs -n 1 rm -f # 清理零字节文件，用于从头重新分析项目清空makefile点位文件
+	make library_split # 样本拆分、
+	make fq_qc # 合并、去接头和引物、质控，获得纯净扩增子序列temp/filtered.fa
 	make host_rm # 序列去冗余、去噪、挑选代表序列、去嵌合、去宿主，获得OTU代表序列result/otu.fa
 	make beta_calc # 生成OTU表、过滤、物种注释、建库和多样性统计
 	# 清除统计绘图标记(重分析时使用)
@@ -11,7 +14,12 @@
 	make DA_compare_tax # 高分类级差异比较，维恩图绘制，2为reads count负二项分布统计
 	make rmd # 生成网页报告，必须依赖的只有alpha, beta, taxonomy
 
-
+	# 提取脚本
+	submit=3T
+	make -n -B fq_qc > pipeline.sh # 样本拆分、合并、去接头和引物、质控，获得纯净扩增子序列temp/filtered.fa
+	make -n -B host_rm >> pipeline.sh # 序列去冗余、去噪、挑选代表序列、去嵌合、去宿主，获得OTU代表序列result/otu.fa
+	make -n -B beta_calc >> pipeline.sh # 生成OTU表、过滤、物种注释、建库和多样性统计
+	grep -v '#' pipeline.sh > ${submit}/pipeline.sh
 
 # 1. 处理序列 Processing sequences
 
@@ -20,7 +28,7 @@
 	## 0.1 准备流程配置文件
 
 	# 设置工作目录
-	wd=rice/zn.sd1/b2
+	wd=rice/miniCore
 	# 创建环境代码见~/github/Work/initial_project.sh
 
 	## 准备实验设计
@@ -29,26 +37,44 @@
 	# Initialize the working directory
 	make init
 
-    # 链接文库
-    #ln -s ~/seq/180816.sd1.lane13/Clean/D20170718/FCHFLH2BCX2_L2_CWHPE18070298_*.gz seq/
-    #rename 's/FCHFLH2BCX2_L2_CWHPE18070298/lane/' seq/*
-    # 整理第一批，第二批和第三批根际土 /mnt/bai/zhiwen/16s/GRF_merge/doc
-    cp /mnt/bai/zhiwen/16s/GRF_merge/doc
+	# 保存模板中basic页中3. 测序文库列表library为doc/library.txt
+	sed -i 's/\t/\tL171121_/' doc/library.txt # time check SeqLibraryList.xlsx
+	# 按library中第二列index准备测序文库，如果压缩要添加.gz，并用gunzip解压
+	awk 'BEGIN{OFS=FS="\t"}{system("ln -s /mnt/bai/yongxin/seq/BGI/"$2"_1.fq.gz seq/"$1"_1.fq.gz");}' <(tail -n+2 doc/library.txt )
+	awk 'BEGIN{OFS=FS="\t"}{system("ln -s /mnt/bai/yongxin/seq/BGI/"$2"_2.fq.gz seq/"$1"_2.fq.gz");}' <(tail -n+2 doc/library.txt )
+    # 检查数据链接，全红为错误，绿色为正常
+    ll seq/*
+	# 如果压缩文件，要强制解压链接
+	gunzip -f seq/*.gz
 
 	# 标准多文库实验设计拆分，保存模板中design页为doc/design_raw.txt
 	split_design.pl -i doc/design_raw.txt
+	# 从其它处复制实验设计
+	cp ~/ath/jt.HuangAC/batch3/doc/L*.txt doc/
 	# 删除多余空格，windows换行符等
 	sed -i 's/ //g;s/\r/\n/' doc/*.txt 
 	head -n3 doc/L1.txt
 	# 依据各文库L*.txt文件生成实验设计
-	cat <(head -n1 doc/L1.txt | sed 's/#//g') <(cat doc/L* |grep -v '#') > doc/design.txt
+	cat <(head -n1 doc/L1.txt | sed 's/#//g') <(cat doc/L* |grep -v '#'|grep -v -P '^SampleID\t') > doc/design.txt
 	# 检查是否相等
 	wc -l doc/design.txt
 	cut -f 1 doc/design.txt|sort|uniq|wc -l
-    # 检查实验组是否一致
-    cut -f 5 doc/design.txt|sort|uniq -c
-    # 检查基因型是否一致
-    cut -f 6 doc/design.txt|sort|uniq -c
+
+	## 准备原始数据
+
+	# 拆lane和质量转换归为原始seq目录中处理
+	# Prepare raw data
+	#ln ~/seq/180210.lane9.ath3T/Clean/CWHPEPI00001683/lane_* ./
+	#cp ~/ath/jt.HuangAC/batch3/doc/library.txt doc/
+	
+	# 检查数据质量，转换为33
+	#determine_phred-score.pl seq/lane_1.fq.gz
+	# 如果为64，改原始数据为33
+	rename 's/lane/lane_33/' seq/lane_*
+	# 关闭质量控制，主要目的是格式转换64至33，不然usearch无法合并
+	#time fastp -i seq/lane_64_1.fq.gz -I seq/lane_64_2.fq.gz \
+	#	-o seq/lane_1.fq.gz -O seq/lane_2.fq.gz -6 -A -G -Q -L -w 9
+	# 1lane 80GB, 2 threads, 102min
 
 ## 1.1. 按实验设计拆分lane为文库
 
@@ -56,20 +82,25 @@
 	# lane文件一般为seq/lane_1/2.fq.gz
 	# lane文库信息doc/library.txt：至少包括编号、Index和样品数量三列和标题
 	# head -n3 doc/library.txt
-	# LibraryID	IndexRC	Samples
-	# L1	CTCAGA	60
+	#LibraryID	IndexRC	Samples
+	#L1	CTCAGA	60
 	
 	# 按library.txt拆分lane为library
-	make lane_split
-    
+	# make lane_split
+
 
 ## 1.2. 按实验设计拆分文库为样品
 
+
+	# 拆分样品
+	head -n3 doc/L1.txt
 	# 按L1/2/3...txt拆分library为samples
 	# 输入为seq/L*.fq，输出为seq/sample/*.fq
 	make library_split
 	make library_split_stat
 	# 统计结果见result/split有txt/pdf/png，推荐看png方便快速查看每张位图
+	# 查看样本量排序
+	sort -k2,2n result/sample_split.log|less
 
 ## 1.3. 样品双端合并、重命名、合并为单一文件
 
@@ -96,6 +127,10 @@
 	# 过滤序列中预期累计错误率>1%的序列
 	# 输入为temp/stripped.fq，输出为temp/filtered.fa
 	make fq_qc
+
+
+
+    # (第一阶段结束，获得纯净扩增子序列temp/filtered.fa，可提供此文件从下面开始)
 
 
 ## 1.6. 序列去冗余
@@ -125,6 +160,9 @@
 	# Remove host
 	# 根据SILVA注释去除线粒体、叶绿体、真核生物18S和未知序列(非rRNA)
 	make host_rm
+
+
+    # (第二阶段结束，获得OTU代表序列result/otu.fa，可提供此文件和测序数据temp/filtered.fa从下方起始)
 
 
 ## 1.10. 生成OTU表
@@ -227,9 +265,28 @@
 
 ## 3.9 培养菌注释
 
-	# 默认为水稻，包括相似度、覆盖度、丰度和物种注释
+	# 默认为水稻，包括相似度、覆盖度、丰度和物种注释，请修改参数处菌库位置和注释文件
+	make culture
 
 # 4. 个性分析
 
 ## 4.1. 分蘖与菌相关性
 
+	# 准备相关输入文件
+	cd ~/rice/miniCore/180718
+	# 硬链数据文件，保持可同步修改和可备份
+	# miniCore分蘖数据整理
+	ln ~/rice/xianGeng/doc/phenotype_sample_raw.txt doc/
+	# LN otu表和实验设计
+	mkdir -p data
+	cp ~/rice/miniCore/180319/LN/otutab.txt data/LN_otutab.txt
+	cp ~/rice/miniCore/180319/doc/design.txt doc/design_miniCore.txt
+	mkdir -p data/cor/LN
+	# 物种注释
+	cp ~/rice/miniCore/180319/temp/otus_no_host.tax data/
+
+	# 统计见script/cor_tiller_LN.Rmd
+	# 相关系数，添加物种注释
+	awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$4} NR>FNR{print $0,a[$1]}' result/otus_no_host.tax data/cor/LN/otu_mean_pheno_cor.r.txt | less -S > result/cor/LN/otu_mean_pheno_cor.r.txt.tax
+	# 再添加可培养相关菌
+	awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print $0,a[$1]}' result/39culture/otu.txt data/cor/LN/otu_mean_pheno_cor.r.txt.tax | less -S > data/cor/LN/otu_mean_pheno_cor.r.txt.tax

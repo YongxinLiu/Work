@@ -80,14 +80,14 @@
 	
 	# 合并实验设计
 	# 合并三个项目的实验设计，检查样品是否有重名
+	cp ~/rice/zjj.nitrogen/180116/doc/design.txt doc/design_nrt.txt
+	cp ~/rice/gxx_CTK/doc/design.txt doc/design_CTK.txt
+	cp ~/rice/rice.epi/180409/doc/design.txt doc/design_epi.txt
 	cp ~/rice/miniCore/doc/design.txt doc/design_minicore.txt
 	cp ~/rice/timecourse/doc/design.txt doc/design_timecourse.txt
-	cp ~/rice/zjj.nitrogen/180116/doc/design.txt doc/design_nrt.txt
 	cp ~/rice/nrt1.1a/doc/design.txt doc/design_nrt1a.txt
 	cp ~/rice/strigolactone.LiJY/doc/design.txt doc/design_SL.txt
-	cp ~/rice/rice.epi/180409/doc/design.txt doc/design_epi.txt
 	cp ~/rice/Gprotein/doc/design.txt doc/design_Gprotein.txt
-	cp ~/rice/gxx_CTK/doc/design.txt doc/design_CTK.txt
 	cp ~/rice/zn.sd1/doc/design.txt doc/design_sd1.txt
 
 	# 统计实验样品行和唯一行，确实样品名唯一

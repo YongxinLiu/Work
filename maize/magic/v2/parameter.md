@@ -59,7 +59,7 @@ SHELL:=/bin/bash
 
 	# Remove redundancy
 	# 最小序列频率默认为8，去除低丰度，增加计算速度，整lane的序列推荐1/1M，即上一步最后一行的数据量
-	minuniquesize=8
+	minuniquesize=500
 
 ## 1.7. **otu_pick 挑选OTU**
 
