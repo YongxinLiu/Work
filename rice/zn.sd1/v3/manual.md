@@ -28,7 +28,7 @@
 	## 0.1 准备流程配置文件
 
 	# 设置工作目录
-	wd=rice/miniCore
+	wd=rice/zn.sd1/v3
 	# 创建环境代码见~/github/Work/initial_project.sh
 
 	## 准备实验设计
@@ -37,23 +37,19 @@
 	# Initialize the working directory
 	make init
 
-	# 保存模板中basic页中3. 测序文库列表library为doc/library.txt
-	sed -i 's/\t/\tL171121_/' doc/library.txt # time check SeqLibraryList.xlsx
+    # 整理第一批，第二批和第三批根际土 /mnt/bai/zhiwen/16s/GRF_merge/doc
+    cp /mnt/bai/zhiwen/16s/GRF_merge/doc/library.txt doc/library.raw
+    # 对照三批数据的 SeqLibraryList.xlsx，修改为library.txt
 	# 按library中第二列index准备测序文库，如果压缩要添加.gz，并用gunzip解压
-	awk 'BEGIN{OFS=FS="\t"}{system("ln -s /mnt/bai/yongxin/seq/BGI/"$2"_1.fq.gz seq/"$1"_1.fq.gz");}' <(tail -n+2 doc/library.txt )
-	awk 'BEGIN{OFS=FS="\t"}{system("ln -s /mnt/bai/yongxin/seq/BGI/"$2"_2.fq.gz seq/"$1"_2.fq.gz");}' <(tail -n+2 doc/library.txt )
+	awk 'BEGIN{OFS=FS="\t"}{system("ln -s /mnt/bai/yongxin/seq/amplicon/"$2"_1.fq.gz seq/"$1"_1.fq.gz");}' <(tail -n+2 doc/library.txt )
+	awk 'BEGIN{OFS=FS="\t"}{system("ln -s /mnt/bai/yongxin/seq/amplicon/"$2"_2.fq.gz seq/"$1"_2.fq.gz");}' <(tail -n+2 doc/library.txt )
     # 检查数据链接，全红为错误，绿色为正常
     ll seq/*
 	# 如果压缩文件，要强制解压链接
 	gunzip -f seq/*.gz
 
-	# 标准多文库实验设计拆分，保存模板中design页为doc/design_raw.txt
-	split_design.pl -i doc/design_raw.txt
-	# 从其它处复制实验设计
-	cp ~/ath/jt.HuangAC/batch3/doc/L*.txt doc/
-	# 删除多余空格，windows换行符等
-	sed -i 's/ //g;s/\r/\n/' doc/*.txt 
-	head -n3 doc/L1.txt
+	# 实验设计
+    cp /mnt/bai/zhiwen/16s/GRF_merge/doc/L*.txt doc/
 	# 依据各文库L*.txt文件生成实验设计
 	cat <(head -n1 doc/L1.txt | sed 's/#//g') <(cat doc/L* |grep -v '#'|grep -v -P '^SampleID\t') > doc/design.txt
 	# 检查是否相等

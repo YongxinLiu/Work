@@ -22,10 +22,12 @@
 # 2019/2/26 data/temp/3tb3 三萜第三批，拆分原始数据提交GSA
 # 2019/2/27 wheat/profile 小麦时间序列重复分析
 # 2019/2/28 maize/magic/v2 玉米拔节期MAGIC群体数据
+# 2019/3/7 rice/zn.sd1/v3 水稻SD1第三批
+# 2019/3/11 rice/Gprotein/v2 水稻G蛋白第二批
 
 
 
-wd=maize/magic/v2
+wd=rice/Gprotein/v2
 # 创建github目录，用于备份流程、文档
 cd ~
 mkdir -p ~/github/Work/$wd
@@ -43,6 +45,6 @@ cd ~/$wd
 cd ~/github/Work
 git add . 
 # 提交修改
-git commit -m "2019/2/26" 
+git commit -m "2019/3/7" 
 # 推送到github
 git push origin master

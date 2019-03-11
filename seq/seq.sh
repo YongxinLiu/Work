@@ -402,6 +402,17 @@
     paste /tmp/md5sum1.txt /tmp/md5sum2.txt | awk '{print $2"\t"$1"\t"$4"\t"$3}' > md5sum.txt
     cat md5sum.txt
 
+## 汇总为amplicon目录
+    cd ~/seq
+    mkdir -p amplicon && cd amplicon
+    ln /mnt/bai/yongxin/seq/novagene/*.gz ./ # 共242个文件，121个库 L160914-L171013
+    # 第二批目前20个库，171018-190220
+    ls|grep -P '^L' > lane_list.txt # 可选 ls -d L*
+    wc -l lane_list.txt
+    for i in `ls -d L*`; do ln ${i}/${i}*.gz amplicon/;done
+    ls|wc # 库数据为1006个文件，503个库
+
+
 
 
 
