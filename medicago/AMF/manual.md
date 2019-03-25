@@ -392,10 +392,13 @@ sed -i 's/#//' doc/design.txt
 ## 3. 分菌
     
     # 工作量和稀释曲线 /mnt/bai/yongxin/culture/medicago/result/sample_rarefracation_boxplot.pdf
-    # 详细：/mnt/bai/yongxin/culture/medicago/makefile.man
+    # 代码详见：/mnt/bai/yongxin/culture/medicago/makefile.man
 
     # 与项目中A17/R180野生型根样本与总体菌库比较
     # 3.9 culture和culture_graphlan，只需修改A17r或R108r
+    # 2019/3/25 与使用自然样品 ~/culture/jingmei171208.med/makefile.16s # culture_graphlan
+
+
 
 
 ## 4. 实验数据分析
@@ -411,6 +414,7 @@ sed -i 's/#//' doc/design.txt
     grep 'b[23]' result/split/L*txt|awk '{a=a+$2} END {print a}' # 75245220
     cat result/otu.log  # 查看OTU数据 9622
     grep 'b[23]' result/alpha/index.txt|cut -f 9|awk '{a=a+$1} END {print a/359}' # 9531，这些也基本都有了
+
 
 
 ### 数据上传

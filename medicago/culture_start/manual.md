@@ -28,7 +28,7 @@
 	## 0.1 准备流程配置文件
 
 	# 设置工作目录
-	wd=rice/Gprotein/v2
+	wd=rice/miniCore
 	# 创建环境代码见~/github/Work/initial_project.sh
 
 	## 准备实验设计
@@ -38,19 +38,19 @@
 	make init
 
 	# 保存模板中basic页中3. 测序文库列表library为doc/library.txt
-	# sed -i 's/\t/\tL171121_/' doc/library.txt # time check SeqLibraryList.xlsx
+	sed -i 's/\t/\tL171121_/' doc/library.txt # time check SeqLibraryList.xlsx
 	# 按library中第二列index准备测序文库，如果压缩要添加.gz，并用gunzip解压
 	awk 'BEGIN{OFS=FS="\t"}{system("ln -s /mnt/bai/yongxin/seq/amplicon/"$2"_1.fq.gz seq/"$1"_1.fq.gz");}' <(tail -n+2 doc/library.txt )
 	awk 'BEGIN{OFS=FS="\t"}{system("ln -s /mnt/bai/yongxin/seq/amplicon/"$2"_2.fq.gz seq/"$1"_2.fq.gz");}' <(tail -n+2 doc/library.txt )
-	# 检查数据链接，全红为错误，绿色为正常
-	ll seq/*
+    # 检查数据链接，全红为错误，绿色为正常
+    ll seq/*
 	# 如果压缩文件，要强制解压链接
 	gunzip -f seq/*.gz
 
 	# 标准多文库实验设计拆分，保存模板中design页为doc/design_raw.txt
 	split_design.pl -i doc/design_raw.txt
 	# 从其它处复制实验设计
-	cp ../doc/L?.txt doc/
+	cp ~/ath/jt.HuangAC/batch3/doc/L*.txt doc/
 	# 删除多余空格，windows换行符等
 	sed -i 's/ //g;s/\r/\n/' doc/*.txt 
 	head -n3 doc/L1.txt
@@ -262,3 +262,34 @@
 	awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$4} NR>FNR{print $0,a[$1]}' result/otus_no_host.tax data/cor/LN/otu_mean_pheno_cor.r.txt | less -S > result/cor/LN/otu_mean_pheno_cor.r.txt.tax
 	# 再添加可培养相关菌
 	awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print $0,a[$1]}' result/39culture/otu.txt data/cor/LN/otu_mean_pheno_cor.r.txt.tax | less -S > data/cor/LN/otu_mean_pheno_cor.r.txt.tax
+
+
+# 附录
+	## 准备原始数据
+
+	# 拆lane和质量转换归为原始seq目录中处理
+	# Prepare raw data
+	#ln ~/seq/180210.lane9.ath3T/Clean/CWHPEPI00001683/lane_* ./
+	#cp ~/ath/jt.HuangAC/batch3/doc/library.txt doc/
+	
+	# 检查数据质量，转换为33
+	#determine_phred-score.pl seq/lane_1.fq.gz
+	# 如果为64，改原始数据为33
+	rename 's/lane/lane_33/' seq/lane_*
+	# 关闭质量控制，主要目的是格式转换64至33，不然usearch无法合并
+	#time fastp -i seq/lane_64_1.fq.gz -I seq/lane_64_2.fq.gz \
+	#	-o seq/lane_1.fq.gz -O seq/lane_2.fq.gz -6 -A -G -Q -L -w 9
+	# 1lane 80GB, 2 threads, 102min
+
+## 1.1. 按实验设计拆分lane为文库
+
+	# Split lane into libraries
+	# lane文件一般为seq/lane_1/2.fq.gz
+	# lane文库信息doc/library.txt：至少包括编号、Index和样品数量三列和标题
+	# head -n3 doc/library.txt
+	#LibraryID	IndexRC	Samples
+	#L1	CTCAGA	60
+	
+	# 按library.txt拆分lane为library
+	# make lane_split
+

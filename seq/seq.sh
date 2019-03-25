@@ -382,7 +382,7 @@
     # 查看fastp报告，数据问题为双端之和，且单位为百万(M)
     # firefox upload/index.html # fastp.html
 
-    # 并行拆库，按目录名见附件编号A18xxxx，j可按文库数量调整，推荐默认24
+    # 并行拆库，按目录名见附件编号A18xxxx，j可按文库数量调整，推荐默认24 # |head -n2 只处理前两个新增的
     parallel -j 24 "zcat lane_1.fq.gz | grep -A 3 '#{1}'| grep -v -P '^--$' > ${wd}_{1}_1.fq" ::: `cut -f 3 index.txt | grep  -v '^$'`
     parallel -j 24 "zcat lane_2.fq.gz | grep -A 3 '#{1}'| grep -v -P '^--$' > ${wd}_{1}_2.fq" ::: `cut -f 3 index.txt | grep  -v '^$'`
 

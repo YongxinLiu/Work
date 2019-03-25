@@ -24,10 +24,11 @@
 # 2019/2/28 maize/magic/v2 玉米拔节期MAGIC群体数据
 # 2019/3/7 rice/zn.sd1/v3 水稻SD1第三批
 # 2019/3/11 rice/Gprotein/v2 水稻G蛋白第二批
+# 2019/3/25 medicago/culture_start 苜蓿分菌起始样品
 
 
 
-wd=rice/Gprotein/v2
+wd=medicago/culture_start
 # 创建github目录，用于备份流程、文档
 cd ~
 mkdir -p ~/github/Work/$wd
