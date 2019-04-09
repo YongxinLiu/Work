@@ -46,6 +46,6 @@ cd ~/$wd
 cd ~/github/Work
 git add . 
 # 提交修改
-git commit -m "2019/3/7" 
+git commit -m "v2019" 
 # 推送到github
 git push origin master

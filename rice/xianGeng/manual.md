@@ -163,14 +163,14 @@ makeblastdb -in syncom_1492r_v57.fa -dbtype nucl
 # 提取对应菌保编号 syncom_stock.id，原始菌保序列 stock_1492r.fa
 usearch10 -fastx_getseqs stock_1492r.fa -labels syncom_stock.id -fastaout syncom_stock_1492r.fa
 # 函数truncate：取反向，并单行，截取V5-V7为 syncom_stock_1492r_v57.fa
-makeblastdb -in syncom_stock_1492r_v57.fa -dbtype nucl
+makeblastdb -in 2019/4/7 -dbtype nucl
 
 # 3. OTU序列
 usearch10 -fastx_getseqs ../result/otu.fa -labels otu.id -fastaout otu.fa
 makeblastdb -in otu.fa -dbtype nucl
 makeblastdb -in ../result/otu.fa -dbtype nucl
 
-# 4. Rice COTU序列，仅查看rice_700
+# 4. Rice COTU序列，仅查看rice_700 /mnt/bai/yongxin/culture/rice/result/culture_select.fasta
 
 
 # 2vs1 比对序列菌保列表与实验是否一致（1492R）
@@ -197,7 +197,7 @@ less otu_cotu.blastn
 # 1vs3 实验菌vsOTU，鉴定错误的实验菌来自那些OTU?，找原因
 blastn -query syncom_1492r_v57.fa -db ../result/otu.fa -out syncom_otu.blastn -outfmt '6 qseqid sseqid pident qcovs length mismatch gapopen qstart qend sstart send evalue bitscore' -num_alignments 100 -evalue 1 -num_threads 9 
 # 查看结果OTU95 100%对应rice_262，97.84%对应635，与rice700仅有77%相似
-less syncom_otu.blastn
+less syncom_otu.blastn # OTU_377与I12最好，OTU_371
 
 # 2vs3 实验菌vsOTU，鉴定错误的实验菌来自那些OTU?，找原因
 blastn -query syncom_stock_1492r_v57.fa -db ../result/otu.fa -out syncom_stock_otu.blastn -outfmt '6 qseqid sseqid pident qcovs length mismatch gapopen qstart qend sstart send evalue bitscore' -num_alignments 100 -evalue 1 -num_threads 9 
@@ -226,8 +226,8 @@ less syncom_stock_otu.blastn
 
 ## Table S11统计OTU数量和Order数量
 sed -i 's/^/R/' fig1/181118/TableS11-old.txt
-awk '{FS=OFS="\t"} NR==FNR{a[$1]=$2"\t"$9} NR>FNR{print $2,a[$2]}' fig1/181118/TableS11-old.txt fig1/190117/TableS11.txt | tail -n +3 | cut -f 2 | sort|uniq -c |wc -l # 439个OTU
-awk '{FS=OFS="\t"} NR==FNR{a[$1]=$2"\t"$9} NR>FNR{print $2,a[$2]}' fig1/181118/TableS11-old.txt fig1/190117/TableS11.txt | tail -n +3 | cut -f 3 | sort|uniq -c |wc -l # 23个目
+awk '{FS=OFS="\t"} NR==FNR{a[$1]=$2"\t"$9} NR>FNR{print $2,a[$2]}' fig1/181118/TableS11-old.txt fig1/190117/TableS11.txt | tail -n +3 | cut -f 2 | sort|uniq -c |wc -l # 438个OTU
+awk '{FS=OFS="\t"} NR==FNR{a[$1]=$2"\t"$9} NR>FNR{print $2,a[$2]}' fig1/181118/TableS11-old.txt fig1/190117/TableS11.txt | tail -n +3 | cut -f 3 | sort|uniq -c |wc -l # 22个目
 tail -n+3 fig1/190117/TableS11.txt|cut -f 10|sort|uniq|wc -l # 非冗余1077个吗？
 tail -n+3 fig1/181118/TableS11-old.txt|cut -f 13|sort|uniq|wc -l # 非冗余1096个吗？
 # 原来文中截取1098个V5-V7非冗余序列519条，现在1079条是？？？，参考~/culture/rice/makefile.man 519部分
@@ -1080,6 +1080,7 @@ alpha_rare_sample.R
 	~/culture/rice/makefile.man 中 	# 绘制物种树，不带丰度和可培养 ，绘制进化树，无论科62，目22，都不能确保位于树的同一分枝上。
 	改为graphlan绘制物种树，并添加标签，保存为fig1/graphlan.ai/pdf
 	# graphlan绘制培养菌对应样本比例 /mnt/bai/yongxin/culture/jingmei171208.rice.med.soy/makefile.16s中sub分别为A50和IR24绘制；
+	图5c中的圈图绘制代码 ~/culture/rice/verify	
 
 	附图
 
@@ -1305,10 +1306,161 @@ cp ~/rice/xianGeng/meta/nitrogen/design.txt ~/github/Zhang2019NBT/fig4/meta_desi
 # 图6.
 cp ~/rice/xianGeng/wet/Xu-NbSycomFunctionData.txt fig6/Sycom.txt
 
+# 附表，整理最终排版后附表更新到github
+mkdir table && cd table 
+
+# 二次检查文中来自附表的数值
+## 表2国家数量，只有坐标，没有国家，可以查询。
+cp ~/rice/xianGeng/fig1/ST/01.variety_geotable.txt ST02.VarietiesInfoAll.txt
+cut -f 14 ST02.VarietiesInfoAll.txt|tail -n+2|sort|uniq|wc -l
+
+# 表11目数量
+cut -f 7 ST11.txt|tail -n+3|sort|uniq|wc -l # 22个目
+# 表11科数量
+cut -f 8 ST11.txt|tail -n+3|sort|uniq|wc -l # 57个科
+# 筛选四大菌门
+grep -P 'Actinobacteria|Bacteroidetes|Firmicutes|Proteobacteria' ST11.txt|cut -f 8|tail -n+3|sort|uniq|wc -l # 56个科
+
+# 统计图中科
+cd ~/github/Zhang2019NBT/fig5
+# 原始为55个和30个科
+wc -l family_fig5*
+# sort uniq确保没有重复，复制出错
+sort family_fig5a.txt|uniq|wc -l
+sort family_fig5b.txt|uniq|wc -l
+# 去除Unname
+grep -v 'Unname' family_fig5a.txt|wc -l # 5a有34个
+grep -v 'Unname' family_fig5b.txt|wc -l # 5a有29个
+# 去除Unname并集，共45个
+cat family_fig5?.txt|grep -v 'Unname'|sort|uniq # 人工查看是否有相近拼写错误
+cat family_fig5?.txt|grep -v 'Unname'|sort|uniq|wc -l
+# 去除Unname交集，共18个
+cat family_fig5?.txt|grep -v 'Unname'|sort|uniq -d|wc -l
+# 以上统计的是图中千分之一以上的的科，排除末命名的数量，而不是可培养的数量
+
+# 依照图添加门和可培养Yes标记于5a/b文件
+# 筛选四大均门，非Unname，且可培养
+cat family_fig5?.txt|grep -P 'Actinobacteria|Bacteroidetes|Firmicutes|Proteobacteria'|grep -v 'Unname'|grep 'Yes'|cut -f 1|sort|uniq |  wc -l  # 27个科
+cat family_fig5?.txt|grep -v 'Unname'|grep 'Yes'|cut -f 1|sort|uniq |  wc -l  # 27个科
+
+
+# 统计四大菌门中可培养的科数量
+cd ~/culture/jingmei171208.rice.med.soy
+cd culture_A50 # 图5b
+# 筛选可培养的，再看物种注释属于四大菌门和科
+cat culture.sum
+grep 'ring_alpha' 5_annotation.txt|wc -l # 筛选所有OTU 127
+grep 'ring_shape' 5_annotation.txt|wc -l # 筛选可培养OTU 91
+wc -l  otu_cultured.tax # 91个可培养的物种注释
+cp ../0_ha_otu_culture.txt ./ # 原始物种注释在这里
+cut -f 7 0_ha_otu_culture.txt|tail -n+2|sort|uniq -c|wc -l # 30科，与fig5/family_fig5b.txt一致
+# 筛选四大菌门127个，可培养91个，科中非命名的90个，再非冗余21个
+grep -P 'Actinobacteria|Bacteroidetes|Firmicutes|Proteobacteria'  0_ha_otu_culture.txt | grep 'YES' | cut -f 7| grep -v 'unnamed' | sort|uniq| wc -l
+
+
+
 
 # push
 git add .
 git commit -m "final submit"
 git push origin master
 
+
+
+# 2019/4/5
+# 错误1. OTU序列数量与OTU表不一样，otu.fa序列多于OTU表的行数
+# 解读方法：依照OTU表筛选
+grep -c '>' result/otu.fa
+wc -l <(tail -n+2 result/otutab.txt)
+# 备份原始数据
+cp result/otu.fa result/otu.fa.bak
+# 提取OTU表ID
+cut -f 1 result/otutab.txt | tail -n+2 > temp/otuid.2
+# 输出丢失的ID是什么
+grep '>' result/otu.fa|sed 's/>//' > temp/otuid.1
+cat temp/otuid.1 temp/otuid.2 | sort | uniq -u
+# 可直接删除这两个ID，下面是提供新的
+usearch10 -fastx_getseqs result/otu.fa.bak -labels temp/otuid.2 -fastaout result/otu.fa
+grep -c '>' result/otu.fa
+# 备份到github和fig1
+cp result/otu.fa fig1/data/
+cp result/otu.fa ~/github/Zhang2019NBT/data/
+
+# 错误2. 附表10单菌CPU表，统计忘去表头多一行culture/rice/result/culture_bacteria.xls
+# culture/rice/result/culture_bacteria.xls 手工加一行，并添加来源
+sort -k1,1 ~/culture/rice/result/culture_bacteria.xls|less #确认缺失
+# 手动加一行 L1P01A3 ，添加11667复制上一行，具体为添加 L1P01A3	38	49	COTU_68	Actinobacteria	Actinomycetales	Nocardioides	IR24
+
+
+# 检查21个氮相关菌占总量的丰度
+# 21个菌在列表在 D:\home\github\Zhang2019NBT\fig3\faprotax5.txt
+fig3.Rmd permutation_test_faprotax 处生成 faprotax5_nitr.txt
+
+# 筛选HN/LN中这些OTU
+cd ~/github/Zhang2019NBT/data
+mkdir -p temp
+awk '{FS=OFS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print a[$1]}' data/LIND-LTEJ_all.txt fig3/faprotax5_nitr.txt | cut -f 1-15 > temp/faprotax5_nitr_LIND-LTEJ.txt
+awk '{FS=OFS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print a[$1]}' data/HIND-HTEJ_all.txt fig3/faprotax5_nitr.txt | cut -f 1-15 > temp/faprotax5_nitr_HIND-HTEJ.txt
+
+# 筛选141个OTUs
+awk '{FS=OFS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print a[$1]}' data/LIND-LTEJ_all.txt data/otu_IND_common_specific.txt | cut -f 1-15 > temp/IND141_LIND-LTEJ.txt
+awk '{FS=OFS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print a[$1]}' data/HIND-HTEJ_all.txt data/otu_IND_common_specific.txt | cut -f 1-15 > temp/IND141_HIND-HTEJ.txt
+
+# 统计IND中21个氮相关菌在141个菌中的相对丰度
+# (10.21+10.966)/(42.779+39.099) = 0.25862869146779354649600625320599
+
+# 2019/4/5 统计IND_TEJ中全部平均值中21个氮相关菌在141个菌中的相对丰度
+awk '{FS=OFS="\t"} NR==FNR{a[$1]=$9} NR>FNR{print $1,a[$1]}' data/IND_TEJ_all.txt fig3/faprotax5_nitr.txt | awk '{a=a+$2} END {print a}' # 9.257
+awk '{FS=OFS="\t"} NR==FNR{a[$1]=$9} NR>FNR{print $1,a[$1]}' data/IND_TEJ_all.txt data/otu_IND_common_specific.txt | awk '{a=a+$2} END {print a}' # 27.678
+# 9.257/ 27.678 = 25.67%
+# 计算japonica的氮相关的OTU丰度 # OTU_86在16个中比例为6.25%，相对丰度为0.065   0.276，0.126   0.182
+echo 'OTU_86' > fig3/faprotax5_nitr_TEJ.txt
+awk '{FS=OFS="\t"} NR==FNR{a[$1]=$9} NR>FNR{print $1,a[$1]}' data/IND_TEJ_all.txt fig3/faprotax5_nitr_TEJ.txt | awk '{a=a+$2} END {print a}' # 0.133494
+awk '{FS=OFS="\t"} NR==FNR{a[$1]=$9} NR>FNR{print $1,a[$1]}' data/IND_TEJ_all.txt data/otu_TEJ_common_specific.txt | awk '{a=a+$2} END {print a}' # 17.0228
+# 0.133494 / 17.0228 = 0.78%
+
+# 基于figureS8d挑选结果所有样品均值
+awk '{FS=OFS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print a[$1]}' table/ST08d.txt fig3/faprotax5_nitr.txt | awk '{a=a+$2} END {print a}' # 9.21975
+awk '{FS=OFS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print a[$1]}' table/ST08d.txt data/otu_IND_common_specific.txt | awk '{a=a+$2} END {print a}' # 35.9249
+# 9.21975/35.9249=33.445%
+
+# 添加table7b/d丰度
+awk '{FS=OFS="\t"} NR==FNR{a[$1]=$9} NR>FNR{print $1,a[$1]}' data/IND_TEJ_all.txt fig3/faprotax_IND.txt > fig3/faprotax_IND_abundance.txt
+awk '{FS=OFS="\t"} NR==FNR{a[$1]=$9} NR>FNR{print $1,a[$1]}' data/IND_TEJ_all.txt fig3/faprotax_IND.txt| awk '{a=a+$2} END {print a}'
+
+awk '{FS=OFS="\t"} NR==FNR{a[$1]=$9} NR>FNR{print $1,a[$1]}' data/IND_TEJ_all.txt fig3/faprotax_TEJ.txt > fig3/faprotax_TEJ_abundance.txt
+awk '{FS=OFS="\t"} NR==FNR{a[$1]=$9} NR>FNR{print $1,a[$1]}' data/IND_TEJ_all.txt fig3/faprotax_TEJ.txt | awk '{a=a+$2} END {print a}'
+
+
+# 2019/4/7 统计氮相关的ID的物种注释各级别数量
+cd ~/github/Zhang2019NBT
+awk '{FS=OFS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print a[$1]}' table/ST03.c.taxonomy.txt fig3/faprotax_IND_enriched_nitr.txt > fig3/faprotax_IND_enriched_nitr_tax.txt
+for i in `seq 1 6`;do cut -f $i fig3/faprotax_IND_enriched_nitr_tax.txt | sort | uniq | wc -l ; done
+
+awk '{FS=OFS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print a[$1]}' table/ST03.c.taxonomy.txt fig3/faprotax_TEJ_enriched_nitr.txt > fig3/faprotax_TEJ_enriched_nitr_tax.txt
+for i in `seq 1 6`;do cut -f $i fig3/faprotax_TEJ_enriched_nitr_tax.txt | sort | uniq | wc -l ; done
+
+
+# 2019/4/7 实验筛选菌与OTU相似度验证
+cd ~/rice/xianGeng/wet
+#菌保编号来自 表12b，调整格式为 选菌实验验证-20实验菌 /mnt/bai/yongxin/rice/xianGeng/wet/verify1_20bac.ID
+#对应序列来自 表11，调整格式为 选菌实验验证-1079seq /mnt/bai/yongxin/rice/xianGeng/wet/verify2_1079seq.fa
+grep 'Indica-enriched' verify1_20bac.ID | cut -f 1 > verify1_20bac.idonly
+usearch10 -fastx_getseqs verify2_1079seq.fa -labels verify1_20bac.idonly -fastaout verify1_20bac.fa
+
+#OTU ID来自附表8c中最后三部分，来自46+70+3的，即indica富集(任意一块地)且受nrt1.1b调控，/mnt/bai/yongxin/rice/xianGeng/wet/verify3_119.id
+#OTU序列来自 附表3b 5141条OTU序列 /mnt/bai/yongxin/rice/xianGeng/wet/verify3_otu_5141.fa
+usearch10 -fastx_getseqs verify3_otu_5141.fa -labels verify3_119.id -fastaout verify3_119.fa # 119 found
+
+# 比较相似度：培养菌比对OTU
+makeblastdb -in verify3_119.fa -dbtype nucl
+blastn -query verify1_20bac.fa -db verify3_119.fa -out verify1_20bac_119.blastn -outfmt '6 qseqid sseqid pident qcovs length mismatch gapopen qstart qend sstart send evalue bitscore' -num_alignments 1 -evalue 1 -num_threads 9 
+awk '$3>97' verify1_20bac_119.blastn | wc -l # 只有R1889一个96.29%，不到97%，可能是因为经COTU中转导致
+# 截取V5-V7也是R1889为96%
+blastn -query verify1_20bac_v57.fa -db verify3_119.fa -out verify1_20bac_119.blastn -outfmt '6 qseqid sseqid pident qcovs length mismatch gapopen qstart qend sstart send evalue bitscore' -num_alignments 1 -evalue 1 -num_threads 9 
+awk '$3>97' verify1_20bac_119.blastn | wc -l # 只有R1889一个96.29%，不到97%，可能是因为经COTU中转导致
+# R1889对应 “# 1vs3 实验菌vsOTU”中~/rice/xianGeng/select_bac/syncom_otu.blastn为I12吗？有相同的相似度，I12     OTU_166 96.29，最好为OTU_371，但其不存在于差异OTU列表
+# 使用旧版序列，也是有一个小于100%
+blastn -query ../select_bac/syncom_1492r.fa -db verify3_119.fa -out verify1_20bac_119.blastn -outfmt '6 qseqid sseqid pident qcovs length mismatch gapopen qstart qend sstart send evalue bitscore' -num_alignments 1 -evalue 1 -num_threads 9 
+awk '$3>97' verify1_20bac_119.blastn | wc -l # 只有R1889一个96.29%，不到97%，可能是因为经COTU中转导致
 

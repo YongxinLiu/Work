@@ -395,8 +395,8 @@ sed -i 's/#//' doc/design.txt
     # 代码详见：/mnt/bai/yongxin/culture/medicago/makefile.man
 
     # 与项目中A17/R180野生型根样本与总体菌库比较
-    # 3.9 culture和culture_graphlan，只需修改A17r或R108r
-    # 2019/3/25 与使用自然样品 ~/culture/jingmei171208.med/makefile.16s # culture_graphlan
+    # 3.9 culture和culture_graphlan，只需修改A17r或R108r，基于实验中大量样本的graphlan
+    # 2019/3/25 与使用culture_start自然样品 ~~/medicago/culture_start # culture_graphlan
 
 
 

@@ -349,6 +349,7 @@ cat doc/design_Sk.txt <(tail -n+2 doc/design_JT.txt) > doc/design.txt
     awk 'BEGIN{FS=OFS="\t"} {for(i=1;i<=NF;i++){a[FNR,i]=$i}}END{for(i=1;i<=NF;i++){for(j=1;j<=FNR;j++){printf a[j,i]" "}print ""}}' result/otutab.sort.top.txt > result/tout.txt
     # 制作OTU与列号索引文件
     sed 's/^#OTU ID/ID/;s/ $//' <(head -n1 result/tout.txt) |tr ' ' '\n'|awk '{print NR"\t"$0}' > pheno/otu.id
+    awk 'NR==FNR{a[$1]=$0} NR>FNR {print a[$2]}' result/taxonomy_8.txt pheno/otu.id > pheno/otu.id.txt
     # 批量生成OTU表型文件， parellel中有$需转义
     parallel --xapply -j 3 \
     "awk 'NR==FNR{a[\$1]=\$2} NR>FNR {print \$1,\$2,a[\$2]}' <(cut -f 1,{1} -d ' ' result/tout.txt) emmax/snp.tfam | sed 's/ \$/ NA/' > pheno/{2}.txt " \

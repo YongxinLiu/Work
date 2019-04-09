@@ -122,7 +122,7 @@ SHELL:=/bin/bash
 	# 可选gg, silva, rdp分别从官网下载并shell调整格式，gg较准但旧，silva全但不准，rdp少而准，比较通用
 	sintax_db=${usearch_rdp}
 	# 分类准确度阈值，默认0.8，注释太少最小可改0.5，发现有明显错误可最高上升为0.95，改为零为最大化显示物种注释
-	sintax_cutoff=0.6
+	sintax_cutoff=0
 
 ## 1.13. tax_sum 物种注释统计
 
@@ -362,13 +362,13 @@ SHELL:=/bin/bash
 
 	fapro_list='"nitrate_ammonification","nitrogen_fixation"'
 
-## 3.9 culture culture_graphlan 可培养菌
+## 3.9 culture 可培养菌
 	 
-	# 可培养菌库类型，如组织Root / RS, 品种A17 / R108
-	# A17Root, R108Root
-	type="R108Root"
-	# 指定可培养菌库位置，fa为OTU，fasta为物种如rice, ath，.tax为物种注释
-	culture_db=/mnt/bai/yongxin/culture/medicago/result/${type}culture_select
+	# 可培养菌库类型，如组织root / rhizosphere / leaf, 品种A50 / IR24
+	# 拟南芥填 Root
+	type=""
+	# 指定可培养菌库位置，fa为OTU，fasta为物种如rice, ath
+	culture_db=/mnt/bai/yongxin/culture/rice/result/${type}culture_select.fasta
 	# 可培养菌结果输出文件
 	# 绘制Graphlan图的筛选阈值
 	graph_thre=0.001
@@ -378,12 +378,11 @@ SHELL:=/bin/bash
 	otu_table=`pwd`/result/otutab.txt
 
 	# 指定具体的实验设计、列、组筛选
-#	cg_design=${design}
-#	cg_group_name=${g1}
-#	cg_group_list=${ab_group_list}
-	cg_design=`pwd`/doc/design.txt
-	cg_group_name=groupID
-	cg_group_list='"R108"'
+	cg_design=${design}
+	cg_group_name=${g1}
+	cg_group_list=${ab_group_list}
+#	cg_design=`pwd`/doc/b23r/design.txt
+#	cg_group_name=genotype
+#	cg_group_list='"R108"'
 
 include /mnt/bai/yongxin/github/Amplicon/16Sv2/pipeline.md
-
