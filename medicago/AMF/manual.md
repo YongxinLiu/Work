@@ -357,15 +357,50 @@ sed -i 's/#//' doc/design.txt
 
 # 5. 发表图版
 
-## 1. 样本描述description
+    mkdir -p fig && cd fig
+    mkdir -p fig1 fig2 fig3 fig4 data script
+    cp /mnt/bai/yongxin/medicago/AMF/doc/design.txt data/
+    cp /mnt/bai/yongxin/medicago/AMF/result/alpha/index.txt data/
+    cp /mnt/bai/yongxin/medicago/AMF/result/beta/bray_curtis.txt data/
+    cp /mnt/bai/yongxin/medicago/AMF/result/beta/unweighted_unifrac.txt data/
+    cp /mnt/bai/yongxin/medicago/AMF/result/beta/weighted_unifrac.txt data/
+    cp /mnt/bai/yongxin/medicago/AMF/result/otutab.txt data/
+    cp /mnt/bai/yongxin/medicago/AMF/result/otutab_norm.txt data/
+    cp /mnt/bai/yongxin/medicago/AMF/result/tax/sum_* data/
+
+## 数据筛选 
+    
+    # 共586个样品，包括3批(180,189,190)10个基因型根、根际土的重复，和4批重测(27)个验证Bacillus的真实性
+    tail -n+2 data/design.txt|wc -l
+    tail -n+2 data/design.txt|cut -f 5|uniq -c
+
+    mkdir -p table && cd table
+    # 详细见table/table.Rmd
+    # 228个样品，9598个ASV，筛选对应的序列和物种注释
+    cut -f 1 table.txt | tail -n+2 > ASV.id
+    usearch10 -fastx_getseqs ~/medicago/AMF/result/otu.fa -labels ASV.id -fastaout rep_seqs.fa
+    awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print a[$1]}' ~/medicago/AMF/result/taxonomy_8.txt table.txt > taxonomy.txt 
+    wc -l taxonomy.txt 
+    # 统计筛选后的metadata
+    tail -n+2 table/metadata.txt|wc -l # 样本数量
+    tail -n+2 table/metadata.txt|cut -f 5|uniq -c # 按批量统计
+    tail -n+2 table/metadata.txt|cut -f 4|sort|uniq -c|awk '{print $2,$1}'|tr ' ' '('|tr '\n' '),' # 按基因型统计
+    # 统计筛选后OTU表
+    usearch10 -otutab_stats table/table.txt -output table/table.stat
+    cat table/table.stat
+
+
+## 1. 样本描述description fig/fig1/fig.Rmd
 
     # 2018/12/11 使用7个基因型2，3批进行分析 "A17","Anfp","lyk3","dmi3","R108","lyk9","lyr4" 去掉"dmi2","Rnfp","lyk9nfp"，备份为fig-7
-    # 2019/1/3 删除lyk3共6个基因型分析
+    # 2019/1/3 删除lyk3共6个基因型分析 "A17","Anfp","dmi3","R108","lyk9","lyr4" 
 
 ### PCoA compartment shape, genotype color
-    # fig/beta_pcoa_all.R 绘制根、根际、土间差异
+    # 代码 fig/beta_pcoa_all.R 绘制根、根际、土间差异
+    cp /mnt/bai/yongxin/medicago/AMF/doc/design.txt
     # fig/beta_pcoa_root.R 表现基因型可变
     # 组间距离箱线图的 beta_boxplot.R, 结果 箱线图太单一，用echart绘制beta_boxplot.txt
+    
 
 ### 物种组成
     # tax_stackplot_all.R
@@ -375,16 +410,24 @@ sed -i 's/#//' doc/design.txt
     # Constrained PCoA: fig/beta_cpcoa_root.R 表现基因型可变
     # Alpha diversity: fig/alpha_boxplot.R 7个基因型两批次
 
-## 2. 差异比较compare
-    
+
+## 2. 差异比较compare fig2.Rmd
+
 ### 差异比较曼哈顿图(2/3批混合筛选点后10个基因型8组edgeR比较) http://210.75.224.110/report/16Sv2/med_b23r10_edgeR_v1/
+    cp ../script/plot_manhattan.r script/plot_manhattan.R
 
 ### 饼形图，见 fig/plot_bar_pie.R
+    cp ../med_b23r10_edgeR_v1/result/compare/*_all.txt data/
 
 ### 绘制单菌的丰度图
     # 前10个菌有5个重点关注，Pseudomonadaceae 1(相反但不显著), **3(目标菌)**, 7(不显著); **Bacillus 2**, 5(趋势一致)
     # 绘制菌在7个基因型中变化
-    alpha_boxplot.sh -i result/otutab.txt -d doc/b23r/design.txt -A genotype -B '"A17","nfp","lyk3","dmi3","R108","lyk9","lyr4"' -m '"OTU_2","OTU_3"' -t TRUE -o fig/boxplot_ -n TRUE -U 100
+    cut -f 4 table/metadata.txt|tr '\t' '\n'|uniq|awk '{print "\""$1"\""}'|tr "\n" ","|sed 's/,$//'
+    cd ~/medicago/AMF/fig
+    # 绘制OTU2 Bacillus
+    alpha_boxplot.sh -i table/table.txt -d table/metadata.txt -A genocomp -B '"A17r","nfpr","dmi3r","R108r","lyk9r","lyr4r","A17rs","nfprs","dmi3rs","R108rs","lyk9rs","lyr4rs","soils"' -m '"OTU_2"' -t TRUE -o fig2/boxplot_ -n TRUE -U 100
+    # 绘制Bacillus属
+    alpha_boxplot.sh -i data/sum_g.txt -d table/metadata.txt -A genocomp -B '"A17r","nfpr","dmi3r","R108r","lyk9r","lyr4r","A17rs","nfprs","dmi3rs","R108rs","lyk9rs","lyr4rs","soils"' -m '"Bacillus"' -t TRUE -o fig2/boxplot_ -n TRUE -U 100
     # 绘制单个菌在不同条件下的箱线图(景美发来wet/序列与OTU比较，100%一致)
     alpha_boxplot.sh -i result/otutab.txt -d doc/design.txt -A groupID -B '"soilB3S","R108b3rs","R108b3r","lyk9b3rs","lyk9b3r","soilB2S","R108b2rs","R108b2r","lyk9b2rs","lyk9b2r"' -m '"OTU_2","OTU_3"' -t TRUE -o fig/OTU_box -n TRUE -U 100
 
@@ -396,7 +439,21 @@ sed -i 's/#//' doc/design.txt
 
     # 与项目中A17/R180野生型根样本与总体菌库比较
     # 3.9 culture和culture_graphlan，只需修改A17r或R108r，基于实验中大量样本的graphlan
-    # 2019/3/25 与使用culture_start自然样品 ~~/medicago/culture_start # culture_graphlan
+    # 2019/3/25 与使用culture_start自然样品 ~/medicago/culture_start # culture_graphlan
+    # 2019/4/9 更新 pipeline.md 中分菌部分详细注释和代码优化
+    # 统计分菌代码见文末“## Sanger测序验证菌”段落，sanger测序绘制代码参考~/culture/rice/makefile.man "# 总结：1098个单菌" 段落
+    cd ~/medicago/AMF/fig/fig3
+    cp ~/culture/rice/verify/graphlan_culture.R ./
+    cp ~/medicago/AMF/wet/stock_sanger/taxonomy_9.txt ./
+ 
+    Rscript graphlan_culture.R # 生成1树, 2科注释，和来原环
+    cat /mnt/bai/yongxin/culture/rice/graphlan/global.cfg 2_annotation_family.txt /mnt/bai/yongxin/culture/rice/graphlan/ring1.cfg 3_annotation_match.txt > 5_annotation.txt
+    graphlan_annotate.py --annot 5_annotation.txt 1_tree_plain.txt graphlan.xml
+    graphlan.py graphlan.xml culture_graphlan.pdf --size 5
+    # 提取相应序列
+    tail -n+2 taxonomy_9.txt|wc -l # 325 seqs
+    cut -f 1 taxonomy_9.txt|tail -n+2 > seq325.id
+    usearch10 -fastx_getseqs ~/medicago/AMF/wet/stock_sanger/16s_full_length_list1.fa -labels seq325.id -fastaout seq325.fa
 
 
 
@@ -408,6 +465,7 @@ sed -i 's/#//' doc/design.txt
     # 先分析第4批，保存为文本 b4.txt，
 
 ## 其它
+
 
 ### 文中数据统计
     grep 'b[23]' doc/design.txt|wc -l # 360个样，有一个数据量太少，359
@@ -421,29 +479,42 @@ sed -i 's/#//' doc/design.txt
     # GSA注册项目
     http://bigd.big.ac.cn/gsub/submit/bioproject/new
 
-## Sanger测序验证菌 2019/1/30
-cd ~/medicago/AMF/wet/stock_sanger
-ls contig/*.txt|wc # 307条拼接好的序列，查看为fasta格式
-ls raw_27F_515R_1492R/*|cut -f 2 -d '/'|cut -f 1 -d '.'|uniq > list.txt
-wc -l list.txt # 测了有376条序列
-# cap3拼接
-mkdir -p cap3
-for file in `cat list.txt`; do
-    echo $file
-    format_seq2fasta.pl -i "raw_27F_515R_1492R/${file}.*.seq" -o ${file}.fa
-    cap3 ${file}.fa > /tmp/temp.txt
-    # 改名
-    sed -i "1 s/Contig1/${file}/" ${file}.fa.cap.contigs
-    # 移至目录
-    mv ${file}.fa.cap.contigs cap3/
-    # 删除其它临时文件
-    rm ${file}.*
-done
-ls cap3/*|wc # 329个文件
-# 序列合并
-cat cap3/* > 16s_full_length_list.fa
-format_fasta_1line.pl -i 16s_full_length_list.fa -o 16s_full_length_list1.fa # 还生成16s_full_length_list1.fa.tsv
-grep '>' -c 16s_full_length_list1.fa # 326条序列
-
-
-
+    ## Sanger测序验证菌 2019/1/30
+    cd ~/medicago/AMF/wet/stock_sanger
+    ls contig/*.txt|wc # 307条拼接好的序列，查看为fasta格式
+    ls raw_27F_515R_1492R/*|cut -f 2 -d '/'|cut -f 1 -d '.'|uniq > list.txt
+    wc -l list.txt # 测了有376条序列
+    # cap3拼接
+    mkdir -p cap3
+    for file in `cat list.txt`; do
+        echo $file
+        format_seq2fasta.pl -i "raw_27F_515R_1492R/${file}.*.seq" -o ${file}.fa
+        cap3 ${file}.fa > /tmp/temp.txt
+        # 改名
+        sed -i "1 s/Contig1/${file}/" ${file}.fa.cap.contigs
+        # 移至目录
+        mv ${file}.fa.cap.contigs cap3/
+        # 删除其它临时文件
+        rm ${file}.*
+    done
+    ls cap3/*|wc # 329个文件
+    # 序列合并
+    cat cap3/* > 16s_full_length_list.fa
+    format_fasta_1line.pl -i 16s_full_length_list.fa -o 16s_full_length_list1.fa # 还生成16s_full_length_list1.fa.tsv
+    sed -i 's/>P03A10/>MP03A10/;s/>P03A1$/>MP03A1/' 16s_full_length_list1.fa 
+    grep '>' -c 16s_full_length_list1.fa # 326条序列
+    # 2019/4/9 序列来源信息，物种注释
+    file=16s_full_length_list1
+    usearch10 -sintax ${file}.fa -db /mnt/bai/public/ref/rdp/rdp_16s_v16_sp.udb -sintax_cutoff 0.6 -strand both -tabbedout ${file}.tax -threads 9
+    cut -f 1,4 ${file}.tax | sed 's/\td/\tk/;s/:/__/g;s/,/;/g;s/"//g;s/\/Chloroplast//' > taxonomy_2.txt
+    # 生成物种表格：注意OTU中会有末知为空白，补齐分类未知新物种为Unassigned
+    awk 'BEGIN{OFS=FS="\t"} {delete a; a["k"]="Unassigned";a["p"]="Unassigned";a["c"]="Unassigned";a["o"]="Unassigned";a["f"]="Unassigned";a["g"]="Unassigned";a["s"]="Unassigned"; split($2,x,";");for(i in x){split(x[i],b,"__");a[b[1]]=b[2];} print $1,a["k"],a["p"],a["c"],a["o"],a["f"],a["g"],a["s"];}' taxonomy_2.txt | sed '1 i OTUID\tKingdom\tPhylum\tClass\tOrder\tFamily\tGenus\tSpecies' > taxonomy_8.txt
+    # 添加来源，参考 /mnt/bai/yongxin/culture/rice/makefile.man # 整理分离来源的标签先分四类，再分两类
+    # 景美提供 list_detail.txt 是对应来源信息，4，5，6列分别为基因型，compartment和培养基，主要为A17，Root和TSB
+    # list中有354条注释，而taxonomy中有326条序列；
+    awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print a[$1]}' list_detail.txt taxonomy_8.txt|cut -f 4|sort|uniq -c # 有312个A17,11个R108和4个空；只划了A17为主
+    # 筛选空行ID，有3个没注释，找景美查原因，
+    awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print $1,a[$1]}' list_detail.txt taxonomy_8.txt|cut -f 1,5|grep -P -v 'A17|R108'
+    # 两个P03A1*名称不完整，修改补全；另一MP05D6缺失删除
+    sed -i 's/P03A10/MP03A10/;s/P03A1\t/MP03A1\t/' taxonomy_8.txt
+    awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$4} NR>FNR{print $0,a[$1]}' list_detail.txt taxonomy_8.txt|grep -P 'A17|R108|Source' > taxonomy_9.txt

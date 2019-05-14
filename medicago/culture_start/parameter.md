@@ -366,7 +366,7 @@ SHELL:=/bin/bash
 	 
 	# 可培养菌库类型，如组织Root / RS, 品种A17 / R108
 	# A17Root, R108Root
-	type="R108Root"
+	type="A17Root"
 	# 指定可培养菌库位置，fa为OTU，fasta为物种如rice, ath，.tax为物种注释
 	culture_db=/mnt/bai/yongxin/culture/medicago/result/${type}culture_select
 	# 可培养菌结果输出文件
@@ -383,7 +383,7 @@ SHELL:=/bin/bash
 #	cg_group_list=${ab_group_list}
 	cg_design=`pwd`/doc/design.txt
 	cg_group_name=groupID
-	cg_group_list='"R108"'
+	cg_group_list='"A17",'
 
 include /mnt/bai/yongxin/github/Amplicon/16Sv2/pipeline.md
 

@@ -1,12 +1,3 @@
-# 2019/4/9 基于~/maize/magic/v2中样本表格挑选亲本进一步比较
-make init
-# 直接准备基本文件，从多样性分析开始
-cp ../v2/temp/otus.fa temp/
-cp ../v2/temp/otutab.txt temp/
-touch otutab_create
-make otutab_filter
-make otutab_norm
-make beta_calc
 
 	# 快速分析 Quick Start(所需文件准备好)
 	find . -name "*" -type f -size 0c | xargs -n 1 rm -f # 清理零字节文件，用于从头重新分析项目清空makefile点位文件

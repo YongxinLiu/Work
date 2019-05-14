@@ -161,19 +161,18 @@ SHELL:=/bin/bash
 
 	# 绘图通用参数
 	# 实验设计文件位置，全局，其它图默认调此变量，也可单独修改；并选择表中的组列和具体分组
-	# 设置子版本目录 Jt 拔节 Sk 吐丝
-	# 筛选JTR grep -v -P '^Sk' doc/design.txt > doc/designJTR.txt
+	# 设置子版本目录
 	sub=""
 	doc=doc/${sub}
-	design=${wd}/${doc}/designJTR.txt 
-	g1=name
-	# tail -n+2 ${doc}/design.txt|cut -f 6|sort|uniq|awk '{print "\""$1"\""}'|tr "\n" ","
+	design=${wd}/${doc}/design.txt 
+	g1=groupID
+	# tail -n+2 ${doc}/design.txt|cut -f 5|sort|uniq|awk '{print "\""$1"\""}'|tr "\n" ","
 	# 绘图使用的实验组，顺序即图中显示顺序；为空时使用所有组和默认顺序
 	#g1_list='"Col","ThasKO2","ThahKO","ThadKO","ACT2KO"'
 	# 从实验设计比较组中提取组名，自动获得目录组 (推荐)
-	#g1_list=`cat doc/${sub}/compare.txt|tr '\t' '\n'|sort|uniq|awk '{print "\""$$1"\""}'|tr "\n" ","|sed 's/,$$//'`
+	g1_list=`cat doc/${sub}/compare.txt|tr '\t' '\n'|sort|uniq|awk '{print "\""$$1"\""}'|tr "\n" ","|sed 's/,$$//'`
     # 从实验设计提取组(可选)
-	g1_list=`tail -n+2 ${doc}/design.txt|cut -f 4|sort|uniq|awk '{print "\""$$1"\""}'|tr "\n" ","|sed 's/,$$//'`
+	# g1_list=`tail -n+2 ${doc}/design.txt|cut -f 5|sort|uniq|awk '{print "\""$$1"\""}'|tr "\n" ","|sed 's/,$$//'`
 
 	# 组间比较列表
 	compare=${wd}/${doc}/compare.txt
@@ -188,8 +187,8 @@ SHELL:=/bin/bash
 	# 图中显示legend, 如taxonomy的数量，5，8(default)，10
 	legend_number=10
 	# 差异统计按丰度过滤 abundance filter，如丰度按万分之一过滤，减少计算量，提高OTU的FDR值，根据组数量多少可选十万5或万分之5
-	abundance_thre=0.1
-	# 差异比较方法，默认是 edgeR ，可选 wilcox 秩和检验、t.test 
+	abundance_thre=0.01
+	# 差异比较方法，默认是 edgeR ，可选 wilcox秩和检验、t.test 
 	compare_method="wilcox"
 	# 显著性P值过滤 threshold of P-value，可选0.05, 0.01, 0.001。采用FDR校正，此参数意义不大，即使0.001也没有FDR < 0.2过滤严格
 	pvalue=0.05
@@ -199,9 +198,9 @@ SHELL:=/bin/bash
 	FC=1.2
 
 	# 统计绘图和网页报告版本控制
-	species="maize"
-	keyword="salt"
-	version=${species}_${keyword}_${compare_method}_${sub}_v1
+	species="species"
+	keyword="keyword"
+	version=${species}_${keyword}_${sub}_v1
 
 
 ## 2.1 alpha_boxplot Alpha多样性指数箱线图 Alpha index in boxplot

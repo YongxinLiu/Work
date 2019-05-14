@@ -25,11 +25,12 @@
 # 2019/3/7 rice/zn.sd1/v3 水稻SD1第三批
 # 2019/3/11 rice/Gprotein/v2 水稻G蛋白第二批
 # 2019/3/25 medicago/culture_start 苜蓿分菌起始样品
-# 2019/4/9 maize/v2salt 玉米亲本耐盐
+# 2019/4/9 maize/magic/v2salt 玉米亲本耐盐
+# 2019/5/14 medicago/AMF2 苜蓿按新思路从头分析
 
 
 
-wd=maize/v2salt
+wd=medicago/AMF2
 # 创建github目录，用于备份流程、文档
 cd ~
 mkdir -p ~/github/Work/$wd

@@ -491,6 +491,25 @@
     mkdir -p seq
     awk 'BEGIN{OFS=FS="\t"}{system("mv 2.cleandata/"$2"/"$2"_1.clean.fq.gz seq/"$1"_1.fq.gz");system("mv 2.cleandata/"$2"/"$2"_2.clean.fq.gz seq/"$1"_2.fq.gz");}' <(tail -n+2 metadata.txt)
 
+## 2019/4/18 rice miniCore2 非粳籼的66个样品
+
+    cd /mnt/m2/data/meta/rice/miniCore2
+    # 了解文件格式
+    less -S metadata.txt # 66样本芯片、Lane编号
+    # 整理原始序列按样本合并、上传、改名
+    find raw/*/* -name *.gz|wc # 264文件
+    find raw/*/* -name *.gz|cut -f 3 -d '/'|sort|uniq|wc -l # 264非冗余文件
+    # 非冗余整理到同一文件夹中
+    mkdir -p temp
+    for i in `find raw/*/* -name *.gz`; do
+        ln -sf `pwd`/$i temp/
+    done
+    # 制作实验设计批量两文件合并并重命名
+    mkdir -p seq
+    awk 'BEGIN{OFS=FS="\t"}{system("zcat temp/"$2"_1.fq.gz temp/"$3"_1.fq.gz | pigz -p 30 > seq/"$1"_1.fq.gz")}' <(tail -n+2 metadata.txt|cut -f 1,6,7)
+    awk 'BEGIN{OFS=FS="\t"}{system("zcat temp/"$2"_2.fq.gz temp/"$3"_2.fq.gz | pigz -p 30 > seq/"$1"_2.fq.gz")}' <(tail -n+2 metadata.txt|cut -f 1,6,7)
+
+
 
 
 ## 附录: 宏基因组通用操作代码
@@ -505,8 +524,8 @@
     cat datasize.txt
 
     # 分双端统计md5值
-    md5sum L*_1.fq.gz > /tmp/md5sum1.txt
-    md5sum L*_2.fq.gz > /tmp/md5sum2.txt
+    md5sum *_1.fq.gz > /tmp/md5sum1.txt
+    md5sum *_2.fq.gz > /tmp/md5sum2.txt
     paste /tmp/md5sum1.txt /tmp/md5sum2.txt | awk '{print $2"\t"$1"\t"$4"\t"$3}' > md5sum.txt
     cat md5sum.txt
 

@@ -162,10 +162,10 @@ SHELL:=/bin/bash
 	# 绘图通用参数
 	# 实验设计文件位置，全局，其它图默认调此变量，也可单独修改；并选择表中的组列和具体分组
 	# 区域和批次分为Root_Batch1/2/3(b1r)，Rhizosphere_Batch1/2/3(b1rs), 比较根vs根际,根际vs土(b1) b23r10
-	sub=b1r
+	sub=b23r10
 	doc=doc/${sub}
-	design=${wd}/doc/design.txt 
-	g1=groupID
+	design=${wd}/${doc}/design.txt 
+	g1=genotype
 	# tail -n+2 doc/design.txt|cut -f 2|sort|uniq|awk '{print "\""$1"\""}'|tr "\n" ","
 	# "A17b1rs","Anfpb1rs","dmi2b1rs","dmi3b1rs","lyk3b1rs","lyk9b1rs","lyk9nfpb1rs","lyr4b1rs","R108b1rs","Rnfpb1rs","A17b1r","Anfpb1r","dmi2b1r","dmi3b1r","lyk3b1r","lyk9b1r","lyk9nfpb1r","lyr4b1r","R108b1r","Rnfpb1r","soilB1S","A17b2rs","Anfpb2rs","dmi2b2rs","dmi3b2rs","lyk3b2rs","lyk9b2rs","lyk9nfpb2rs","lyr4b2rs","R108b2rs","Rnfpb2rs","A17b2r","Anfpb2r","dmi2b2r","dmi3b2r","lyk3b2r","lyk9b2r","lyk9nfpb2r","lyr4b2r","R108b2r","Rnfpb2r","soilB2S","A17b3rs","Anfpb3rs","dmi2b3rs","dmi3b3rs","lyk3b3rs","lyk9b3rs","lyk9nfpb3rs","lyr4b3rs","R108b3rs","Rnfpb3rs","A17b3r","Anfpb3r","dmi2b3r","dmi3b3r","lyk3b3r","lyk9b3r","lyk9nfpb3r","lyr4b3r","R108b3r","Rnfpb3r","soilB3S"
 	# 绘图使用的实验组，顺序即图中显示顺序；为空时使用所有组和默认顺序
@@ -197,7 +197,7 @@ SHELL:=/bin/bash
 	FC=1.2
 
 	# 统计绘图和网页报告版本控制
-	version=med_${sub}_${compare_method}_v1
+	version=med_${sub}_${compare_method}_v2
 
 
 ## 2.1 alpha_boxplot Alpha多样性指数箱线图 Alpha index in boxplot
@@ -210,10 +210,6 @@ SHELL:=/bin/bash
 	ab_design=${design}
 	ab_group_name=${g1}
 	ab_group_list=${g1_list}
-#	ab_group_list='"A17b1rs","Anfpb1rs","dmi2b1rs","dmi3b1rs","lyk3b1rs","lyk9b1rs","lyk9nfpb1rs","lyr4b1rs","R108b1rs","Rnfpb1rs","A17b1r","Anfpb1r","dmi2b1r","dmi3b1r","lyk3b1r","lyk9b1r","lyk9nfpb1r","lyr4b1r","R108b1r","Rnfpb1r","soilB1S"'
-#"A17b1rs","Anfpb1rs","dmi2b1rs","dmi3b1rs","lyk3b1rs","lyk9b1rs","lyk9nfpb1rs","lyr4b1rs","R108b1rs","Rnfpb1rs","A17b1r","Anfpb1r","dmi2b1r","dmi3b1r","lyk3b1r","lyk9b1r","lyk9nfpb1r","lyr4b1r","R108b1r","Rnfpb1r","soilB1S"
-#"A17b2rs","Anfpb2rs","dmi2b2rs","dmi3b2rs","lyk3b2rs","lyk9b2rs","lyk9nfpb2rs","lyr4b2rs","R108b2rs","Rnfpb2rs","A17b2r","Anfpb2r","dmi2b2r","dmi3b2r","lyk3b2r","lyk9b2r","lyk9nfpb2r","lyr4b2r","R108b2r","Rnfpb2r","soilB2S"
-#"A17b3rs","Anfpb3rs","dmi2b3rs","dmi3b3rs","lyk3b3rs","lyk9b3rs","lyk9nfpb3rs","lyr4b3rs","R108b3rs","Rnfpb3rs","A17b3r","Anfpb3r","dmi2b3r","dmi3b3r","lyk3b3r","lyk9b3r","lyk9nfpb3r","lyr4b3r","R108b3r","Rnfpb3r","soilB3S"
 	ab_output=${wd}/result/alpha/
 	ab_width=${width}
 	ab_height=${height}
@@ -281,9 +277,9 @@ SHELL:=/bin/bash
 	Dc_design=${design}
 	Dc_group_name=${g1}
 	#比较组变化会导致OTUs数量不同，不同批次无法比，此处可固定所有组
-	#Dc_group_list=${g1_list}
+	Dc_group_list=${g1_list}
 	#Dc_group_list=`tail -n+2 ${doc}/design.txt|cut -f 3|sort|uniq|sort|uniq|awk '{print "\""$$1"\""}'|tr "\n" ","|sed 's/,$$//'`
-	Dc_group_list=`tail -n+2 doc/design.txt|cut -f 2|sort|uniq|sort|uniq|grep -v soil|grep -v rs|awk '{print "\""$$1"\""}'|tr "\n" ","|sed 's/,$$//'`
+	#Dc_group_list=`tail -n+2 doc/design.txt|cut -f 2|sort|uniq|sort|uniq|grep -v soil|grep -v rs|awk '{print "\""$$1"\""}'|tr "\n" ","|sed 's/,$$//'`
 	Dc_output=${wd}/result/compare/
 	Dc_group_name2=${g1}
 
