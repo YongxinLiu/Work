@@ -8,8 +8,8 @@
 	make DA_compare # 绘制alpha、beta、taxonomy和差异OTU比较
 	#rm -f plot_volcano # 删除OTU差异比较可化标记
 	make plot_manhattan # 绘制差异比较的火山图、热图、曼哈顿图
-	make plot_venn # 绘制OTU差异共有/特有维恩图
 	make DA_compare_tax # 高分类级差异比较，维恩图绘制，2为reads count负二项分布统计
+	make plot_venn # 绘制OTU差异共有/特有维恩图
 	make rmd # 生成网页报告，必须依赖的只有alpha, beta, taxonomy
 
 	# 提取脚本
@@ -60,6 +60,7 @@
     ln ~/medicago/zjj170823/171225test/clean_data/L1_1.fq.gz seq/L11_1.fq.gz
     ln ~/medicago/zjj170823/171225test/clean_data/L1_2.fq.gz seq/L11_2.fq.gz 
     cp ~/medicago/zjj170823/171225test/doc/L1.txt doc/L11.txt
+    # 补测的样本，本体为/mnt/bai/yongxin/rice/strigolactone.LiJY/clean_data/L30_1.fq.gz或L171220_CACCGG；是小璇在水稻中给苜蓿带的样品
     # 手动修改L11符合前面的格式，不重名，且可比较   
     
     # Merge paired reads, renames and merge all samples
@@ -284,6 +285,10 @@
     # Group compareing by edgeR or wilcox
     # 可选负二项分布，或wilcoxon秩和检验
     make DA_compare
+
+## 2.7 绘制维恩图和生成报告
+	make plot_venn # 绘制OTU差异共有/特有维恩图
+	make rmd # 生成网页报告，必须依赖的只有alpha, beta, taxonomy
 
 # 手工比较
 wd=/mnt/bai/yongxin/medicago/AMF

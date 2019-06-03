@@ -362,7 +362,7 @@ sed -i '/^\t/d' result/compare/diff.list
 
 
 
-# 2019/2/11 三物种比较，采用Cp35天比较，来自~/ath/jt.HuangAC/coevolve
+# 2019/2/11 三萜中突变体影响的菌与水稻水麦中变化的是否一致？三物种比较，采用Cp35天比较，来自~/ath/jt.HuangAC/coevolve
 mkdir -p doc/coevolve
 cp ~/ath/jt.HuangAC/coevolve/doc/design.txt doc/coevolve/
 cp ~/ath/jt.HuangAC/coevolve/doc/compare.txt doc/coevolve/
@@ -393,6 +393,44 @@ make plot_venn
 make rmd 
 http://210.75.224.110/report/16Sv2/multispecies_evolve_coevolve_v2
 
+# 2019/5/17 土壤三点比较，35d rice ath and wheat
+# 三萜中的土壤为b3BS，但分为；水稻的土壤0，42，49，35天没取样，暂用42天；小麦取样封为soilD35L1："b3BS","soilCp42","soilD35L1"
+# 放在soil/compare.txt中按标准流程分析，修改sub, version
+cp -r doc/soil/ doc/soil2/ # 修改这三个文件的实验设计
+rm DA_compare
+make DA_compare
+# 筛选各组中存在的的ASV做维恩 
+awk '$2>0.0' result/compare/database.txt|grep 'OTU_'|cut -f 1 |sort|uniq| sed 's/$/\tAth2TSoil/' >>result/compare/diff.list
+awk '$3>0.0' result/compare/database.txt|grep 'OTU_'|cut -f 1 |sort|uniq| sed 's/$/\tRiceSoil/' >>result/compare/diff.list
+awk '$4>0.0' result/compare/database.txt|grep 'OTU_'|cut -f 1 |sort|uniq| sed 's/$/\tWheatSoil/' >>result/compare/diff.list
+sed -i '/^\t/d' result/compare/diff.list
+rm plot_venn
+make plot_venn
+# 可视化
+make rmd 
+
+
+
+
+# 2019/5/16 二半萜中突变体影响的菌与水稻水麦中变化的是否一致？三物种比较，采用Cp35天比较，来自~/ath/jt.HuangAC/coevolve
+mkdir -p doc/coevolve
+cp -r doc/coevolve doc/coevolve2
+# 添加2半萜/mnt/bai/yongxin/ath/integrate16s/doc/2.5/design.txt，补齐列;
+# 差异比较和venn参考compare.txt 和venn.txt
+# 修改sub版本为 coevolve2, 实验组为groupID2，修改二半萜的组名
+make DA_compare
+make plot_venn
+# 添加4个基因型比较共有结果
+grep 'OTU' result/compare/diff.list.vennDM3b3_WT4b3_DTPS25ab3_WT4b3_DDM4b3_WT4b3_DTPS30ab3_WT4b3_DTPS30bb3_WT4b3_D.xls.xls | cut -f 1 | sed 's/$/\tAll2T_D/' >>result/compare/diff.list
+grep 'OTU' result/compare/diff.list.vennDM3b3_WT4b3_ETPS25ab3_WT4b3_EDM4b3_WT4b3_ETPS30ab3_WT4b3_ETPS30bb3_WT4b3_E.xls.xls | cut -f 1 | sed 's/$/\tAll2T_E/' >>result/compare/diff.list
+sed -i '/^\t/d' result/compare/diff.list
+# 重新绘图
+rm plot_venn
+make plot_venn
+# 可视化
+make rmd 
+http://210.75.224.110/report/16Sv2/multispecies_evolve_coevolve2_v3
+http://210.75.224.110/report/16Sv2/multispecies_evolve_coevolve2_v1 # FDR 0.05
 
 ## Fig5. C/E 单菌对应OTU的箱线图
     # 姜婷发我的实验的菌测序结果 /mnt/bai/yongxin/ath/integrate16s/multispecies/3T/culture.txt

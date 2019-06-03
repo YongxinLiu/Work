@@ -351,6 +351,14 @@
     sed -i 's/Clean\/DYMJTR18-WTCBAC2\/FCHT7YTBCX2_L1_CWHPEPI00001995/lane/' md5.txt
     # 按下方`扩增子lane处理通用代码代码`操作
 
+## 190516.lane20
+
+    wd=L190516
+    cd ~/seq/$wd
+    md5sum -c Clean.md5.txt 
+    mv Clean/CWHPEPI00002033/FCHVH3FBCX2_L1_CWHPEPI00002033_*.gz ./
+    rename 's/FCHVH3FBCX2_L1_CWHPEPI00002033/lane/' *.fq.gz
+
 
 
 ## 扩增子lane处理通用代码
@@ -653,3 +661,10 @@
     cd ~/seq
     cp -r 180115.BSA.wx ${target}
     cp -r 180601.ath.WGS ${target}
+
+
+## 附录代码：
+
+	# 按indexRC提取完整index信息，库中为index.ID，获取index和IndexRC，并补充到实验设计
+    awk 'BEGIN{FS=OFS="\t"} NR==FNR {a[$3]=$0} NR>FNR {print a[$2]}' \
+        /mnt/bai/yongxin/ref/culture/IlluminaIndex48.txt doc/library.txt

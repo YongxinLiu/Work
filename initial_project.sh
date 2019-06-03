@@ -27,10 +27,11 @@
 # 2019/3/25 medicago/culture_start 苜蓿分菌起始样品
 # 2019/4/9 maize/magic/v2salt 玉米亲本耐盐
 # 2019/5/14 medicago/AMF2 苜蓿按新思路从头分析
+# 2019/6/3 rice/hinge1/its 苜蓿按新思路从头分析
 
 
 
-wd=medicago/AMF2
+wd=rice/hinge1/its
 # 创建github目录，用于备份流程、文档
 cd ~
 mkdir -p ~/github/Work/$wd

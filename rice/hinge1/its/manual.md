@@ -28,7 +28,7 @@
 	## 0.1 准备流程配置文件
 
 	# 设置工作目录
-	wd=medicago/AMF2
+	wd=rice/miniCore
 	# 创建环境代码见~/github/Work/initial_project.sh
 
 	## 准备实验设计
@@ -38,6 +38,7 @@
 	make init
 
 	# 保存模板中basic页中3. 测序文库列表library为doc/library.txt
+	sed -i 's/\t/\tL171121_/' doc/library.txt # time check SeqLibraryList.xlsx
 	# 按library中第二列index准备测序文库，如果压缩要添加.gz，并用gunzip解压
 	awk 'BEGIN{OFS=FS="\t"}{system("ln -s /mnt/bai/yongxin/seq/amplicon/"$2"_1.fq.gz seq/"$1"_1.fq.gz");}' <(tail -n+2 doc/library.txt )
 	awk 'BEGIN{OFS=FS="\t"}{system("ln -s /mnt/bai/yongxin/seq/amplicon/"$2"_2.fq.gz seq/"$1"_2.fq.gz");}' <(tail -n+2 doc/library.txt )
@@ -46,12 +47,13 @@
 	# 如果压缩文件，要强制解压链接
 	gunzip -f seq/*.gz
 
+	# 标准多文库实验设计拆分，保存模板中design页为doc/design_raw.txt
+	split_design.pl -i doc/design_raw.txt
 	# 从其它处复制实验设计
-	cp ~/medicago/AMF/doc/L* doc/
-	#cp ~/medicago/culture_start/doc/L1.txt doc/L12.txt
-    # L12与之前列数不一致，调为一致
+	cp ~/ath/jt.HuangAC/batch3/doc/L*.txt doc/
 	# 删除多余空格，windows换行符等
 	sed -i 's/ //g;s/\r//' doc/*.txt 
+	head -n3 doc/L1.txt
 	# 依据各文库L*.txt文件生成实验设计
 	cat <(head -n1 doc/L1.txt | sed 's/#//g') <(cat doc/L* |grep -v '#'|grep -v -P '^SampleID\t') > doc/design.txt
 	# 检查是否相等
@@ -68,7 +70,6 @@
 	# 统计结果见result/split有txt/pdf/png，推荐看png方便快速查看每张位图
 	# 查看样本量排序
 	sort -k2,2n result/sample_split.log|less
-    # 只有2个低于5k，4个低于5万
 
 ## 1.3. 样品双端合并、重命名、合并为单一文件
 
@@ -106,7 +107,7 @@
 	# Remove redundancy, get unique reads
 	# 输入为temp/filtered.fa，输出为temp/uniques.fa
 	make fa_unqiue
-    # 100阈值去冗余 1/1M，4万多，但unoise读只有1.9d万，去噪后为1.1万
+
 
 ## 1.7. 挑选OTU
 
@@ -143,10 +144,8 @@
 ## 1.11. 过滤样本和OTUs
 
 	# OTU table filter samples and OTU
-	# 默认过滤低测序量<5000的样本，可，筛选大于1RPM的OTU
+	# 推荐过滤低测序量<5000的样本，筛选大于1RPM的OTU
 	make otutab_filter 
-    # 抽平sample_size=50000，根据 less result/otutab.biom.sum 591个样品只有12个小于5万
-	make otutab_norm
 
 
 ## 1.12. 物种注释
@@ -190,14 +189,6 @@
 	# Reference based OTU table
 	# otutab_gg 有参比对，如Greengenes，可用于picurst, bugbase分析
 	make otutab_gg
-
-
-# 复制之前筛选过样本的、二三批合并的实验设计和比较组
-cp -r ~/medicago/AMF/doc/b23r10/ doc/b23r10
-# 选择的8个基因型，去除dmi2和lyk9nfp
-cp -r doc/b23r10 doc/b23r8
-# 最后选择的6个基因型，去除lyk3, dmi2, Rnfp和lyk9nfp
-cp -r doc/b23r8 doc/b23r6
 
 
 
@@ -252,124 +243,54 @@ cp -r doc/b23r8 doc/b23r6
 
 # 4. 个性分析
 
+## 4.1. 分蘖与菌相关性
+
+	# 准备相关输入文件
+	cd ~/rice/miniCore/180718
+	# 硬链数据文件，保持可同步修改和可备份
+	# miniCore分蘖数据整理
+	ln ~/rice/xianGeng/doc/phenotype_sample_raw.txt doc/
+	# LN otu表和实验设计
+	mkdir -p data
+	cp ~/rice/miniCore/180319/LN/otutab.txt data/LN_otutab.txt
+	cp ~/rice/miniCore/180319/doc/design.txt doc/design_miniCore.txt
+	mkdir -p data/cor/LN
+	# 物种注释
+	cp ~/rice/miniCore/180319/temp/otus_no_host.tax data/
+
+	# 统计见script/cor_tiller_LN.Rmd
+	# 相关系数，添加物种注释
+	awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$4} NR>FNR{print $0,a[$1]}' result/otus_no_host.tax data/cor/LN/otu_mean_pheno_cor.r.txt | less -S > result/cor/LN/otu_mean_pheno_cor.r.txt.tax
+	# 再添加可培养相关菌
+	awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print $0,a[$1]}' result/39culture/otu.txt data/cor/LN/otu_mean_pheno_cor.r.txt.tax | less -S > data/cor/LN/otu_mean_pheno_cor.r.txt.tax
 
 
-# 5. 发表图版
+# 附录
+	## 准备原始数据
 
-    cd ~/medicago/AMF2/fig/
-    mkdir -p fig && cd fig
-    mkdir -p fig1 fig2 fig3 fig4 data script
-    cp /mnt/bai/yongxin/medicago/AMF/doc/design.txt data/
-    cp /mnt/bai/yongxin/medicago/AMF2/result/alpha/index.txt data/
-    cp /mnt/bai/yongxin/medicago/AMF2/result/beta/bray_curtis.txt data/
-    cp /mnt/bai/yongxin/medicago/AMF2/result/beta/unweighted_unifrac.txt data/
-    cp /mnt/bai/yongxin/medicago/AMF2/result/beta/weighted_unifrac.txt data/
-    cp /mnt/bai/yongxin/medicago/AMF2/result/otutab.txt data/
-    cp /mnt/bai/yongxin/medicago/AMF2/result/otutab_norm.txt data/
-    cp /mnt/bai/yongxin/medicago/AMF2/result/tax/sum_* data/
+	# 拆lane和质量转换归为原始seq目录中处理
+	# Prepare raw data
+	#ln ~/seq/180210.lane9.ath3T/Clean/CWHPEPI00001683/lane_* ./
+	#cp ~/ath/jt.HuangAC/batch3/doc/library.txt doc/
+	
+	# 检查数据质量，转换为33
+	#determine_phred-score.pl seq/lane_1.fq.gz
+	# 如果为64，改原始数据为33
+	rename 's/lane/lane_33/' seq/lane_*
+	# 关闭质量控制，主要目的是格式转换64至33，不然usearch无法合并
+	#time fastp -i seq/lane_64_1.fq.gz -I seq/lane_64_2.fq.gz \
+	#	-o seq/lane_1.fq.gz -O seq/lane_2.fq.gz -6 -A -G -Q -L -w 9
+	# 1lane 80GB, 2 threads, 102min
 
-## 数据筛选 
-    
-    # 共586个样品，包括3批(180,189,190)10个基因型根、根际土的重复，和4批重测(27)个验证Bacillus的真实性
-    tail -n+2 data/design.txt|wc -l
-    tail -n+2 data/design.txt|cut -f 5|uniq -c
+## 1.1. 按实验设计拆分lane为文库
 
-    mkdir -p table && cd table
-    cp /mnt/bai/yongxin/medicago/AMF/fig/table/table.Rmd ./
-    # 详细见table/table.Rmd
-    # 228个样品，9023个ASV，筛选对应的序列和物种注释
-    cut -f 1 table.txt | tail -n+2 > ASV.id
-    usearch10 -fastx_getseqs ~/medicago/AMF2/result/otu.fa -labels ASV.id -fastaout rep_seqs.fa
-    awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print a[$1]}' ~/medicago/AMF2/result/taxonomy_8.txt table.txt > taxonomy.txt 
-    tail -n+2 taxonomy.txt | wc -l 
-    # 统计筛选后的metadata，各种样本量
-    tail -n+2 metadata.txt|wc -l # 样本数量
-    tail -n+2 metadata.txt|cut -f 5|uniq -c # 按批量统计
-    tail -n+2 metadata.txt|cut -f 4|sort|uniq -c|awk '{print $2,$1}' # 按基因型统计
-    # 统计筛选后OTU表
-    usearch10 -otutab_stats table.txt -output table.stat
-    cat table.stat
-
-
-## 1. 样本描述description fig/fig1/fig.Rmd
-
-    cd ~/medicago/AMF2/fig/
-    cp /mnt/bai/yongxin/medicago/AMF/fig/fig1/fig1.Rmd ./fig1/
-    # 2018/12/11 使用7个基因型2，3批进行分析 "A17","Anfp","lyk3","dmi3","R108","lyk9","lyr4" 去掉"dmi2","Rnfp","lyk9nfp"，备份为fig-7
-    # 2019/1/3 删除lyk3共6个基因型分析 "A17","Anfp","dmi3","R108","lyk9","lyr4" 
-    # 2019/5/27 删除lyk3共6个基因型分析 "A17","Anfp","dmi3","R108","lyk9","lyr4" 
-
-### PCoA compartment shape, genotype color
-    # 代码 fig/beta_pcoa_all.R 绘制根、根际、土间差异
-    # fig/beta_pcoa_root.R 表现基因型可变
-    # 组间距离箱线图的 beta_boxplot.R, 结果 箱线图太单一，用echart绘制beta_boxplot.txt
-    
-
-### 物种组成
-    # tax_stackplot_all.R
-
-### 附图
-    # Constrained PCoA: fig/beta_cpcoa_all.R 绘制根、根际、土间差异
-    # Constrained PCoA: fig/beta_cpcoa_root.R 表现基因型可变
-    # Alpha diversity: fig/alpha_boxplot.R 7个基因型两批次
-
-
-## 2. 差异比较compare fig2.Rmd
-
-    cd ~/medicago/AMF2/fig/
-    cp /mnt/bai/yongxin/medicago/AMF/fig/fig2/fig2.Rmd ./fig2/
-    # 绘制饼形图 radius 设置中空无效，可能是版本升级原因吗？
-### 差异比较曼哈顿图(2/3批混合筛选点后6个基因型4组edgeR比较) http://210.75.224.110/report/16Sv2/med_AMF_b23r6_edgeR_v1/
-    cp ../script/plot_manhattan.r script/plot_manhattan.R
-
-### 饼形图，见 fig/plot_bar_pie.R
-    # 饼形图数据，edgeR明显有大量错误，改用wilcox
-    cp ../med_AMF_b23r6_wilcox_v1/result/compare/*_all.txt data/
-
-### 绘制单菌的丰度图 Pseudomonadaceae 和 Bacillus
-    # 前10个菌有5个重点关注，Bacillus 2,5 Pseudomonadaceae 3
-    # 绘制菌在6个基因型中变化
-    cut -f 4 table/metadata.txt|tr '\t' '\n'|uniq|awk '{print "\""$1"\""}'|tr "\n" ","|sed 's/,$//'
-    cd ~/medicago/AMF2/fig
-    # 绘制OTU2,5 Bacillus
-    alpha_boxplot.sh -i table/table.txt -d table/metadata.txt -A genocomp -B '"A17r","nfpr","dmi3r","R108r","lyk9r","lyr4r","A17rs","nfprs","dmi3rs","R108rs","lyk9rs","lyr4rs","soils"' -m '"OTU_2"' -t TRUE -o fig2/boxplot_ -n TRUE -U 100
-    # 绘制Bacillus属
-    alpha_boxplot.sh -i data/sum_g.txt -d table/metadata.txt -A genocomp -B '"A17r","nfpr","dmi3r","R108r","lyk9r","lyr4r","A17rs","nfprs","dmi3rs","R108rs","lyk9rs","lyr4rs","soils"' -m '"Bacillus"' -t TRUE -o fig2/boxplot_ -n TRUE -U 100
-    # 绘制OTU2,5 Bacillus
-    alpha_boxplot.sh -i table/table.txt -d table/metadata.txt -A genocomp -B '"A17r","nfpr","dmi3r","R108r","lyk9r","lyr4r","A17rs","nfprs","dmi3rs","R108rs","lyk9rs","lyr4rs","soils"' -m '"OTU_3"' -t TRUE -o fig2/boxplot_ -n TRUE -U 100
-    # 绘制Bacillus属
-    alpha_boxplot.sh -i data/sum_g.txt -d table/metadata.txt -A genocomp -B '"A17r","nfpr","dmi3r","R108r","lyk9r","lyr4r","A17rs","nfprs","dmi3rs","R108rs","lyk9rs","lyr4rs","soils"' -m '"Pseudomonas"' -t TRUE -o fig2/boxplot_ -n TRUE -U 100
-
-
-## 3. 分菌
-    
-
-### 3.1 自然样品与分菌结果比较
-
-    # 与项目中A17/R180野生型根样本与总体菌库比较
-    # 修改makefile中3.9部分，参考~/medicago/culture_start/makefile
-    # 注意与doc/design.txt中列和组对应，注意与分菌中文件名和品种名对应
-    make culture
-    make culture_graphlan
-    # A17 0.001只有58个ASV太少，改为0.0005有88个
-
-
-    # 3.9 culture和culture_graphlan，只需修改A17r或R108r，基于实验中大量样本的graphlan
-    # 2019/3/25 与使用culture_start自然样品 ~/medicago/culture_start # culture_graphlan
-    # 2019/4/9 更新 pipeline.md 中分菌部分详细注释和代码优化
-    # 统计分菌代码见文末“## Sanger测序验证菌”段落，sanger测序绘制代码参考~/culture/rice/makefile.man "# 总结：1098个单菌" 段落
-    cd ~/medicago/AMF2/fig/fig3
-    cp ~/culture/rice/verify/graphlan_culture.R ./
-    cp ~/medicago/AMF2/wet/stock_sanger/taxonomy_9.txt ./
- 
-    Rscript graphlan_culture.R # 生成1树, 2科注释，和来原环
-    cat /mnt/bai/yongxin/culture/rice/graphlan/global.cfg 2_annotation_family.txt /mnt/bai/yongxin/culture/rice/graphlan/ring1.cfg 3_annotation_match.txt > 5_annotation.txt
-    graphlan_annotate.py --annot 5_annotation.txt 1_tree_plain.txt graphlan.xml
-    graphlan.py graphlan.xml culture_graphlan.pdf --size 5
-    # 提取相应序列
-    tail -n+2 taxonomy_9.txt|wc -l # 325 seqs
-    cut -f 1 taxonomy_9.txt|tail -n+2 > seq325.id
-    usearch10 -fastx_getseqs ~/medicago/AMF2/wet/stock_sanger/16s_full_length_list1.fa -labels seq325.id -fastaout seq325.fa
-
-
+	# Split lane into libraries
+	# lane文件一般为seq/lane_1/2.fq.gz
+	# lane文库信息doc/library.txt：至少包括编号、Index和样品数量三列和标题
+	# head -n3 doc/library.txt
+	#LibraryID	IndexRC	Samples
+	#L1	CTCAGA	60
+	
+	# 按library.txt拆分lane为library
+	# make lane_split
 

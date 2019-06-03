@@ -61,7 +61,7 @@ SHELL:=/bin/bash
 	# 最小序列频率默认为8，去除低丰度，增加计算速度，整lane的序列推荐1/1M，即上一步最后一行的数据量
 	minuniquesize=500
 
-## 1.7. **otu_pick 挑选OTU**
+## 1.7. otu_pick 挑选OTU
 
 	# Pick OTUs
 	# 可选97% cluster_otus 和 unoise3 ，默认unoise3
@@ -141,7 +141,7 @@ SHELL:=/bin/bash
 	# 稀释梯度抽样方法 richness (observed OTUs)-method fast / with_replacement / without_replacement , 结果位于 result/alpha/rare.txt
 	rare_method=without_replacement
 
-## 1.16. **beta_calc Beta多样性距离矩阵**
+## 1.16. beta_calc Beta多样性距离矩阵
 
 	# Beta diversity tree and distance matrix
 	# 距离矩阵计算方法，34种可选： abund_jaccard, binary_chisq, binary_chord, binary_euclidean, binary_hamming, binary_jaccard, binary_lennon, binary_ochiai, binary_otu_gain, binary_pearson, binary_sorensen_dice, bray_curtis, bray_curtis_faith, bray_curtis_magurran, canberra, chisq, chord, euclidean, gower, hellinger, kulczynski, manhattan, morisita_horn, pearson, soergel, spearman_approx, specprof, unifrac, unifrac_g, unifrac_g_full_tree, unweighted_unifrac, unweighted_unifrac_full_tree, weighted_normalized_unifrac, weighted_unifrac
@@ -149,7 +149,7 @@ SHELL:=/bin/bash
 	dis_method=bray_curtis,binary_jaccard,weighted_unifrac,unweighted_unifrac
 	tree_method=qiime
 
-## 1.17. **otutab_ref 有参比对生成OTU表**
+## 1.17. otutab_ref 有参比对生成OTU表
 
 	# 如Greengenes，可用于picurst, bugbase分析
 	# 比对方法和相似度同1.10 mapping
@@ -162,7 +162,7 @@ SHELL:=/bin/bash
 	# 绘图通用参数
 	# 实验设计文件位置，全局，其它图默认调此变量，也可单独修改；并选择表中的组列和具体分组
 	# 设置子版本目录，3.1为比较三萜3批筛选结果；soil为比较三种土壤, coevolve 为比较水稻、小麦35天
-	sub="coevolve"
+	sub="coevolve2"
 	doc=doc/${sub}
 	design=${wd}/${doc}/design.txt 
 	g1=groupID2
@@ -194,14 +194,14 @@ SHELL:=/bin/bash
 	# 显著性P值过滤 threshold of P-value，可选0.05, 0.01, 0.001。采用FDR校正，此参数意义不大，即使0.001也没有FDR < 0.2过滤严格
 	pvalue=0.05
 	# 统计检验方式FDR，常用0.05, 0.1, 0.2; FDR < 0.1使用9.5万次，且为菌群近期的Nature和Sciences; 0.2使用7.7万次
-	FDR=0.2
+	FDR=0.05
 	# 差异变化倍数常用1.5, 2, 4倍，对应logFC为0.585, 1, 2；菌丰度变化倍数不明显，还可用1.3和1.7倍对应0.379和0.766
 	FC=1.2
 
 	# 统计绘图和网页报告版本控制
 	species="multispecies"
 	keyword="evolve"
-	version=${species}_${keyword}_${sub}_v3
+	version=${species}_${keyword}_${sub}_v1
 
 
 ## 2.1 alpha_boxplot Alpha多样性指数箱线图 Alpha index in boxplot

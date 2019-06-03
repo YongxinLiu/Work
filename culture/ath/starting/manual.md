@@ -241,3 +241,5 @@
 	make culture
 
 # 4. 个性分析
+
+    2019/5/24 FJ1/2是正常样品分菌一部分测的16S，两个重复，另一部分分菌。叶片无 inoculum of bacterial cultivation ，使用后来测的叶片。
