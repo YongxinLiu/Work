@@ -28,7 +28,7 @@
 	## 0.1 准备流程配置文件
 
 	# 设置工作目录
-	wd=rice/miniCore
+	wd=rice/hinge1/its
 	# 创建环境代码见~/github/Work/initial_project.sh
 
 	## 准备实验设计
@@ -38,10 +38,10 @@
 	make init
 
 	# 保存模板中basic页中3. 测序文库列表library为doc/library.txt
-	sed -i 's/\t/\tL171121_/' doc/library.txt # time check SeqLibraryList.xlsx
+	sed -i 's/\t/\tL190516_/' doc/library.txt # time check SeqLibraryList.xlsx
 	# 按library中第二列index准备测序文库，如果压缩要添加.gz，并用gunzip解压
-	awk 'BEGIN{OFS=FS="\t"}{system("ln -s /mnt/bai/yongxin/seq/amplicon/"$2"_1.fq.gz seq/"$1"_1.fq.gz");}' <(tail -n+2 doc/library.txt )
-	awk 'BEGIN{OFS=FS="\t"}{system("ln -s /mnt/bai/yongxin/seq/amplicon/"$2"_2.fq.gz seq/"$1"_2.fq.gz");}' <(tail -n+2 doc/library.txt )
+	awk 'BEGIN{OFS=FS="\t"}{system("ln -s /mnt/bai/yongxin/seq/L190516/"$2"_1.fq.gz seq/"$1"_1.fq.gz");}' <(tail -n+2 doc/library.txt )
+	awk 'BEGIN{OFS=FS="\t"}{system("ln -s /mnt/bai/yongxin/seq/L190516/"$2"_2.fq.gz seq/"$1"_2.fq.gz");}' <(tail -n+2 doc/library.txt )
     # 检查数据链接，全红为错误，绿色为正常
     ll seq/*
 	# 如果压缩文件，要强制解压链接
@@ -49,14 +49,12 @@
 
 	# 标准多文库实验设计拆分，保存模板中design页为doc/design_raw.txt
 	split_design.pl -i doc/design_raw.txt
-	# 从其它处复制实验设计
-	cp ~/ath/jt.HuangAC/batch3/doc/L*.txt doc/
-	# 删除多余空格，windows换行符等
+	# 删除多余空格，windows换行符等(苹果用户勿用)
 	sed -i 's/ //g;s/\r//' doc/*.txt 
-	head -n3 doc/L1.txt
+	head -n3 doc/L25.txt
 	# 依据各文库L*.txt文件生成实验设计
-	cat <(head -n1 doc/L1.txt | sed 's/#//g') <(cat doc/L* |grep -v '#'|grep -v -P '^SampleID\t') > doc/design.txt
-	# 检查是否相等
+	cat <(head -n1 doc/L25.txt | sed 's/#//g') <(cat doc/L* |grep -v '#'|grep -v -P '^SampleID\t') > doc/design.txt
+	# 检查是否相等 1025样品
 	wc -l doc/design.txt
 	cut -f 1 doc/design.txt|sort|uniq|wc -l
 
@@ -69,7 +67,7 @@
 	make library_split_stat
 	# 统计结果见result/split有txt/pdf/png，推荐看png方便快速查看每张位图
 	# 查看样本量排序
-	sort -k2,2n result/sample_split.log|less
+	sort -k2,2n result/sample_split.log|less # 20421 ~ 227784
 
 ## 1.3. 样品双端合并、重命名、合并为单一文件
 
@@ -78,7 +76,7 @@
 	# 输入为seq/sample/*.fq，输出为seq/all.fq
 	make sample_merge
 	make sample_merge_stat
-	# result/sample_merge.log中有每个样本合并后的序列数量
+	# sort -k2,2n result/sample_merge.log|less # 中有每个样本合并后的序列数量
 
 
 ## 1.4. 切除引物与标签
@@ -86,6 +84,7 @@
 	# Cut primers and lables
 	# 切除左端标签和引物，右端 引物
 	# Cut barcode 10bp + V5 19bp in left， and V7 18bp in right
+	# Cut barcode 10bp + ITS1F 22bp in left， and ITS2 20bp in right
 	# 输入为seq/all.fq，输出为temp/stripped.fq
 	make fq_trim
 
@@ -104,6 +103,7 @@
 
 ## 1.6. 序列去冗余
 
+    # 上一步数据量53.6M，推荐阈值为50
 	# Remove redundancy, get unique reads
 	# 输入为temp/filtered.fa，输出为temp/uniques.fa
 	make fa_unqiue
@@ -129,6 +129,10 @@
 	# Remove host
 	# 根据SILVA注释去除线粒体、叶绿体、真核生物18S和未知序列(非rRNA)
 	make host_rm
+    # 查看原始注释比例，2/3是真菌，1/3是植物Viridiplantae和后生动物Metazoa
+    cut -f 2 temp/otus_no_chimeras.tax|cut -f 1 -d '('|sort|uniq -c
+    # 查看筛选0.6的界比例，25%是Fungi，75%为未知
+    cut -f 4 temp/otus_no_chimeras.tax|cut -f 1 -d ','|sort|uniq -c
 
 
     # (第二阶段结束，获得OTU代表序列result/otu.fa，可提供此文件和测序数据temp/filtered.fa从下方起始)
@@ -182,9 +186,8 @@
 	# Beta diversity tree and distance matrix
 	# 最好用usearch，结果unifrac分类更好；clustero+fastree结果PCoA较差
 	make beta_calc
-	# ---Fatal error--- ../calcdistmxu.cpp(32) assert failed: QueryUniqueWordCount > 0 致信作者; 改用qiime1
 
-## 1.17. 有参考构建OTU表
+## 1.17. 有参考构建OTU表-非16S不可用
 
 	# Reference based OTU table
 	# otutab_gg 有参比对，如Greengenes，可用于picurst, bugbase分析

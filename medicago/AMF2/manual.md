@@ -373,3 +373,41 @@ cp -r doc/b23r8 doc/b23r6
 
 
 
+# 参数讨论
+
+## 1. minisize讨论
+    # http://www.drive5.com/usearch/manual/cmd_fastx_uniques.html
+    # result/otu.log， 我设置 1/M 为 100 时，40991个Unique，11039个ASV
+    # 1, 默认1为不过滤，6275201 seqs, 21500654 uniques, 18638709 singletons (86.7%)
+    # 2， 2861945 uniques written, 289290 clusters size < 2 discarded (1.3%)
+    # 绘制1-100的Unique序列曲线，观察规律
+    for i in `seq 1 10`; do
+    #i=1
+    usearch11 -fastx_uniques temp/filtered.fa \
+        -minuniquesize ${i} -sizeout \
+        -fastaout temp/uniques.fa -threads 64
+    echo -ne "Unique reads > ${i}\t" >> result/otu.log
+    grep -c '>' temp/uniques.fa >> result/otu.log
+    done
+    cat result/otu.log
+    # 统计10次以上各梯度的序列数量
+    grep '>' temp/uniques.fa | cut -f 2 -d '=' | sed 's/;/\t/' > temp/temp.txt
+    # awk筛选时，必须有\t分隔才有列
+    for i in `seq 10 10 300`; do
+    awk '$1>='$i temp/temp.txt | wc -l 
+    done
+    # 统计图表见 AMF2/doc/discussion.xlsx
+    # 对于100M的reads有unique reads，21M，非Singlton 286K，> 8 518K，>10 410K，>100 40K
+
+    # unoise聚类时间：基于>=10的41万unique Reads
+    time usearch10 -unoise3 temp/uniques.fa -zotus temp/Zotus.fa
+    # 139334 amplicons, 17874350 bad (size >= 10), 35393 good, 103942 chimeras 非冗余序列中有1/3为扩增子，挑选出1/4非嵌合；11小时
+    # 新版本在unoise3在结果、计算时间上没有区别
+    time usearch11 -unoise3 temp/uniques.fa -zotus temp/Zotus.fa -minsize 100
+    # 40991 挑选出 100.0% 18986 amplicons, 11714428 bad (size >= 100), 11039 good, 7947 chimeras 非冗余序列中有1/2为扩增子，挑选出3/5非嵌合；14分钟
+    # 数据量下降7倍，速度提高了47倍，大约为数据量平方倍
+
+
+## 2. rhizosphere根际比较
+    cp -r doc/b23r6 doc/b23rs6
+    sed -i 's/b2r/b2rs/;s/b3r/b3rs/' doc/b23rs6/design.txt

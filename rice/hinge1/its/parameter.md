@@ -15,11 +15,16 @@ SHELL:=/bin/bash
 	p=32
 	
 	# 数据库
+	## 细菌16S数据库
 	# Greengene 13 May database, fa for usearch format, udb for usearch index
 	usearch_gg=/mnt/bai/public/ref/gg_13_5_otus/97_otus_usearch.udb
 	## Silva 132 database, fa for usearch format, udb for usearch index
 	usearch_silva=/mnt/bai/public/ref/silva/SILVA_132_SSURef_Nr99_tax_silva.udb
 	usearch_rdp=/mnt/bai/public/ref/rdp/rdp_16s_v16_sp.udb
+	# 真菌ITS数据库
+	uchime_its=/db/unite/8.0/uchime_reference_dataset_28.06.2017/uchime_reference_dataset_28.06.2017.fasta
+	utax_its=/db/unite/8.0/utax_reference_dataset_all_02.02.2019.fasta
+
 
 ## 1.1. lane_split 拆分下机数据为文库
 
@@ -46,8 +51,9 @@ SHELL:=/bin/bash
 ## 1.4. fq_trim 切除引物和标签
 
 	# Cut barcode 10bp + primer V5 19bp in left, and primer V7 18bp in right
-	stripleft=29
-	stripright=18
+	# Cut barcode 10bp + ITS1F 22bp in left， and ITS2 20bp in right
+	stripleft=32
+	stripright=20
 
 ## 1.5. fq_qc 质量控制
 	
@@ -59,7 +65,8 @@ SHELL:=/bin/bash
 
 	# Remove redundancy
 	# 最小序列频率默认为8，去除低丰度，增加计算速度，整lane的序列推荐1/1M，即上一步最后一行的数据量
-	minuniquesize=8
+	# 根据fq_qc输出结果判断，如最后一行输出数据据量53M，推荐阈值为50
+	minuniquesize=50
 
 ## 1.7. otu_pick 挑选OTU
 
@@ -72,26 +79,28 @@ SHELL:=/bin/bash
 ## 1.8. chimera_ref 参考去嵌合
 
 	# Remove chimeras
-	# 此处推荐使用大数据，如SILVA132，其它数据库如rdp_gold是错误的
+	# 此处推荐使用大数据，如SILVA132，其它数据库如rdp_gold是错误的(更容易造成假阴性)
 	# /mnt/bai/public/ref/silva/SILVA_132_SSURef_Nr99_tax_silva.fasta # 99%非冗余1.1G, 内存使用5.8G, 8min, 16.2% chimeras
 	# /mnt/bai/public/ref/silva/SILVA_132_SSURef_tax_silva.fasta # 全部3.3G, 内存使用15.9G, 30min, 16.2% chimeras
 	# 使用非冗余99%的省内存和时间，但结果差不多
-	chimera_ref=${usearch_silva}
+	# 细菌16S推荐使用SILVA132_Nr99，真菌ITS推荐使用unite
+	chimera_ref=${uchime_its}
 	# 模式，嵌合体比例由大到小: high_confidence specific balanced sensitive sensitive
 	chimera_mode=balanced
 
 ## 1.9. host_rm 去宿主
 
 	# Remove host original sequences
-	# 去宿主方法选择 blast / sintax_gg / sintax_silva / sintax_silva_its / sintax_unite / none，推荐：sintax_silva
-	host_method=sintax_silva
+	# 去宿主方法选择 1 blast / 2 sintax_gg / 3 sintax_silva / 4 sintax_silva_its / 5 sintax_unite / none，
+	# 推荐：细菌16S sintax_silva，真菌ITS sintax_unite
+	host_method=sintax_unite
 	# 方法1. blast宿主基因组(含叶绿体/线粒体)去除同源序列，如水稻微生物，需要提供水稻基因组；可调相似度和覆盖度的阈值(百分数)
 	host=/mnt/bai/public/ref/rice/msu7/all.con
 	host_similarity=90
 	host_coverage=90
 	# 方法2. 基于gg注释结果筛选, 去除叶绿体Chloroplast、线粒体mitochondria，默认为usearch_gg数据库
 	# 方法3. silva注释可识线粒体Mitochondria、叶绿体Chloroplast和真核生物Eukaryota(包括宿主、真菌、原生动物等)，默认为usearch_silva数据库
-
+	# 方法4. 基于unite筛选真菌，只保留真0.6以上可信的真菌，居然只1/3的真菌置信度大于0.6
 
 ## 1.10. otutab_create 生成OTU表
 
@@ -105,24 +114,25 @@ SHELL:=/bin/bash
 	# Filter OTU table
 	# OTU表筛选日志文件
 	log_otutable=result/otutab.log
-	# 按样本量筛选，默认5000，根据otu_stats结果调整
-	min_sample_size=5000
+	# 按样本量筛选，默认5000，根据otu_stats结果调整，less temp/otutab.biom.sum
+
+	min_sample_size=500
 	# 按矩阵中每个点count, freq筛选，低于阈值变为0
 	# 按OTU丰度和频率筛选，如OTU测序量至少8次，相对丰度百万分之一(建议挑选序列去冗余部分调高阈值更合理)
 	min_otu_size=8
 	# 按频率筛选，推荐十万分之一0.00001，范围千一至百分一0.001 - 0.000001之间
 	min_otu_freq=0.000001
 	# 抽样标准化的值，推荐最小10000，根据统计结果选择筛选后最小值或可保留大部分样品的值
-	sample_size=30000
+	sample_size=3000
 
 ## 1.12. tax_assign 物种注释
 
 	# Assign taxonomy
 	# 物种注释推荐使用小而准的数据库，如rdp trainset 16(由Robert整理)
 	# 可选gg, silva, rdp分别从官网下载并shell调整格式，gg较准但旧，silva全但不准，rdp少而准，比较通用
-	sintax_db=${usearch_rdp}
-	# 分类准确度阈值，默认0.8，注释太少最小可改0.5，发现有明显错误可最高上升为0.95，改为零为最大化显示物种注释
-	sintax_cutoff=0
+	sintax_db=${utax_its}
+	# 分类准确度阈值，默认0.8，注释太少最小可改0.6，发现有明显错误可最高上升为0.95，改为零为最大化显示物种注释
+	sintax_cutoff=0.6
 
 ## 1.13. tax_sum 物种注释统计
 
@@ -151,7 +161,7 @@ SHELL:=/bin/bash
 
 ## 1.17. otutab_ref 有参比对生成OTU表
 
-	# 如Greengenes，可用于picurst, bugbase分析
+	# 如Greengenes，可用于picurst, bugbase分析，仅限16S数据
 	# 比对方法和相似度同1.10 mapping
 	otutab_gg=/mnt/bai/public/ref/gg_13_5_otus/rep_set/97_otus.fasta
 
@@ -161,10 +171,10 @@ SHELL:=/bin/bash
 
 	# 绘图通用参数
 	# 实验设计文件位置，全局，其它图默认调此变量，也可单独修改；并选择表中的组列和具体分组
-	# 设置子版本目录
-	sub=""
+	# 设置子版本目录 Hn/Cp/Sz HN/LN
+	sub="SzLN"
 	doc=doc/${sub}
-	design=${wd}/${doc}/design.txt 
+	design=${wd}/doc/design.txt 
 	g1=groupID
 	# tail -n+2 ${doc}/design.txt|cut -f 5|sort|uniq|awk '{print "\""$1"\""}'|tr "\n" ","
 	# 绘图使用的实验组，顺序即图中显示顺序；为空时使用所有组和默认顺序
@@ -198,8 +208,8 @@ SHELL:=/bin/bash
 	FC=1.2
 
 	# 统计绘图和网页报告版本控制
-	species="species"
-	keyword="keyword"
+	species="rice_its"
+	keyword="hinge1"
 	version=${species}_${keyword}_${sub}_v1
 
 
@@ -233,7 +243,8 @@ SHELL:=/bin/bash
 	bp_method='"bray_curtis","unweighted_unifrac","weighted_unifrac"'
 	bp_design=${design}
 	bp_group_name=${g1}
-	bp_group_list=${g1_list}
+	# bp_group_list=${g1_list}
+	bp_group_list=`grep -v 'soil' doc/${sub}/compare.txt|tr '\t' '\n'|sort|uniq|awk '{print "\""$$1"\""}'|tr "\n" ","|sed 's/,$$//'`
 	bp_output=${wd}/result/beta/
 	bp_width=${width}
 	bp_height=${height}
@@ -249,7 +260,7 @@ SHELL:=/bin/bash
 	bc_method='"bray","jaccard"'
 	bc_design=${design}
 	bc_group_name=${g1}
-	bc_group_list=${g1_list}
+	bc_group_list=${bp_group_list}
 	bc_output=${wd}/result/beta/
 	bc_width=${width}
 	bc_height=${height}
@@ -330,7 +341,7 @@ SHELL:=/bin/bash
 	cluster_cols=TRUE
 
 ## 2.9 plot_manhattan 绘制OTU按门着色曼哈顿图
-	pm_yax=20
+	pm_yax=10
 
 ## 2.10 plot_boxplot 基于差异OTU表绘制火山图
 	pb_input=result/otutab.txt
