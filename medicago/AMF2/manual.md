@@ -327,7 +327,7 @@ cp -r doc/b23r8 doc/b23r6
     cp ../med_AMF_b23r6_wilcox_v1/result/compare/*_all.txt data/
 
 ### 绘制单菌的丰度图 Pseudomonadaceae 和 Bacillus
-    # 前10个菌有5个重点关注，Bacillus 2,5 Pseudomonadaceae 3
+    # 前10个菌有5个重点关注， Bacillus 2 # ,5 Pseudomonas 3
     # 绘制菌在6个基因型中变化
     cut -f 4 table/metadata.txt|tr '\t' '\n'|uniq|awk '{print "\""$1"\""}'|tr "\n" ","|sed 's/,$//'
     cd ~/medicago/AMF2/fig
@@ -335,10 +335,6 @@ cp -r doc/b23r8 doc/b23r6
     alpha_boxplot.sh -i table/table.txt -d table/metadata.txt -A genocomp -B '"A17r","nfpr","dmi3r","R108r","lyk9r","lyr4r","A17rs","nfprs","dmi3rs","R108rs","lyk9rs","lyr4rs","soils"' -m '"OTU_2"' -t TRUE -o fig2/boxplot_ -n TRUE -U 100
     # 绘制Bacillus属
     alpha_boxplot.sh -i data/sum_g.txt -d table/metadata.txt -A genocomp -B '"A17r","nfpr","dmi3r","R108r","lyk9r","lyr4r","A17rs","nfprs","dmi3rs","R108rs","lyk9rs","lyr4rs","soils"' -m '"Bacillus"' -t TRUE -o fig2/boxplot_ -n TRUE -U 100
-    # 绘制OTU2,5 Bacillus
-    alpha_boxplot.sh -i table/table.txt -d table/metadata.txt -A genocomp -B '"A17r","nfpr","dmi3r","R108r","lyk9r","lyr4r","A17rs","nfprs","dmi3rs","R108rs","lyk9rs","lyr4rs","soils"' -m '"OTU_3"' -t TRUE -o fig2/boxplot_ -n TRUE -U 100
-    # 绘制Bacillus属
-    alpha_boxplot.sh -i data/sum_g.txt -d table/metadata.txt -A genocomp -B '"A17r","nfpr","dmi3r","R108r","lyk9r","lyr4r","A17rs","nfprs","dmi3rs","R108rs","lyk9rs","lyr4rs","soils"' -m '"Pseudomonas"' -t TRUE -o fig2/boxplot_ -n TRUE -U 100
 
 
 ## 3. 分菌

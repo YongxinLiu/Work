@@ -359,9 +359,20 @@
     mv Clean/CWHPEPI00002033/FCHVH3FBCX2_L1_CWHPEPI00002033_*.gz ./
     rename 's/FCHVH3FBCX2_L1_CWHPEPI00002033/lane/' *.fq.gz
 
+## 190620.lane21
+
+    wd=L190620
+    cd ~/seq/$wd
+    md5sum -c Clean.md5.txt 
+    mv Clean/CWHPEPI00002058/FCHVH3FBCX2_L1_CWHPEPI00002033_*.gz ./
+    rename 's/FCHVH3FBCX2_L1_CWHPEPI00002033/lane/' *.fq.gz
 
 
 ## 扩增子lane处理通用代码
+
+    # 下载方法：远程桌面 yongxin至bailab
+    cd ~/software/GUI-linux/GUI-linux-3.0
+    sh bgionline.sh # 复制用户名，密码需手动输入
 
 ### 1. 华大lane返回通用处理代码
 
@@ -409,6 +420,12 @@
     md5sum L*_2.fq.gz > /tmp/md5sum2.txt
     paste /tmp/md5sum1.txt /tmp/md5sum2.txt | awk '{print $2"\t"$1"\t"$4"\t"$3}' > md5sum.txt
     cat md5sum.txt
+
+    # 汇总至amplicon目录
+    ls L*.gz
+    ls L*.gz|wc
+    ln L*.gz ../amplicon/
+
 
 ## 汇总为amplicon目录
     cd ~/seq

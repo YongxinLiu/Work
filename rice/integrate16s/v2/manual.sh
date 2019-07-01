@@ -965,13 +965,59 @@ alpha_boxplot.sh -i `pwd`/result/alpha/index.txt -m '"chao1","richness","shannon
     scp 192.168.10.32:~/rice/miniCore/result/metadata.txt metadata1.txt 
     scp 192.168.10.32:~/rice/miniCore2/result/metadata.txt metadata2.txt 
     # 整理实验设计
-    # metadata1.txt有180个样品，miniCore共132个样品，分H/L两类，分别为IND(60)、TEJ(60)、Soil(12);此外还包括NRT(36)和NRTSoild(12)个
-    # metadata2.txt有66个样品，miniCore共66个样品，只有LN一类，分别为IND(60)、TEJ(60)、Soil(12);此外还包括NRT(36)和NRTSoild(12)个
+    # 两表合并整理包括，品种，土壤类型，项目和批次为metadata12.txt
+    # 修改品种信息表：ID名EFD为SampleID，与metadata.txt一致
+    sed  '1 s/EFD/Variety/' /mnt/bai/yongxin/rice/miniCore/doc/minicore_list.txt | less > minicore_list.txt
+    # 添加New_Structure，非miniCore材料补Unknown
+    awk 'BEGIN{OFS=FS="\t"} NR==FNR{a[$2]=$13} NR>FNR{print $0"\t"a[$2]}' minicore_list.txt metadata12.txt | sed 's/\t$/\tUnknown/' > metadata13.txt
+    awk '$5==0' metadata13.txt|wc -l # 第0批NRT有48个样，包括NRT(36)和NRTSoild(12)个
+    awk '$5==1' metadata13.txt|wc -l # 第1批miniCore有132个样
+    awk '$5==1' metadata13.txt|cut -f 3,6 | sort | uniq -c # 分H/L两类，分别为IND(30)、TEJ(30)、Soil(6);
+    # metadata1.txt有180个样品，miniCore共132个样品，分别为IND(60)、TEJ(60)、Soil(12); 此外NRT有48个样，包括NRT(36)和NRTSoild(12)个
+    awk '$5==2' metadata13.txt|wc -l # 第2批miniCore有66个样
+    awk '$5==2' metadata13.txt|cut -f 3,6 | sort | uniq -c # L类，分别为AUS(30)、TRJ(30)、ARO(6)
+    # metadata2.txt有66个样品，miniCore共66个样品，只有L类，分别为AUS(30)、TRJ(30)、ARO(6)
+    ln -s metadata13.txt metadata.txt
+    
+## 功能通路表
+    # scp 192.168.10.32:~/rice/miniCore/result/12humann2/uniref_relab_unstratified.tsv function1.tsv
+    # scp 192.168.10.32:~/rice/miniCore2/result/12humann2/uniref_relab_unstratified.tsv function2.tsv
+    # 两文件不对应，无法直接合并，从原始文件利用软件自带脚本合并
+    mkdir -p humann2
+    scp 192.168.10.32:~/rice/miniCore/temp/12humann2/*.tsv humann2/
+    scp 192.168.10.32:~/rice/miniCore2/temp/12humann2/*.tsv humann2/
+    humann2_join_tables --input humann2/ --file_name pathabundance --output pathwayabundance.tsv
+    sed -i 's/_Abundance//g' pathwayabundance.tsv
+    humann2_renorm_table --input pathwayabundance.tsv --units relab --output pathwayabundance_relab.tsv
+    humann2_split_stratified_table --input pathwayabundance_relab.tsv --output ./
+    sed -i 's/# Pathway/MetaCyc_pathway/' pathwayabundance_relab_*stratified.tsv
+    wc -l pathwayabundance*
+    # 共有545个通路
 
-    # 功能组成表
-    scp 192.168.10.32:~/rice/miniCore/result/12humann2/uniref_relab_unstratified.tsv function1.tsv
-    scp 192.168.10.32:~/rice/miniCore2/result/12humann2/uniref_relab_unstratified.tsv function2.tsv
+    # 功能组成绘图见 fig/fig1_meta.Rmd
+    # uniref中89%为UNMAPPED，10%为UNINTEGRATED，其它只有1%为注释通路？是宿主没有去除干净吗？查看软件结果说明为末比对和末知通路，比例太高，应该去除再分析
+    # 结果只有3个与nitr相关通路，均为硝酸盐还原，但并没有与tiller显著相关
+
+    # 计算菌菌与LN下分蘖均值相关系数，来自 ~/rice/integrate16s/script/fig3.phenotype.Rmd
+    # 菌的相关位于 ~/rice/integrate16s/script/fig3
+
+## 基因家族表
+    humann2_join_tables --input humann2/ --file_name genefamilies --output genefamilies.tsv
+    sed -i '1 s/_Abundance-RPKs//g' genefamilies.tsv
+    # humann2_renorm_table --input genefamilies.tsv --units relab --output genefamilies_relab.tsv
+    humann2_split_stratified_table --input genefamilies.tsv  --output ./
+    wc -l genefamilies* # 280万个基因家族
+    # ID转换为KO
+    # UniRef90 to UniPort https://www.uniprot.org/uploadlists/ UniRef90转换为UniPortKB，只有一小半可识别，转换后即为去掉UniRef90_的前缀
+    # UniPort to KEGG https://www.kegg.jp/kegg/tool/conv_id.html 转换不成功
 
 
-
-
+## prokka注释太慢了，手动跑后半部至新目录，再合并
+    wc result/metadata.txt # 180个样
+    ls temp/23prokka/ |wc # 109个运行完或在运行，跑土壤慢，留30个继续，后40个新建任务至新目录
+    mkdir temp/23prokka2
+    time parallel --xapply -j 8 \
+        "prokka temp/22megahit/{1}/final.contigs.fa --outdir temp/23prokka2/{1} \
+        -prefix mg --metagenome --force --cpus 5 \
+        --kingdom Archaea,Bacteria,Mitochondria,Viruses" \
+        ::: `tail -n+2 result/metadata.txt | cut -f 1 | tail -n 50`
