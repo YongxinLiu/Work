@@ -367,6 +367,19 @@ cp -r doc/b23r8 doc/b23r6
     cut -f 1 taxonomy_9.txt|tail -n+2 > seq325.id
     usearch10 -fastx_getseqs ~/medicago/AMF2/wet/stock_sanger/16s_full_length_list1.fa -labels seq325.id -fastaout seq325.fa
 
+    # 2019/7/2 与最新10个菌库比较
+    cwd=culture10
+    mkdir -p ${cwd}
+    blastn -query ~/medicago/AMF2/result/otu.fa -db ~/culture/medicago/190626/result/culture_select.fa -out ${cwd}/otu_culture.blastn -outfmt '6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qcovs' -num_alignments 10 -evalue 1 -num_threads 9 # 输出13列为coverage
+    awk '$3*$13>=9700' ${cwd}/otu_culture.blastn |cut -f 1 > ${cwd}/otu_cultured.txt # 197 OTU cultured, 197/535=36.8%
+    # 我们关注的菌OTU_2 k__Bacteria;p__Firmicutes;c__Bacilli;o__Bacillales;f__Bacillaceae_1;g__Bacillus，在新库中${cwd}/otu_culture.blastn 对应 COTU_61
+    # L8-10为新库，精选信息可查culture_select.xls中编号61，L8,L10中为最优解；更多孔详见 culture_bacteria.xls
+    # 添加孔的信息
+    awk 'BEGIN{OFS=FS="\t"} NR==FNR {a[$1]=$8"\t"$9"\t"$10} NR>FNR {print $0,a[$1]}' doc/design.txt result/culture_bacteria.xls > result/culture_bacteria_anno.xls
+
+    # awk 'BEGIN{OFS=FS="\t"} NR==FNR {a[$1]="culture"} NR>FNR {print $0,a[$1]}' temp/otu_cultured.txt ${nature}/otu_table.txt.mean |grep 'culture'|awk '{a=a+$2} END {print a}' # 可培养的丰度 0.847 
+
+
 
 
 # 参数讨论

@@ -52,17 +52,18 @@
 
 ## 设置工作目录
     # 2019/6/26 culture/medicago/190626 苜蓿分菌测序
+    # 2019/6/26 culture/rice/190626 水稻分菌测序R2A和厌氧
 
 ## 项目建立代码
-    wd=culture/medicago/190626
+    wd=culture/rice/190626
     # 创建github目录，用于备份流程、文档
     cd ~
     mkdir -p ~/github/Work/$wd
     cd ~/github/Work/$wd
-    ln ~/github/Amplicon/16Sculture2/parameter.md ./
-    ln ~/github/Amplicon/16Sculture2/manual.md ./
-#    cp ~/github/Amplicon/16Sculture2/parameter.md ./
-#    cp ~/github/Amplicon/16Sculture2/manual.md ./
+#    ln ~/github/Amplicon/16Sculture2/parameter.md ./
+#    ln ~/github/Amplicon/16Sculture2/manual.md ./
+    cp ~/github/Amplicon/16Sculture2/parameter.md ./
+    cp ~/github/Amplicon/16Sculture2/manual.md ./
     # 链接代码至工作区
     mkdir -p ~/$wd
     ln -s `pwd`/parameter.md ~/$wd/makefile
