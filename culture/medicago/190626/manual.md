@@ -1,52 +1,45 @@
+## 快速分析 Quick Start(所需文件准备好)
 
-	# 快速分析 Quick Start(所需文件准备好)
-	find . -name "*" -type f -size 0c | xargs -n 1 rm -f # 清理零字节文件，用于从头重新分析项目清空makefile点位文件
-	make init
-	make validate_mapping
-	make sample_merge
-	make extract_barcodes
-	make split_libraries # 样本拆分
-	make split_libraries_stat
-	make fq_trim
-	make fa_unqiue
-	make otu_pick
-	make chimera_ref
-	make host_rm
-	make otutab_create
-	make otutab_filter
-	make otutab_norm
-	make tax_assign
-	make tax_sum
-	make tree_make
-	make identify_isolate
+    # 清理零字节文件，用于从头重新分析项目清空makefile点位文件
+	find . -name "*" -type f -size 0c | xargs -n 1 rm -f 
+    rm -r temp result
+    # 建立程序必须目录
+	make 10init
 
-# 与实验菌建立联系
-## 筛选纯菌并建索引
-tail -n+2 result/culture_select.xls | cut -f 1,2|sed 's/^/OTU_/g;s/;/\t/g'|less>result/culture_select.tax
-filter_fasta.py -f result/otu.fa -o result/culture_select.fa -s result/culture_select.tax
-sed -i 's/OTU/COTU/' result/culture_select.fa
-makeblastdb -dbtype nucl -in result/culture_select.fa
+    # 1.1 实验设计检查
+	make 11validate_mapping
+    # 1.2 文库双端合并
+	make 12library_merge
+    # 1.3 提取Barcode
+	make 13extract_barcodes
+    # 1.4  拆分文库为样品并质控
+	make 14split_libraries
+	make 14split_libraries_stat
+    # 1.5 切除引物
+	make 15fq_trim
+    # 1.6 序列去冗余
+	make 16fa_unqiue
+    # 1.7 挑选OTU 
+	make 17otu_pick
+    # 1.8 基于参考序列去嵌合
+	make 18chimera_ref
+    # 1.9 去除宿主 remove host
+	make 19host_rm
 
-
-
-
-
-# 每个库分别找菌，分为A50/IR24 H/L氮
-cat doc/L1.txt <(tail -n+2 doc/L2.txt) > doc/A50L.txt # 按分类合并
-cat doc/L4.txt <(tail -n+2 doc/L5.txt) > doc/IR24H.txt
-ln doc/L3.txt doc/A50H.txt
-ln doc/L6.txt doc/IR24L.txt
-temp=temp
-result=result
-for lib in A50L A50H IR24L IR24H; do
-filter_samples_from_otu_table.py -i ${result}/otu_table.biom -o ${result}/${lib}_otu_table.biom --sample_id_fp doc/${lib}.txt
-biom convert -i ${result}/${lib}_otu_table.biom -o ${result}/${lib}_otu_table.txt --table-type="OTU table" --to-tsv
-sed -i '/# Const/d;s/#OTU //g' ${result}/${lib}_otu_table.txt
-identify_isolate.sh -f ${lib}_otu_table.txt -o ${lib}
-tail -n+2 result/${lib}culture_select.xls | cut -f 1,2|sed 's/^/OTU_/g;s/;/\t/g'|less>result/${lib}culture_select.tax
-filter_fasta.py -f result/rep_seqs.fa -o result/${lib}culture_select.fa -s result/${lib}culture_select.tax
-makeblastdb -dbtype nucl -in result/${lib}culture_select.fa
-done
+    # 2.1 生成OTU表
+	make 21otutab_create
+    # 2.2 OTU表筛选 Filter OTU table
+	make 22otutab_filter
+    # 2.3 OTU表抽样标准化
+	make 23otutab_norm
+    # 2.4 物种注释 Assign taxonomy
+	make 24tax_assign
+    # 2.5 物种分类汇总 Taxonomy summary
+	make 25tax_sum
+    # 2.6 多序列比对和进化树
+	make 26tree_make
+    # 2.7 筛选菌identify bac
+	make 27identify_isolate
 
 
 # 1. 处理序列 Processing sequences
@@ -80,8 +73,8 @@ done
 	# 批量相同属性文库
 	for i in `seq 1 10`; do write_mappingfile_culture2.pl -o doc/L${i}.txt -s medicago -L L${i} -v A17 -c Rhizosphere -m R2A -B 1 -p 48; done
 	# 按Library信息批量生成
-	# awk '{if(NR>2){system("echo "$1" "$6" "$7" "$8)}}' doc/library.txt
-	awk '{if(NR>2){system("write_mappingfile_culture2.pl -o doc/"$1".txt -s medicago -L "$1" -v "$6" -c "$7" -m "$8" -B "$9" -p "$10)}}' doc/library.txt
+	# awk '{if(NR>1){system("echo "$1" "$6" "$7" "$8)}}' doc/library.txt
+	awk '{if(NR>1){system("write_mappingfile_culture2.pl -o doc/"$1".txt -s medicago -L "$1" -v "$6" -c "$7" -m "$8" -B "$9" -p "$10)}}' doc/library.txt
 	# L9, L10手动修改个性化数据，在Excel中手动修改 
 
 
@@ -96,6 +89,7 @@ done
 	cut -f 1 doc/design.txt|sort|uniq|wc -l
 	# 查看冗余的列(仅上方不等时使用)
 	cut -f 1 doc/design.txt|sort|uniq -c| less
+
 
 ## 1.2. 按实验设计拆分文库为样品
 
@@ -208,3 +202,23 @@ done
 	# usearch10/culsterO结果不同可能影响多样性分析(usearch unifrac结果更可信)
 	# 进化树，用于树图和多样性分析
 	make tree_make
+
+
+# 与实验菌建立联系
+
+ ## 注释分菌孔信息
+    awk 'BEGIN{OFS=FS="\t"} NR==FNR {a[$1]=$8"\t"$9"\t"$10} NR>FNR {print $0,a[$1]}' doc/design.txt result/culture_bacteria.xls > result/culture_bacteria_anno.xls
+
+## 筛选纯菌并建索引
+	tail -n+2 result/culture_select.xls | cut -f 1,2|sed 's/^/OTU_/g;s/;/\t/g'|less>result/culture_select.tax
+	filter_fasta.py -f result/otu.fa -o result/culture_select.fa -s result/culture_select.tax
+	sed -i 's/OTU/COTU/' result/culture_select.fa
+	makeblastdb -dbtype nucl -in result/culture_select.fa
+
+
+    ## 2019/7/3 与最新10个菌库比较，找OTU_2
+    cwd=culture10
+    mkdir -p ${cwd}
+    blastn -query ~/medicago/AMF2/result/otu.fa -db result/culture_select.fa -out ${cwd}/otu_culture.blastn -outfmt '6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qcovs' -num_alignments 10 -evalue 1 -num_threads 9 # 输出13列为coverage
+    # 查看关注菌对应的编号 
+    less -S ${cwd}/otu_culture.blastn 

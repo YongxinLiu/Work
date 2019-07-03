@@ -113,9 +113,9 @@ SHELL:=/bin/bash
 	# 按OTU丰度和频率筛选，如OTU测序量至少8次，相对丰度百万分之一(建议挑选序列去冗余部分调高阈值更合理) grep '>' -c temp/filtered.fa
 	min_otu_size=100
 	# 按频率筛选，推荐十万分之一0.00001，范围千一至百分一0.001 - 0.000001之间
-	min_otu_freq=0.000001
+	min_otu_freq=0.00001
 	# 抽样标准化的值，推荐最小10000，根据统计结果选择筛选后最小值或可保留大部分样品的值
-	sample_size=30000
+	sample_size=10000
 
 ## 1.12. tax_assign 物种注释
 

@@ -1,52 +1,92 @@
+## 快速分析 Quick Start(所需文件准备好)
 
-	# 快速分析 Quick Start(所需文件准备好)
-	find . -name "*" -type f -size 0c | xargs -n 1 rm -f # 清理零字节文件，用于从头重新分析项目清空makefile点位文件
-	make init
-	make validate_mapping
-	make sample_merge
-	make extract_barcodes
-	make split_libraries # 样本拆分
-	make split_libraries_stat
-	make fq_trim
-	make fa_unqiue
-	make otu_pick
-	make chimera_ref
-	make host_rm
-	make otutab_create
-	make otutab_filter
-	make otutab_norm
-	make tax_assign
-	make tax_sum
-	make tree_make
-	make identify_isolate
+    # 清理零字节文件，用于从头重新分析项目清空makefile点位文件
+	find . -name "*" -type f -size 0c | xargs -n 1 rm -f 
+    rm -r temp result
+    # 建立程序必须目录
+	make 10init
+
+    # 1.1 实验设计检查
+	make 11validate_mapping
+    # 1.2 文库双端合并
+	make 12library_merge
+    # 1.3 提取Barcode
+	make 13extract_barcodes
+    # 1.4  拆分文库为样品并质控
+	make 14split_libraries
+	make 14split_libraries_stat
+    # 1.5 切除引物
+	make 15fq_trim
+    # 1.6 序列去冗余
+	make 16fa_unqiue
+    # 1.7 挑选OTU 
+	make 17otu_pick
+    # 1.8 基于参考序列去嵌合
+	make 18chimera_ref
+    # 1.9 去除宿主 remove host
+	make 19host_rm
+
+    # 2.1 生成OTU表
+	make 21otutab_create
+    # 2.2 OTU表筛选 Filter OTU table
+	make 22otutab_filter
+    # 2.3 OTU表抽样标准化
+	make 23otutab_norm
+    # 2.4 物种注释 Assign taxonomy
+	make 24tax_assign
+    # 2.5 物种分类汇总 Taxonomy summary
+	make 25tax_sum
+    # 2.6 多序列比对和进化树
+	make 26tree_make
+    # 2.7 筛选菌identify bac
+	make 27identify_isolate
 
 # 与实验菌建立联系
-## 筛选纯菌并建索引
-tail -n+2 result/culture_select.xls | cut -f 1,2|sed 's/^/OTU_/g;s/;/\t/g'|less>result/culture_select.tax
-filter_fasta.py -f result/otu.fa -o result/culture_select.fa -s result/culture_select.tax
-sed -i 's/OTU/COTU/' result/culture_select.fa
-makeblastdb -dbtype nucl -in result/culture_select.fa
+    ## 筛选纯菌并建索引
+    tail -n+2 result/culture_select.xls | cut -f 1,2|sed 's/^/OTU_/g;s/;/\t/g'|less>result/culture_select.tax
+    filter_fasta.py -f result/otu.fa -o result/culture_select.fa -s result/culture_select.tax
+    sed -i 's/OTU/COTU/' result/culture_select.fa
+    makeblastdb -dbtype nucl -in result/culture_select.fa
 
 
+    ## 2019/7/2 与最新2个菌库比较，找OTU_1
+    cwd=culture2
+    mkdir -p ${cwd}
+    blastn -query /mnt/zhou/zhiwen/16s.dir/GRF_merge/result/otu.fa -db ~/culture/rice/190626/result/culture_select.fa -out ${cwd}/otu_culture.blastn -outfmt '6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qcovs' -num_alignments 10 -evalue 1 -num_threads 9 # 输出13列为coverage
+    awk '$3*$13>=9700' ${cwd}/otu_culture.blastn |cut -f 1 > ${cwd}/otu_cultured.txt # 197 OTU cultured, 197/535=36.8%
+    # 我们关注的菌OTU_2 k__Bacteria;p__Firmicutes;c__Bacilli;o__Bacillales;f__Bacillaceae_1;g__Bacillus，在新库中${cwd}/otu_culture.blastn 对应 COTU_61
+    # L8-10为新库，精选信息可查culture_select.xls中编号61，L8,L10中为最优解；更多孔详见 culture_bacteria.xls
+    # 添加孔的信息
+    awk 'BEGIN{OFS=FS="\t"} NR==FNR {a[$1]=$8"\t"$9"\t"$10} NR>FNR {print $0,a[$1]}' doc/design.txt result/culture_bacteria.xls > result/culture_bacteria_anno.xls
+
+    ## 与sanger鉴定后菌保比较: 添加相似度确定新菌
+    cwd=sanger_stock
+    mkdir -p ${cwd}
+    cp /var/www/html/culture_collection/data/16S_rice_culture_collection.fasta ${cwd}/
+    makeblastdb -dbtype nucl -in ${cwd}/16S_rice_culture_collection.fasta
+    # 比对新分菌到菌保库
+    blastn -query ~/culture/rice/190626/result/culture_select.fa -db ${cwd}/16S_rice_culture_collection.fasta -out ${cwd}/otu_culture.blastn -outfmt '6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qcovs' -num_alignments 1 -evalue 1 -num_threads 9 # 输出13列为coverage
+    # 追加至OTU候选
+    cut -c6- ${cwd}/otu_culture.blastn|cut -f 1-3 | sed '1 i ID\tStockID\tSimilarity' > ${cwd}/otu_culture.blastn.elite
+    awk 'BEGIN{OFS=FS="\t"} NR==FNR {a[$1]=$2"\t"$3} NR>FNR {print $0,a[$1]}' ${cwd}/otu_culture.blastn.elite result/culture_select.xls > result/culture_select_anno.xls
+
+    # 与自然样品比较，添加平均丰度
+    cwd=integrate16sv2
+    mkdir -p ${cwd}
+    cp ~/rice/integrate16s/v2/result/otu.fa ${cwd}/
+    makeblastdb -dbtype nucl -in ${cwd}/otu.fa
+    # 比对新分菌到菌保库
+    blastn -query ~/culture/rice/190626/result/culture_select.fa -db ${cwd}/otu.fa -out ${cwd}/otu_culture.blastn -outfmt '6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qcovs' -num_alignments 1 -evalue 1 -num_threads 9 # 输出13列为coverage
+    # 追加至OTU候选
+    cut -c6- ${cwd}/otu_culture.blastn|cut -f 1-3 | sed '1 i ID\tRiceID\tSimilarity' > ${cwd}/otu_culture.blastn.elite
+    awk 'BEGIN{OFS=FS="\t"} NR==FNR {a[$1]=$2"\t"$3} NR>FNR {print $0,a[$1]}' ${cwd}/otu_culture.blastn.elite result/culture_select_anno.xls > result/culture_select_anno2.xls
+    # 计算OTU表均值
+    otutab_mean.sh -i ~/rice/integrate16s/v2/result/otutab.txt -d ~/rice/integrate16s/v2/doc/design.txt -A groupID -o ~/rice/integrate16s/v2/temp/otutab.mean 
+    sed -i '1 s/OTUID/RiceID/' ~/rice/integrate16s/v2/temp/otutab.mean 
+    # 添加均值至表
+    awk 'BEGIN{OFS=FS="\t"} NR==FNR {a[$1]=$2} NR>FNR {print $0,a[$20]}' ~/rice/integrate16s/v2/temp/otutab.mean result/culture_select_anno2.xls > result/culture_select_anno3.xls
 
 
-
-# 每个库分别找菌，分为A50/IR24 H/L氮
-cat doc/L1.txt <(tail -n+2 doc/L2.txt) > doc/A50L.txt # 按分类合并
-cat doc/L4.txt <(tail -n+2 doc/L5.txt) > doc/IR24H.txt
-ln doc/L3.txt doc/A50H.txt
-ln doc/L6.txt doc/IR24L.txt
-temp=temp
-result=result
-for lib in A50L A50H IR24L IR24H; do
-filter_samples_from_otu_table.py -i ${result}/otu_table.biom -o ${result}/${lib}_otu_table.biom --sample_id_fp doc/${lib}.txt
-biom convert -i ${result}/${lib}_otu_table.biom -o ${result}/${lib}_otu_table.txt --table-type="OTU table" --to-tsv
-sed -i '/# Const/d;s/#OTU //g' ${result}/${lib}_otu_table.txt
-identify_isolate.sh -f ${lib}_otu_table.txt -o ${lib}
-tail -n+2 result/${lib}culture_select.xls | cut -f 1,2|sed 's/^/OTU_/g;s/;/\t/g'|less>result/${lib}culture_select.tax
-filter_fasta.py -f result/rep_seqs.fa -o result/${lib}culture_select.fa -s result/${lib}culture_select.tax
-makeblastdb -dbtype nucl -in result/${lib}culture_select.fa
-done
 
 
 # 1. 处理序列 Processing sequences
@@ -57,7 +97,7 @@ done
 
 	# 创建环境代码见~/github/Work/initial_project.sh
 	# 设置工作目录
-	wd=culture/medicago/190626
+	wd=culture/rice/190626
 	## 准备实验设计
 	cd ~/$wd
 	# Initialize the working directory
@@ -75,22 +115,17 @@ done
 
 	## 写mappingfile, s为物种，p为板数；多个library需要多个mappingfile
 	# 可指定品种、部位和培养基类型
-	# 单个文库
-	write_mappingfile_culture2.pl -o doc/L1.txt -s medicago -L L1 -v A17 -c Rhizosphere -m R2A -B 1 -p 1
-	# 批量相同属性文库
-	for i in `seq 1 10`; do write_mappingfile_culture2.pl -o doc/L${i}.txt -s medicago -L L${i} -v A17 -c Rhizosphere -m R2A -B 1 -p 48; done
 	# 按Library信息批量生成
-	# awk '{if(NR>2){system("echo "$1" "$6" "$7" "$8)}}' doc/library.txt
-	awk '{if(NR>2){system("write_mappingfile_culture2.pl -o doc/"$1".txt -s medicago -L "$1" -v "$6" -c "$7" -m "$8" -B "$9" -p "$10)}}' doc/library.txt
-	# L9, L10手动修改个性化数据，在Excel中手动修改 
+	awk '{if(NR>1){system("write_mappingfile_culture2.pl -o doc/"$1".txt -s rice -L "$1" -v "$6" -c "$7" -m "$8" -B "$9" -p "$10)}}' doc/library.txt
+	# L7, L8手动修改个性化数据，在Excel中手动修改 
 
 
 	# 删除多余空格，windows换行符等(MAC用户禁用)
 	sed -i 's/ //g;s/\r//' doc/*.txt
 	# 查看数据格式、列名，了解和检查实验设计
-	head -n3 doc/L1.txt
+	head -n3 doc/L7.txt
 	# 依据各文库L*.txt文件生成实验设计
-	cat <(head -n1 doc/L1.txt | sed 's/#//g') <(cat doc/L* |grep -v '#'|grep -v -P '^SampleID\t') > doc/design.txt
+	cat <(head -n1 doc/L7.txt | sed 's/#//g') <(cat doc/L* |grep -v '#'|grep -v -P '^SampleID\t') > doc/design.txt
 	# 检查是否相等
 	wc -l doc/design.txt
 	cut -f 1 doc/design.txt|sort|uniq|wc -l
@@ -100,8 +135,6 @@ done
 ## 1.2. 按实验设计拆分文库为样品
 
 
-	# 拆分样品
-	head -n3 doc/L1.txt
 	# 按L1/2/3...txt拆分library为samples
 	# 输入为seq/L*.fq，输出为seq/sample/*.fq
 	make library_split

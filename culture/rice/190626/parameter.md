@@ -75,8 +75,8 @@ SHELL:=/bin/bash
 	# /mnt/bai/public/ref/silva/SILVA_132_SSURef_tax_silva.fasta # 全部3.3G, 内存使用15.9G, 30min, 16.2% chimeras
 	# 使用非冗余99%的省内存和时间，但结果差不多
 	chimera_ref=${usearch_silva}
-	# 模式，嵌合体比例由大到小: high_confidence specific balanced sensitive sensitive
-	chimera_mode=balanced
+	# 模式，嵌合体比例由大到小: high_confidence specific balanced sensitive sensitive, 可选none关闭
+	chimera_mode=none
 
 ## 1.9. host_rm 去宿主
 
