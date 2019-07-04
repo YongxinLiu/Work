@@ -47,17 +47,20 @@
     filter_fasta.py -f result/otu.fa -o result/culture_select.fa -s result/culture_select.tax
     sed -i 's/OTU/COTU/' result/culture_select.fa
     makeblastdb -dbtype nucl -in result/culture_select.fa
+    makeblastdb -dbtype nucl -in result/otu.fa
+    # 添加孔的信息
+    awk 'BEGIN{OFS=FS="\t"} NR==FNR {a[$1]=$8"\t"$9"\t"$10} NR>FNR {print $0,a[$1]}' doc/design.txt result/culture_bacteria.xls > result/culture_bacteria_anno.xls
 
 
     ## 2019/7/2 与最新2个菌库比较，找OTU_1
     cwd=culture2
     mkdir -p ${cwd}
-    blastn -query /mnt/zhou/zhiwen/16s.dir/GRF_merge/result/otu.fa -db ~/culture/rice/190626/result/culture_select.fa -out ${cwd}/otu_culture.blastn -outfmt '6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qcovs' -num_alignments 10 -evalue 1 -num_threads 9 # 输出13列为coverage
-    awk '$3*$13>=9700' ${cwd}/otu_culture.blastn |cut -f 1 > ${cwd}/otu_cultured.txt # 197 OTU cultured, 197/535=36.8%
-    # 我们关注的菌OTU_2 k__Bacteria;p__Firmicutes;c__Bacilli;o__Bacillales;f__Bacillaceae_1;g__Bacillus，在新库中${cwd}/otu_culture.blastn 对应 COTU_61
-    # L8-10为新库，精选信息可查culture_select.xls中编号61，L8,L10中为最优解；更多孔详见 culture_bacteria.xls
-    # 添加孔的信息
-    awk 'BEGIN{OFS=FS="\t"} NR==FNR {a[$1]=$8"\t"$9"\t"$10} NR>FNR {print $0,a[$1]}' doc/design.txt result/culture_bacteria.xls > result/culture_bacteria_anno.xls
+    # OTU_1   k__Bacteria;p__Proteobacteria;c__Deltaproteobacteria;o__Myxococcales;f__Cystobacteraceae;g__Anaeromyxobacter;s__Anaeromyxobacter_dehalogenans
+    head -n6 /mnt/zhou/zhiwen/16s.dir/GRF_merge/result/otu.fa > temp/OTU_1.fa
+    blastn -query temp/OTU_1.fa -db ~/culture/rice/190626/result/culture_select.fa -out ${cwd}/otu_culture.blastn -outfmt '6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qcovs' -num_alignments 10 -evalue 1 -num_threads 9 # 输出13列为coverage
+    # 再扩大到分菌的所有OTU与关注的菌
+    blastn -query temp/OTU_1.fa -db result/otu.fa -out ${cwd}/otu_culture_all.blastn -outfmt '6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qcovs' -num_alignments 10 -evalue 1 -num_threads 9 # 输出13列为coverage
+
 
     ## 与sanger鉴定后菌保比较: 添加相似度确定新菌
     cwd=sanger_stock

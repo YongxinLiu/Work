@@ -53,9 +53,10 @@
 ## 设置工作目录
     # 2019/6/26 culture/medicago/190626 苜蓿分菌测序
     # 2019/6/26 culture/rice/190626 水稻分菌测序R2A和厌氧
+    # 2019/7/4 culture/wheat1907 小麦分菌测序
 
 ## 项目建立代码
-    wd=culture/rice/190626
+    wd=culture/wheat1907
     # 创建github目录，用于备份流程、文档
     cd ~
     mkdir -p ~/github/Work/$wd

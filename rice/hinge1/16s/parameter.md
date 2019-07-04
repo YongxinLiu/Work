@@ -163,10 +163,11 @@ SHELL:=/bin/bash
 
 	# 绘图通用参数
 	# 实验设计文件位置，全局，其它图默认调此变量，也可单独修改；并选择表中的组列和具体分组
-	# 设置子版本目录
-	sub=""
+	# 设置突变体子版本目录 Hn/Cp/Sz HN/LN
+	# 设置近等基因系Nil子版本目录 NilHnHN NilHnLN NilCpHN NilCpLN
+	sub="CpLN"
 	doc=doc/${sub}
-	design=${wd}/${doc}/design.txt 
+	design=${wd}/doc/design.txt 
 	g1=groupID
 	# tail -n+2 ${doc}/design.txt|cut -f 5|sort|uniq|awk '{print "\""$1"\""}'|tr "\n" ","
 	# 绘图使用的实验组，顺序即图中显示顺序；为空时使用所有组和默认顺序
@@ -200,8 +201,8 @@ SHELL:=/bin/bash
 	FC=1.2
 
 	# 统计绘图和网页报告版本控制
-	species="species"
-	keyword="keyword"
+	species="rice_16s"
+	keyword="hinge1"
 	version=${species}_${keyword}_${sub}_v1
 
 
@@ -235,7 +236,7 @@ SHELL:=/bin/bash
 	bp_method='"bray_curtis","unweighted_unifrac","weighted_unifrac"'
 	bp_design=${design}
 	bp_group_name=${g1}
-	bp_group_list=${g1_list}
+	bp_group_list=`grep -v 'soil' doc/${sub}/compare.txt|tr '\t' '\n'|sort|uniq|awk '{print "\""$$1"\""}'|tr "\n" ","|sed 's/,$$//'`
 	bp_output=${wd}/result/beta/
 	bp_width=${width}
 	bp_height=${height}
@@ -251,7 +252,7 @@ SHELL:=/bin/bash
 	bc_method='"bray","jaccard"'
 	bc_design=${design}
 	bc_group_name=${g1}
-	bc_group_list=${g1_list}
+	bc_group_list=${bp_group_list}
 	bc_output=${wd}/result/beta/
 	bc_width=${width}
 	bc_height=${height}
