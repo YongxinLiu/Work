@@ -30,10 +30,11 @@
     # 2019/5/14 medicago/AMF2 苜蓿按新思路从头分析
     # 2019/6/3 rice/hinge1/its 水稻hinge1真菌
     # 2019/7/1 rice/hinge1/16s 水稻hinge1细菌
+    # 2019/7/6 rice/integrate16s/v2/LN 水稻GWAS LN
 
 
 ## 项目建立代码
-    wd=rice/hinge1/16s
+    wd=rice/integrate16s/v2/LN
     # 创建github目录，用于备份流程、文档
     cd ~
     mkdir -p ~/github/Work/$wd

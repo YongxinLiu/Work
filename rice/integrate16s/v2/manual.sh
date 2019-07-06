@@ -1021,3 +1021,39 @@ alpha_boxplot.sh -i `pwd`/result/alpha/index.txt -m '"chao1","richness","shannon
         -prefix mg --metagenome --force --cpus 5 \
         --kingdom Archaea,Bacteria,Mitochondria,Viruses" \
         ::: `tail -n+2 result/metadata.txt | cut -f 1 | tail -n 50`
+
+
+
+# GWAS
+
+	
+
+## 基因型准备
+
+	/mnt/zhou/chulab/miniCore/snp1.5x/T2.*
+
+## 表型数据
+
+	
+	# 以LN为例，基于beta bray_curtis挑选的3个代表样品列表 ~/rice/miniCore/180319/LN/beta_norm/sample_ids.txt
+	# 参考 ~/rice/miniCore/180319/manual.sh L165继续
+	wd=LN/result
+	mkdir -p ${wd}
+	# 按之前筛选的样品编号提取样品
+	usearch10 -otutab_sample_subset result/otutab.txt -labels ~/rice/miniCore/180319/LN/beta_norm/sample_ids.txt -output ${wd}/otutab_raw.txt
+	# 按组合并，usearch group直接求合
+	usearch10 -otutab_group ${wd}/otutab_raw.txt -labels ~/rice/miniCore/180319/LN/beta_norm/sample_ids_group.txt -output ${wd}/otutab.txt
+	# 统计，最小2万，最大24万
+	usearch10 -otutab_stats ${wd}/otutab.txt -output ${wd}/otutab.txt.sum
+
+	# 采用标准流程生成alpha, beta多样性
+
+
+ 
+
+
+
+
+
+
+

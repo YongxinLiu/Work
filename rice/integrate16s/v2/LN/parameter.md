@@ -110,12 +110,12 @@ SHELL:=/bin/bash
 	# 按样本量筛选，默认5000，根据otu_stats结果调整
 	min_sample_size=5000
 	# 按矩阵中每个点count, freq筛选，低于阈值变为0
-	# 按OTU丰度和频率筛选，如OTU测序量至少8次，相对丰度百万分之一(建议挑选序列去冗余部分调高阈值更合理) grep '>' -c temp/filtered.fa
-	min_otu_size=100
+	# 按OTU丰度和频率筛选，如OTU测序量至少8次，相对丰度百万分之一(建议挑选序列去冗余部分调高阈值更合理)
+	min_otu_size=8
 	# 按频率筛选，推荐十万分之一0.00001，范围千一至百分一0.001 - 0.000001之间
-	min_otu_freq=0.00001
+	min_otu_freq=0.000001
 	# 抽样标准化的值，推荐最小10000，根据统计结果选择筛选后最小值或可保留大部分样品的值
-	sample_size=5000
+	sample_size=30000
 
 ## 1.12. tax_assign 物种注释
 
@@ -163,9 +163,8 @@ SHELL:=/bin/bash
 
 	# 绘图通用参数
 	# 实验设计文件位置，全局，其它图默认调此变量，也可单独修改；并选择表中的组列和具体分组
-	# 设置突变体子版本目录 Hn/Cp/Sz HN/LN
-	# 设置近等基因系Nil子版本目录 NilHnHN NilHnLN NilCpHN NilCpLN
-	sub="CpHN"
+	# 设置子版本目录
+	sub=""
 	doc=doc/${sub}
 	design=${wd}/doc/design.txt 
 	g1=groupID
@@ -201,8 +200,8 @@ SHELL:=/bin/bash
 	FC=1.2
 
 	# 统计绘图和网页报告版本控制
-	species="rice_16s"
-	keyword="hinge1"
+	species="species"
+	keyword="keyword"
 	version=${species}_${keyword}_${sub}_v1
 
 
@@ -236,7 +235,7 @@ SHELL:=/bin/bash
 	bp_method='"bray_curtis","unweighted_unifrac","weighted_unifrac"'
 	bp_design=${design}
 	bp_group_name=${g1}
-	bp_group_list=`grep -v 'soil' doc/${sub}/compare.txt|tr '\t' '\n'|sort|uniq|awk '{print "\""$$1"\""}'|tr "\n" ","|sed 's/,$$//'`
+	bp_group_list=${g1_list}
 	bp_output=${wd}/result/beta/
 	bp_width=${width}
 	bp_height=${height}
@@ -252,7 +251,7 @@ SHELL:=/bin/bash
 	bc_method='"bray","jaccard"'
 	bc_design=${design}
 	bc_group_name=${g1}
-	bc_group_list=${bp_group_list}
+	bc_group_list=${g1_list}
 	bc_output=${wd}/result/beta/
 	bc_width=${width}
 	bc_height=${height}

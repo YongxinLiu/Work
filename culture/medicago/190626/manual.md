@@ -229,3 +229,41 @@
     Rscript ~/github/Amplicon/16Sculture2/script/identify_isolate2.R
     awk 'BEGIN{OFS=FS="\t"} NR==FNR {a[$1]=$8"\t"$9"\t"$10} NR>FNR {print $0,a[$1]}' doc/design.txt result/culture_bacteria2.xls > result/culture_bacteria2_anno.xls
     # 检查了第三列中OTU_61，数据只只有1-5条，且丰度在0.5%以下
+
+    ## 筛选某个指定OTU
+    Rscript ~/github/Amplicon/16Sculture2/script/select_OTU.R
+    # 添加孔实验设计注释
+    awk 'BEGIN{OFS=FS="\t"} NR==FNR {a[$1]=$8"\t"$9"\t"$10} NR>FNR {print $0,a[$1]}' doc/design.txt result/otu61.txt > result/otu61.anno.txt
+    # 添加孔详细
+    awk 'BEGIN{OFS=FS="\t"} NR==FNR {a[$1]=$0} NR>FNR {print $0,a[$1]}' result/culture_bacteria2_anno.xls result/otu61.txt > result/otu61.anno.txt
+    # 添加每个COTU与OTU1的相似度
+    echo 'OTU_2' > ${cwd}/otu2.id
+	filter_fasta.py -f ~/medicago/AMF2/result/otu.fa -o ${cwd}/bacillus.fa -s ${cwd}/otu2.id
+    makeblastdb -dbtype nucl -in ${cwd}/bacillus.fa
+    blastn -query result/otu.fa -db ${cwd}/bacillus.fa -out ${cwd}/cotu_otu2.blastn -outfmt '6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qcovs' -num_alignments 1 -evalue 1 -num_threads 9 # 输出13列为coverage
+    awk 'BEGIN{OFS=FS="\t"} NR==FNR {a[$1]=$3} NR>FNR {print $0,a[$8]}' ${cwd}/cotu_otu2.blastn result/otu61.anno.txt > result/otu61.anno2.txt
+
+
+    # 与其它物种菌库比对
+    # 拟南芥
+    blastn -query ${cwd}/bacillus.fa -db ~/culture/ath/result/Rootculture_select.fa -out ${cwd}/ath_otu2.blastn -outfmt '6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qcovs' -num_alignments 10 -evalue 1 -num_threads 9
+    less  ${cwd}/ath_otu2.blastn # 有COTU_317 100%匹配
+    # 与菌保比对
+    blastn -query ${cwd}/bacillus.fa -db ~/culture/ath/wet/root_leaf.fa -out ${cwd}/ath_otu2_stock.blastn -outfmt '6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qcovs' -num_alignments 10 -evalue 1 -num_threads 9
+    less  ${cwd}/ath_otu2_stock.blastn # 有COTU_317 100%匹配
+
+
+    # 水稻
+    blastn -query ${cwd}/bacillus.fa -db ~/culture/rice/result/culture_select.fasta -out ${cwd}/rice_otu2.blastn -outfmt '6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qcovs' -num_alignments 10 -evalue 1 -num_threads 9
+    less  ${cwd}/rice_otu2.blastn # 有rice_311 100%匹配
+    # 直接比对水稻菌保
+    blastn -query ${cwd}/bacillus.fa -db ~/culture/rice/190626/sanger_stock/16S_rice_culture_collection.fasta -out ${cwd}/rice_otu2.blastn -outfmt '6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qcovs' -num_alignments 10 -evalue 1 -num_threads 9
+    less  ${cwd}/rice_otu2.blastn # 与3菌株100%一致
+
+
+
+    # 小麦
+    blastn -query ${cwd}/bacillus.fa -db ~/culture/wheat/result/culture_select.fa -out ${cwd}/wheat_otu2.blastn -outfmt '6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qcovs' -num_alignments 10 -evalue 1 -num_threads 9
+    less  ${cwd}/wheat_otu2.blastn # 有rice_311 100%匹配，OTU_128
+
+

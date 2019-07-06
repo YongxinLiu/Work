@@ -180,7 +180,6 @@ beta_pcoa.r -i ${sub}/bray_curtis.txt -t bray_curtis -d ../doc/design1.txt -n Re
 
 
 # OTU表按组合并，是数值直接相加，而不是标准化求平均，这样可能受样本权重影响 http://www.drive5.com/usearch/manual/cmd_otutab_group.html
-awk 'BEGIN{OFS=FS="\t"} NR===FNR {a[$$1]=$$0} NR>FNR {print a[$$1]}
 awk 'BEGIN{OFS=FS="\t"} NR==FNR {a[$1]=$6} NR>FNR {print $0,a[$1]}' doc/design.txt LN/beta_norm/sample_ids.txt > LN/beta_norm/sample_ids_group.txt
 usearch10 -otutab_group otu_filter/3otu_table_best_LN.txt  -labels LN/beta_norm/sample_ids_group.txt -output otu_filter/4otu_table_group_LN.txt
 usearch10 -otutab_stats otu_filter/4otu_table_group_LN.txt -output otu_filter/4otu_table_group_LN.txt.sum 
