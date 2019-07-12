@@ -1,3 +1,52 @@
+# 从OTU表开始生成多样性结果
+	touch otutab_create
+	touch otutab_filter
+	# 根据OTU表统计 cat result/otutab.txt.sum ，修改抽样量18712
+	make otutab_norm
+	# 设置sintax的cutoff
+	make tax_assign
+	make tax_sum
+	# 生成树时间长，可touch tree_make，再ln旧文件
+	make tree_make
+	# 多样性计算
+	make alpha_calc
+	# Beta多样性计算
+	make beta_calc
+
+# 整理emmax使用表型
+    
+    mkdir -p pheno
+    # alpha
+    awk 'NR==FNR{a[$1]=$10} NR>FNR {print $1,$2,a[$2]}' result/alpha/index.txt ../emmax/snp.tfam | sed 's/ $/ NA/' > pheno/alpha_richness.txt
+    # 与玉米不同的是第一列玉米全相同，而水稻为自己的ID，这个来自表型文件
+
+
+
+# GWAS关联
+
+    # 必须有输出目录，否则 Segmentation fault (core dumped)
+    mkdir -p emmax_out
+    # i=alpha_richness
+    time emmax -t ../emmax/snp \
+        -p pheno/${i}.txt \
+        -k ../emmax/snp.aBN.kinf \
+        -o emmax_out/${i}
+
+    # 协变量，ERROR: At this point, we do not allow missng covariates
+    mkdir -p emmax_cov
+    i=alpha_richness
+    time emmax -t ../emmax/snp \
+        -p pheno/${i}.txt \
+        -k ../emmax/snp.aBN.kinf \
+        -c ../emmax/snp.cov \
+        -o emmax_cov/${i} 
+
+
+
+
+
+
+
 
 	# 快速分析 Quick Start(所需文件准备好)
 	find . -name "*" -type f -size 0c | xargs -n 1 rm -f # 清理零字节文件，用于从头重新分析项目清空makefile点位文件

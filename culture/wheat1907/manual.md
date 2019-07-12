@@ -50,7 +50,7 @@
 
 	# 创建环境代码见~/github/Work/initial_project.sh
 	# 设置工作目录
-	wd=culture/medicago/190626
+	wd=culture/wheat1907
 	## 准备实验设计
 	cd ~/$wd
 	# Initialize the working directory
@@ -69,12 +69,12 @@
 	## 写mappingfile, s为物种，p为板数；多个library需要多个mappingfile
 	# 可指定品种、部位和培养基类型
 	# 单个文库
-	write_mappingfile_culture2.pl -o doc/L1.txt -s medicago -L L1 -v A17 -c Rhizosphere -m R2A -B 1 -p 1
+	# write_mappingfile_culture2.pl -o doc/L1.txt -s medicago -L L1 -v A17 -c Rhizosphere -m R2A -B 1 -p 1
 	# 批量相同属性文库
-	for i in `seq 1 10`; do write_mappingfile_culture2.pl -o doc/L${i}.txt -s medicago -L L${i} -v A17 -c Rhizosphere -m R2A -B 1 -p 48; done
+	# for i in `seq 1 10`; do write_mappingfile_culture2.pl -o doc/L${i}.txt -s medicago -L L${i} -v A17 -c Rhizosphere -m R2A -B 1 -p 48; done
 	# 按Library信息批量生成
 	# awk '{if(NR>1){system("echo "$1" "$6" "$7" "$8)}}' doc/library.txt
-	awk '{if(NR>1){system("write_mappingfile_culture2.pl -o doc/"$1".txt -s medicago -L "$1" -v "$6" -c "$7" -m "$8" -B "$9" -p "$10)}}' doc/library.txt
+	# awk '{if(NR>1){system("write_mappingfile_culture2.pl -o doc/"$1".txt -s medicago -L "$1" -v "$6" -c "$7" -m "$8" -B "$9" -p "$10)}}' doc/library.txt
 	# L9, L10手动修改个性化数据，在Excel中手动修改 
 
 
@@ -84,11 +84,14 @@
 	head -n3 doc/L1.txt
 	# 依据各文库L*.txt文件生成实验设计
 	cat <(head -n1 doc/L1.txt | sed 's/#//g') <(cat doc/L* |grep -v '#'|grep -v -P '^SampleID\t') > doc/design.txt
+    # 检查实验设计完整性
+    cat doc/design.txt|datamash check
 	# 检查是否相等
 	wc -l doc/design.txt
 	cut -f 1 doc/design.txt|sort|uniq|wc -l
 	# 查看冗余的列(仅上方不等时使用)
-	cut -f 1 doc/design.txt|sort|uniq -c| less
+	cut -f 1 doc/design.txt|sort|uniq -c| awk '$1>1' | less > temp/dup.id # H4P1847H11
+    wc -l temp/dup.id
 
 
 ## 1.2. 按实验设计拆分文库为样品

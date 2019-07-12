@@ -1,3 +1,21 @@
+
+	# 快速分析 Quick Start(所需文件准备好)
+	find . -name "*" -type f -size 0c | xargs -n 1 rm -f # 清理零字节文件，用于从头重新分析项目清空makefile点位文件
+	make library_split # 样本拆分、
+	make fq_qc # 合并、去接头和引物、质控，获得纯净扩增子序列temp/filtered.fa
+	make host_rm # 序列去冗余、去噪、挑选代表序列、去嵌合、去宿主，获得OTU代表序列result/otu.fa
+	make beta_calc # 生成OTU表、过滤、物种注释、建库和多样性统计
+	# 清除统计绘图标记(重分析时使用)
+    # 实验设计来自上级目录 cp -r ../doc/SL_*/ doc/ # Hn Bj
+	rm -rf alpha_boxplot 
+	make DA_compare # 绘制alpha、beta、taxonomy和差异OTU比较
+	#rm -f plot_volcano # 删除OTU差异比较可化标记
+	make plot_manhattan # 绘制差异比较的火山图、热图、曼哈顿图
+	make plot_venn # 绘制OTU差异共有/特有维恩图
+	make DA_compare_tax # 高分类级差异比较，维恩图绘制，2为reads count负二项分布统计
+	make rmd # 生成网页报告，必须依赖的只有alpha, beta, taxonomy
+
+
 # 1. 标准流程 Standard pipeline
 
 	处理序列 Processing sequencing data
@@ -798,6 +816,46 @@ compare.sh -i `pwd`/result/otutab.txt -c `pwd`/doc/compare_sp.txt -m "wilcox" \
     cut -f 8 ${i}_1_anno.txt|sort|uniq|grep 'LOC' >${i}_LOC.txt # AgriGO的Oryza sative无法识别
     done
 
+## 4.14 抑制分蘖功能菌
+    
+    # 2019/7/11 来源 SL-Mutants-Depleted细菌定殖实验结果汇总 20190704.pptx，P6页有OTU物种注释
+    grep -P 'OTU_148\t|OTU_18\t|OTU_21\t|OTU_24\t' result/taxonomy_2.txt  # 注释完全不对应，不此最新v2版
+    cd ~/rice/integrate16s
+    grep -P 'OTU_148\t|OTU_24\t|OTU_18\t|OTU_21\t' result/taxonomy_2.txt  # 注释基本对应，只有OTU_148的属种有差别
+    # 观察来自148(4)21(5)两个肠杆菌科，18(8),21(11)两个金黄杆菌属；分别在OTU、属、科水平观察这些OTU在两块地点的分布
+    # 参考报告 http://210.75.224.110/report/16Sv2/rice_SL_Bj_wilcox_v4 http://210.75.224.110/report/16Sv2/rice_SL_Hn_wilcox_v4/
+    # 编写这4个OTU的信息描述 SL/otu.list
+    OTU_list=`cut -f 1 SL/otu.list|tail -n+2|awk '{print "\""$1"\""}'|tr "\n" ","|sed 's/,$//'`
+    group_list=`cat doc/SL_Bj/compare.txt|tr '\t' '\n'|sort|uniq|awk '{print "\""$1"\""}'|tr "\n" ","|sed 's/,$//'`
+	alpha_boxplot.sh -i `pwd`/result/otutab.txt -m $OTU_list \
+        -d `pwd`/doc/design.txt -A groupID -B $group_list \
+        -o `pwd`/SL/boxplot/BJ_ -h 6 -w 8 -t TRUE -n TRUE
+    # 查看科水平
+	alpha_boxplot.sh -i `pwd`/result/tax/sum_f.txt -m '"Enterobacteriaceae","Flavobacteriaceae"' \
+        -d `pwd`/doc/design.txt -A groupID -B $group_list \
+        -o `pwd`/SL/boxplot/BJ_ -h 6 -w 8 -t TRUE -n TRUE
+
+    # 获得序列后 SL/experiment1.fa，与v2版比较再展示OTU丰度
+    makeblastdb -dbtype nucl -in result/otu.fa
+    blastn -query SL/experiment1.fa -db result/otu.fa -out SL/experiment1_otu.txt -outfmt '6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qcovs' -num_alignments 3 -evalue 1 -num_threads 9 
+    cat SL/experiment1_otu.txt
+    OTU_list=`cut -f 2 SL/experiment1_otu.txt|tail -n+2|awk '{print "\""$1"\""}'|tr "\n" ","|sed 's/,$//'`
+    group_list=`cat doc/SL_Bj/compare.txt|tr '\t' '\n'|sort|uniq|awk '{print "\""$1"\""}'|tr "\n" ","|sed 's/,$//'`
+	alpha_boxplot.sh -i `pwd`/result/otutab.txt -m $OTU_list \
+        -d `pwd`/doc/design.txt -A groupID -B $group_list \
+        -o `pwd`/SL/boxplot/BJ_ -h 6 -w 8 -t TRUE -n TRUE
+    # 查看科水平
+    awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print a[$2]}' result/taxonomy_2.txt SL/experiment1_otu.txt
+	alpha_boxplot.sh -i `pwd`/result/tax/sum_f.txt -m '"Enterobacteriaceae","Flavobacteriaceae"' \
+        -d `pwd`/doc/design.txt -A groupID -B $group_list \
+        -o `pwd`/SL/boxplot/BJ_ -h 6 -w 8 -t TRUE -n TRUE
+    # 查看对应.txt文件，黄杆菌NpRtBj与d14RtBj和d53RtBj显著差别，但肠杆菌不显著差异0.77, 0.88；是否为多重比较引起，仅有3个基因型尝试
+	alpha_boxplot.sh -i `pwd`/result/tax/sum_f.txt -m '"Enterobacteriaceae","Flavobacteriaceae"' \
+        -d `pwd`/doc/design.txt -A groupID -B '"NpRtBj","d53RtBj","d14RtBj"' \
+        -o `pwd`/SL/boxplot/BJ_3 -h 6 -w 8 -t TRUE -n TRUE
+    cat SL/boxplot/BJ_3Enterobacteriaceae.txt # 与野生型极显著-5次方，是多重比较校正所致，而突变体间无差异
+
+
 
 
 # 5. 图表整理 Figures and tables
@@ -854,7 +912,36 @@ cut -f 5 meta/metadata.txt|sort|uniq -c
 
 ### 1D. phylogenetics tree 进化树
 
-# 基于可遗传OTU计算
+#### 出现频率筛选核心OTU 2019/7/9
+
+    # 筛选核心OTU：基于miniCore样品 1183，筛选90%存在的
+    mkdir result/core
+	usearch11 -otutab_core result/minicore/otutab.txt -sintaxin temp/otu.fa.tax -tabbedout result/core/samples.txt
+    # 最后列添检查出现的频率
+	awk '{print $0"\t"$2/1183*100}' result/core/samples.txt | sed '1 s/OTU/OTUID/;1 s/0/Core/' > result/core/freq.txt
+    # 统计各比例100 95 90%下在miniCore 1183个样品中OTU数量，分别为5，56，85；较之前97%聚类少很多(54，276，370)
+    # 统计usearch计算频率的单位，总频率为1
+    awk '{a=a+$4}END{print a}' result/core/freq.txt 
+    for i in `seq 50 5 100`; do
+        echo -ne $i"\t"
+        awk -v i="$i" '$14>=i' result/core/freq.txt|wc -l|tr '\n' '\t'
+        awk -v i="$i" '$14>=i' result/core/freq.txt|awk '{a=a+$4}END{print a}'
+    done
+    # ASV方式非常琐碎，80%都不及OTU水平丰度高。暂用80%刚及格的149条序列
+    # 绘制进化树
+    awk '$14>=80' result/core/freq.txt > result/core/core.txt
+    cut -f 1 result/core/core.txt > result/core/core.id
+    usearch10 -fastx_getseqs result/otu.fa -labels result/core/core.id -fastaout result/core/otu.fa
+    # check number
+    grep '>' -c result/core/otu.fa
+    # Multiply alignment
+    clustalo -i result/core/otu.fa -o temp/1d.otu_k1_align.fa --seqtype=DNA --full --force --threads=9
+    make_phylogeny.py -i temp/1d.otu_k1_align.fa -o result/core/otu.tree
+    # 物种注释和丰度
+
+
+
+#### 基于可遗传OTU计算
     # 选择丰度>0.1%的166个序列建树，并用iTOL注释物种门水平颜色、核心菌加粗和可遗传标为红色
     # select OTU abundance > 0.1% 
     awk '$3>0.1' result/anno/otu.8_10heritable | cut -f 1 > temp/otu_k1.id
@@ -1030,7 +1117,20 @@ alpha_boxplot.sh -i `pwd`/result/alpha/index.txt -m '"chao1","richness","shannon
 
 ## 基因型准备
 
-	/mnt/zhou/chulab/miniCore/snp1.5x/T2.*
+    # 生成emmax的tped，原始bed文件见 /mnt/zhou/chulab/miniCore/snp1.5x/T2.*
+    time plink --bfile /mnt/zhou/chulab/miniCore/snp1.5x/T2 \
+        --recode 12 --output-missing-genotype 0 --transpose \
+        --out emmax/snp 
+    # 生成Kinship矩阵，2288569 SNPs，43s
+    time emmax-kin -v emmax/snp 
+
+    # 协变量(可选)
+    # 玉米中协变量第4行全为1，而水稻中有正、有负，如-9为缺失 emmax/snp.tfam
+    # awk 'NR==FNR{a[$1]=$0} NR>FNR {print $1,a[$2]}' snp/cubic_PopStructure.txt emmax/snp.tfam |sed 's/\t/ 1 /' | sed 's/\t/ /g' > emmax/snp.cov
+    # sed替换多个空格为制表符，cut取前5列，排除数值
+    paste <(sed 's/[ ][ ]*/\t/g' emmax/snp.tfam|cut -f 1-2) /mnt/zhou/chulab/miniCore/snp1.5x/sativa.pca > emmax/snp.cov
+    cat -A emmax/snp.cov|less
+
 
 ## 表型数据
 
@@ -1046,10 +1146,10 @@ alpha_boxplot.sh -i `pwd`/result/alpha/index.txt -m '"chao1","richness","shannon
 	# 统计，最小2万，最大24万
 	usearch10 -otutab_stats ${wd}/otutab.txt -output ${wd}/otutab.txt.sum
 
-	# 采用标准流程生成alpha, beta多样性
+	# 采用标准流程生成alpha, beta多样性，按最小样本量抽平
+    # 详见 /mnt/bai/yongxin/rice/integrate16s/v2/LN
 
-
- 
+    # 转换和关联详见子目录
 
 
 

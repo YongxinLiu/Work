@@ -164,8 +164,8 @@ SHELL:=/bin/bash
 	# 绘图通用参数
 	# 实验设计文件位置，全局，其它图默认调此变量，也可单独修改；并选择表中的组列和具体分组
 	# 设置突变体子版本目录 Hn/Cp/Sz HN/LN
-	# 设置近等基因系Nil子版本目录 NilHnHN NilHnLN NilCpHN NilCpLN
-	sub="CpHN"
+	# 设置近等基因系Nil子版本目录 NilHnHN NilHnLN NilCpHN NilCpLN NilSzHN NilSzLN
+	sub="NilSzLN"
 	doc=doc/${sub}
 	design=${wd}/doc/design.txt 
 	g1=groupID

@@ -158,9 +158,10 @@ SHELL:=/bin/bash
 	# 绘图通用参数
 	# 实验设计文件位置，全局，其它图默认调此变量，也可单独修改；并选择表中的组列和具体分组 head -n2 doc/design.txt
 	# 统计绘图和网页报告版本控制，默认为空，可修改为任意子目录的实验设计
-	sub="nrt"
+	# SL_Bj SL_Hn
+	sub="SL_Hn"
 	doc=doc/${sub}
-	design=${wd}/${doc}/design.txt 
+	design=${wd}/doc/design.txt 
 	g1=groupID
 	# tail -n+2 ${doc}/design.txt|cut -f 9|sort|uniq|awk '{print "\""$1"\""}'|tr "\n" ","
 	# 绘图使用的实验组，顺序即图中显示顺序；为空时使用所有组和默认顺序"HIND","HTEJ","HAUS","HTRJ","LIND","LTEJ","LAUS","LTRJ"
@@ -181,8 +182,8 @@ SHELL:=/bin/bash
 	# 图中显示legend, 如taxonomy的数量，5，8(default)，10
 	legend_number=10
 	# 差异统计按丰度过滤 abundance filter，单位为百分比，如丰度按每组最位数大于万分之5过滤，即0.05，减少计算量，降低OTU的FDR值，可选千一，或万一
-	# 0.05 - 971, 0.1 - 603; 0.2 - 381, 0.3 - 271, 0.5 - 192
-	abundance_thre=0.1
+	# 0.1 - 212; 0.01
+	abundance_thre=0.01
 	# 差异比较方法，默认是 edgeR 可选 wilcox 秩和检验
 	compare_method="wilcox"
 	# 显著性P值过滤 threshold of P-value，可选0.05, 0.01, 0.001。采用FDR校正，此参数意义不大，即使0.001也没有FDR < 0.2过于严格
@@ -193,7 +194,7 @@ SHELL:=/bin/bash
 	FC=1.2
 
 	# 报告输出目录
-	version=rice_${sub}_${compare_method}_soil16LN2
+	version=rice_${sub}_${compare_method}_v1
 
 
 ## 2.1 alpha_boxplot Alpha多样性指数箱线图 Alpha index in boxplot

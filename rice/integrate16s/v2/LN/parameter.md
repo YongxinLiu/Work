@@ -115,7 +115,7 @@ SHELL:=/bin/bash
 	# 按频率筛选，推荐十万分之一0.00001，范围千一至百分一0.001 - 0.000001之间
 	min_otu_freq=0.000001
 	# 抽样标准化的值，推荐最小10000，根据统计结果选择筛选后最小值或可保留大部分样品的值
-	sample_size=30000
+	sample_size=18712
 
 ## 1.12. tax_assign 物种注释
 
@@ -124,7 +124,7 @@ SHELL:=/bin/bash
 	# 可选gg, silva, rdp分别从官网下载并shell调整格式，gg较准但旧，silva全但不准，rdp少而准，比较通用
 	sintax_db=${usearch_rdp}
 	# 分类准确度阈值，默认0.8，注释太少最小可改0.5，发现有明显错误可最高上升为0.95，改为零为最大化显示物种注释
-	sintax_cutoff=0
+	sintax_cutoff=0.6
 
 ## 1.13. tax_sum 物种注释统计
 

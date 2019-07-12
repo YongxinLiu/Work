@@ -73,6 +73,24 @@
     cd ~/$wd
 
 
+# 菌库序列和物种注释整理
+
+## 设置工作目录
+    # 2019/7/12 culture/rice/stock 水稻分菌测序
+
+## 项目建立代码
+    wd=culture/rice/stock
+    # 创建github目录，用于备份流程、文档
+    cd ~
+    mkdir -p ~/github/Work/$wd
+    cd ~/github/Work/$wd
+    touch manual.md
+    # 链接代码至工作区
+    mkdir -p ~/$wd
+    ln -s `pwd`/manual.md ~/$wd/manual.sh
+    cd ~/$wd
+
+
 # 备份代码
 
     # 文件加入缓冲区
