@@ -167,7 +167,7 @@ SHELL:=/bin/bash
 	sub=""
 	doc=doc/${sub}
 	design=${wd}/doc/design.txt 
-	g1=groupID
+	g1=Subspecies
 	# tail -n+2 ${doc}/design.txt|cut -f 5|sort|uniq|awk '{print "\""$1"\""}'|tr "\n" ","
 	# 绘图使用的实验组，顺序即图中显示顺序；为空时使用所有组和默认顺序
 	#g1_list='"Col","ThasKO2","ThahKO","ThadKO","ACT2KO"'

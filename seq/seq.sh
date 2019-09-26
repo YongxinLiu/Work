@@ -1,5 +1,72 @@
 # amplicon 诺禾致源测序
 
+## novagene汇总
+
+    # novagene 下载客户端安装和使用 2019/9/11
+    # 在bailab远程桌面上，从报告系统下载客户端至download目录并解压，添加可执行权限和移动至环境变量
+    chmod +x Downloads/linuxnd/linuxnd
+    sudo mv Downloads/linuxnd/linuxnd /usr/local/bin/
+    # 登陆和查看
+    linuxnd login -u X101SC19070595-Z01-F003 -p hn5hypc7
+    linuxnd list # 查看用户根目录，确定是否登陆成功
+    linuxnd list oss://gxxkeyan@126.com/H101SC19070595/KY_kehu_JK/X101SC19070595-Z01/X101SC19070595-Z01-F003/ # 查看邮件路径文件
+    linuxnd cp -d oss://gxxkeyan@126.com/H101SC19070595/KY_kehu_JK/X101SC19070595-Z01/X101SC19070595-Z01-F003/2.cleandata/ ~/seq/L${id}/ # 查看指定路径下的2.cleandata
+
+    # 根据反向标准获得完整信息
+    # 准备Index列表拆分，需要IndexRC列，可由ID或Index列检索到
+	# 情况1：如保存ID列为index.ID，获取index和IndexRC，并补充到实验设计
+    awk 'BEGIN{FS=OFS="\t"} NR==FNR {a[$1]=$0} NR>FNR {print a[$1]}' \
+        /mnt/bai/yongxin/ref/culture/IlluminaIndex48.txt index.ID > index.txt
+    # 情况2：如保存Index序列，保存为index，获取indexID和IndexRC，并补充到实验设计
+    awk 'BEGIN{FS=OFS="\t"} NR==FNR {a[$2]=$0} NR>FNR {print a[$1]}' \
+        /mnt/bai/yongxin/ref/culture/IlluminaIndex48.txt index > index.txt
+    cat index.txt
+    # 保存至库文件和登记 SeqLibraryList.xlsx
+    
+    # 批量整理和改名
+    find 2.cleandata/ .gz|grep '_1.clean.fq.gz'|sort|sed s/1.clean.fq.gz// # 填入第一列，制作成表格rename.txt
+    awk 'BEGIN{OFS=FS="\t"}{system("ln "$1"1.clean.fq.gz "$2"_1.fq.gz")}' rename.txt
+    awk 'BEGIN{OFS=FS="\t"}{system("ln "$1"2.clean.fq.gz "$2"_2.fq.gz")}' rename.txt
+
+    # 质控和报告汇总
+    fastqc -t 48 L*.fq.gz
+    multiqc ./ # 详见multiqc_report.html
+    # 提取各样品数据量，不同批数据量的列会有变化，可能要更改列的数值5、6等
+    l=`head -n1 multiqc_data/multiqc_fastqc.txt|sed 's/\t/\n/g'|awk '{print NR"\t"$0}'|grep 'Total Sequences'|cut -f 1`
+    cut -f 1,${l} multiqc_data/multiqc_fastqc.txt | sed 's/_.\t/\t/' | uniq > datasize.txt
+    cat datasize.txt
+    # 分双端统计md5值
+    md5sum L*_1.fq.gz > /tmp/md5sum1.txt
+    md5sum L*_2.fq.gz > /tmp/md5sum2.txt
+    paste /tmp/md5sum1.txt /tmp/md5sum2.txt | awk '{print $2"\t"$1"\t"$4"\t"$3}' > md5sum.txt
+    cat md5sum.txt
+    # 汇总至amplicon目录
+    ls L*.gz
+    ls L*.gz|wc
+    ln L*.gz ../amplicon/
+
+## 190921 郭晓璇 8个库
+    id=190921
+    mkdir ~/seq/L${id}/
+    cd ~/seq/L${id}/
+    linuxnd login -u X101SC19070595-Z01-F005 -p 4e4pjpug 
+    linuxnd cp -d oss://gxxkeyan@126.com/H101SC19070595/KY_kehu_JK/X101SC19070595-Z01/X101SC19070595-Z01-F005/2.cleandata/ ~/seq/L${id}/ # 查看指定路径下的2.cleandata
+
+## 190909 宝原7
+    id=190909
+    mkdir ~/seq/L${id}/
+    cd ~/seq/L${id}/
+    linuxnd login -u X101SC19070595-Z01-F004 -p 3gy397n0
+    linuxnd cp -d oss://gxxkeyan@126.com/H101SC19070595/KY_kehu_JK/X101SC19070595-Z01/X101SC19070595-Z01-F004/2.cleandata/ ~/seq/L${id}/ # 查看指定路径下的2.cleandata
+
+
+## 190904 王超玉米时间序列5个库
+    id=190904
+    mkdir ~/seq/L${id}/
+    cd ~/seq/L${id}/
+    linuxnd login -u X101SC19070595-Z01-F003 -p hn5hypc7
+    linuxnd cp -d oss://gxxkeyan@126.com/H101SC19070595/KY_kehu_JK/X101SC19070595-Z01/X101SC19070595-Z01-F003/2.cleandata/ ~/seq/L${id}/ # 查看指定路径下的2.cleandata
+
 ## 160914 16S+ITS
     cd ~/seq/160914xx.rice.TF.16S.ITS/clean_data
     zcat GB_HNVN7BCXX_L1_1.clean.fq.gz GB_H2NLWBCXY_L1_1.clean.fq.gz | pigz -p 30 > ~/seq/novagene/L160914_GB_1.fq.gz &
@@ -169,20 +236,14 @@
     ln *.gz ~/seq/novagene/
     ls *.gz|sed 's/_[12].fq.gz//'|uniq
 
-## novagene汇总
+## 190724
+    cd ~/seq/L190724/
+    mv 2.cleandata/DYM1902_FKDL190748303-1a/* ./
+    md5sum -c MD5_DYM1902_FKDL190748303-1a.txt
+    rename 's/DYM1902_FKDL190748303-1a/L190724/;s/.clean//' *.gz
+    fastqc -t 9 *.gz
+    ln *.gz ~/seq/amplicon/
 
-    # 质控和报告汇总
-    fastqc -t 48 L*.fq.gz
-    multiqc ./ # 详见multiqc_report.html
-    # 提取各样品数据量，不同批数据量的列会有变化，可能要更改列的数值5、6等
-    l=`head -n1 multiqc_data/multiqc_fastqc.txt|sed 's/\t/\n/g'|awk '{print NR"\t"$0}'|grep 'Total Sequences'|cut -f 1`
-    cut -f 1,${l} multiqc_data/multiqc_fastqc.txt | sed 's/_.\t/\t/' | uniq > datasize.txt
-    cat datasize.txt
-    # 分双端统计md5值
-    md5sum L*_1.fq.gz > /tmp/md5sum1.txt
-    md5sum L*_2.fq.gz > /tmp/md5sum2.txt
-    paste /tmp/md5sum1.txt /tmp/md5sum2.txt | awk '{print $2"\t"$1"\t"$4"\t"$3}' > md5sum.txt
-    cat md5sum.txt
 
 
 # amplicon 华大基因扩增子包lane测序数据
@@ -330,7 +391,6 @@
     # 简化目录和文件名
     mv Clean/G5WH_WWAT/FCHHH57BCX2_L2_CWHPEPI00001961_* ./
     rename 's/FCHHH57BCX2_L2_CWHPEPI00001961/lane/' *.fq.gz
-    # 按附录代码操作
 
 ## 190123.lane18
 
@@ -339,8 +399,6 @@
     mv Clean/W18NP_N8R_WTCBAC_ems541/FCHNCTYBCX2_L2_CWHPEPI00001985_* .
     rename 's/FCHNCTYBCX2_L2_CWHPEPI00001985/lane/' *.fq.gz
     sed -i 's/Clean\/W18NP_N8R_WTCBAC_ems541\/FCHNCTYBCX2_L2_CWHPEPI00001985/lane/' md5.txt
-    # 按下方`扩增子lane处理通用代码代码`操作
-
 
 ## 190220.lane19
 
@@ -349,7 +407,6 @@
     mv Clean/DYMJTR18-WTCBAC2/FCHT7YTBCX2_L1_CWHPEPI00001995_* ./
     rename 's/FCHT7YTBCX2_L1_CWHPEPI00001995/lane/' *.fq.gz
     sed -i 's/Clean\/DYMJTR18-WTCBAC2\/FCHT7YTBCX2_L1_CWHPEPI00001995/lane/' md5.txt
-    # 按下方`扩增子lane处理通用代码代码`操作
 
 ## 190516.lane20
 
@@ -366,6 +423,15 @@
     md5sum -c Clean.md5.txt 
     mv Clean/CWHPEPI00002058/FCHVH3FBCX2_L1_CWHPEPI00002033_*.gz ./
     rename 's/FCHVH3FBCX2_L1_CWHPEPI00002033/lane/' *.fq.gz
+
+## 190802.lane22
+
+    wd=L190802
+    cd ~/seq/$wd
+    md5sum -c Clean.md5.txt 
+    mv Clean/CWHPEPI00002079/FCH2NF7BCX3_L2_CWHPEPI00002079_*.gz ./
+    rename 's/FCH2NF7BCX3_L2_CWHPEPI00002079/lane/' *.fq.gz
+    # 按下方`扩增子lane处理通用代码代码`操作
 
 
 ## 扩增子lane处理通用代码
@@ -535,7 +601,22 @@
     awk 'BEGIN{OFS=FS="\t"}{system("zcat temp/"$2"_2.fq.gz temp/"$3"_2.fq.gz | pigz -p 30 > seq/"$1"_2.fq.gz")}' <(tail -n+2 metadata.txt|cut -f 1,6,7)
 
 
+## 2019/8/18 medicago wt+lyr4 10个苜蓿宏基因组样品
 
+    # 只复制报告和cleandata
+    cd /mnt/m2/data/meta/med/lyr4
+    # md5校验，15G的文件要1分半
+    ls|grep 'QJM' > cat dir.list
+    for i in `cat dir.list`; do
+        cd $i
+        time md5sum -c MD5*.txt
+        cd ..
+    done
+    # 提取文件名列表，编辑为metadata.txt
+    find ./ *.gz|grep '_1'|sort|sed 's/1.clean.fq.gz//'
+    # 移动改名
+    awk 'BEGIN{OFS=FS="\t"}{system("mv "$2"1.clean.fq.gz "$1"_1.fq.gz")}' <(tail -n+2 metadata.txt)
+    awk 'BEGIN{OFS=FS="\t"}{system("mv "$2"2.clean.fq.gz "$1"_2.fq.gz")}' <(tail -n+2 metadata.txt)
 
 ## 附录: 宏基因组通用操作代码
     
@@ -578,7 +659,7 @@
     # 测试文件完整性
     md5sum -c md5sum.txt
     # 根据实验设计批量改名
-    mkdir -p seq
+    mkdir -p seq·
     awk 'BEGIN{OFS=FS="\t"}{system("zcat temp/"$9"_1.fq.gz temp/"$10"_1.fq.gz | pigz -p 16 > seq/"$1"_1.fq.gz")}' <(tail -n+2 metadata.txt) &
     awk 'BEGIN{OFS=FS="\t"}{system("zcat temp/"$9"_2.fq.gz temp/"$10"_2.fq.gz | pigz -p 16 > seq/"$1"_2.fq.gz")}' <(tail -n+2 metadata.txt) &
 

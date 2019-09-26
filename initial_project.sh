@@ -31,10 +31,11 @@
     # 2019/6/3 rice/hinge1/its 水稻hinge1真菌
     # 2019/7/1 rice/hinge1/16s 水稻hinge1细菌
     # 2019/7/6 rice/integrate16s/v2/LN 水稻GWAS LN
-
+    # 2019/7/6 rice/integrate16s/v2/HN 水稻GWAS HN
+    # 2019/9/10 medicago/AMF3 苜蓿按新思路并修改实验设计
 
 ## 项目建立代码
-    wd=rice/integrate16s/v2/LN
+    wd=medicago/AMF3
     # 创建github目录，用于备份流程、文档
     cd ~
     mkdir -p ~/github/Work/$wd
@@ -55,9 +56,10 @@
     # 2019/6/26 culture/medicago/190626 苜蓿分菌测序
     # 2019/6/26 culture/rice/190626 水稻分菌测序R2A和厌氧
     # 2019/7/4 culture/wheat1907 小麦分菌测序
+    # 2019/8/10 culture/maize/190810 玉米分菌3个index 1Nova+2BGI
 
 ## 项目建立代码
-    wd=culture/wheat1907
+    wd=culture/maize/190810
     # 创建github目录，用于备份流程、文档
     cd ~
     mkdir -p ~/github/Work/$wd

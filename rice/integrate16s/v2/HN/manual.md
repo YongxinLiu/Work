@@ -1,5 +1,4 @@
 # 从OTU表开始生成多样性结果
-
     make init
 	touch otutab_create
 	touch otutab_filter
@@ -10,7 +9,7 @@
     # 检查表格
     cat result/otutab.txt|datamash check
     # 统计每样总量
-    # cat result/otutab.txt|datamash --header-in --header-out sum 2-203|datamash transpose|sort -k2,2n|less
+    cat result/otutab.txt|datamash --header-in --header-out sum 2-203|datamash transpose|sort -k2,2n|less
 	# 根据OTU表统计 cat result/otutab.txt.sum ，修改抽样量19318，只选择两个极小的5千和1.3万
 	make otutab_norm
 	# 设置sintax的cutoff

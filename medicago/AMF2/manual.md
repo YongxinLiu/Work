@@ -256,7 +256,7 @@ cp -r doc/b23r8 doc/b23r6
 
 # 5. 发表图版
 
-    cd ~/medicago/AMF2/fig/
+    cd ~/medicago/AMF2/
     mkdir -p fig && cd fig
     mkdir -p fig1 fig2 fig3 fig4 data script
     cp /mnt/bai/yongxin/medicago/AMF/doc/design.txt data/

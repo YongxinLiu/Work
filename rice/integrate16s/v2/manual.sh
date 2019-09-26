@@ -9,7 +9,7 @@
     # 实验设计来自上级目录 cp -r ../doc/SL_*/ doc/ # Hn Bj
 	rm -rf alpha_boxplot 
 	make DA_compare # 绘制alpha、beta、taxonomy和差异OTU比较
-	#rm -f plot_volcano # 删除OTU差异比较可化标记
+	rm -f plot_volcano # 删除OTU差异比较可化标记
 	make plot_manhattan # 绘制差异比较的火山图、热图、曼哈顿图
 	make plot_venn # 绘制OTU差异共有/特有维恩图
 	make DA_compare_tax # 高分类级差异比较，维恩图绘制，2为reads count负二项分布统计
@@ -837,8 +837,29 @@ compare.sh -i `pwd`/result/otutab.txt -c `pwd`/doc/compare_sp.txt -m "wilcox" \
 
     # 获得序列后 SL/experiment1.fa，与v2版比较再展示OTU丰度
     makeblastdb -dbtype nucl -in result/otu.fa
-    blastn -query SL/experiment1.fa -db result/otu.fa -out SL/experiment1_otu.txt -outfmt '6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qcovs' -num_alignments 3 -evalue 1 -num_threads 9 
+    blastn -query SL/experiment1.fa -db result/otu.fa -out SL/experiment1_otu.txt -outfmt '6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qcovs' -num_alignments 100 -evalue 1 -num_threads 9 
     cat SL/experiment1_otu.txt
+    # 筛选97%以上菌，并取前6列：StockID,OTUID,Similarity,Length,Mismacth,Gap，共249个候选
+    awk '$3>97' SL/experiment1_otu.txt|cut -f 1-6>SL/experiment1_otu97.txt
+    # 添加LN丰度大于0.03%的菌，共13个候选
+    awk 'BEGIN{OFS=FS="\t"} NR==FNR{a[$1]=$2} NR>FNR {print $0,a[$2]}' ~/rice/integrate16s/v2OTU/LN/result/otutab_mean.txt SL/experiment1_otu97.txt > SL/experiment1_otu97_mean.txt
+    awk '$7>0.03' SL/experiment1_otu97_mean.txt > SL/experiment1_otu97_mean0.03.txt
+    # 添加注释
+    awk 'BEGIN{OFS=FS="\t"} NR==FNR{a[$1]=$2"\t"$3} NR>FNR {print $0,a[$1]}' SL/experiment1.txt SL/experiment1_otu97_mean0.03.txt > SL/experiment1_otu97_mean_anno.txt
+    less -S SL/experiment1_otu97_mean_anno.txt
+    
+    # 只有1个OTU被筛选出来，其它的肠杆菌呢？发现LN丰度文件错误，重复计算
+    # 手动查找其被筛选掉的原因，相关性和丰度
+    grep 'Enterobacteriaceae' result/taxonomy_8.txt > SL/taxonomy_entero.txt # 共有9个OTU注释为肠杆菌
+    # 查看其丰度
+    awk 'BEGIN{OFS=FS="\t"} NR==FNR{a[$1]=$2"\t"$3} NR>FNR {print $0,a[$1]}' LN/result/otutab_mean.txt SL/taxonomy_entero.txt  > SL/taxonomy_entero_mean.txt
+    cat SL/taxonomy_entero_mean.txt
+    # 查看其相似度
+    cut -f 1 SL/taxonomy_entero.txt|tr '\n' '|'
+    grep -P 'OTU_32\t|OTU_82\t|OTU_221\t|OTU_606\t|OTU_720\t' SL/experiment1_otu.txt
+    # OTU_82没有，只有94%相似度；606和720仅为95,93%相似度
+
+
     OTU_list=`cut -f 2 SL/experiment1_otu.txt|tail -n+2|awk '{print "\""$1"\""}'|tr "\n" ","|sed 's/,$//'`
     group_list=`cat doc/SL_Bj/compare.txt|tr '\t' '\n'|sort|uniq|awk '{print "\""$1"\""}'|tr "\n" ","|sed 's/,$//'`
 	alpha_boxplot.sh -i `pwd`/result/otutab.txt -m $OTU_list \
@@ -855,8 +876,24 @@ compare.sh -i `pwd`/result/otutab.txt -c `pwd`/doc/compare_sp.txt -m "wilcox" \
         -o `pwd`/SL/boxplot/BJ_3 -h 6 -w 8 -t TRUE -n TRUE
     cat SL/boxplot/BJ_3Enterobacteriaceae.txt # 与野生型极显著-5次方，是多重比较校正所致，而突变体间无差异
 
-
-
+    # 3株实验菌进行物种注释
+    # 基于单端全长，4/5号菌f:Enterobacteriaceae属为Klebsiella、Enterobacter
+    usearch10 -sintax SL/experiment1.fa \
+        -db /mnt/bai/public/ref/rdp/rdp_16s_v16_sp.udb -sintax_cutoff 0.6 -strand both \
+        -tabbedout SL/experiment1.fa.tax -threads 32
+    # 基于799-1193区注释，匹配引物为正向
+	# 正向引物如799F AACMGGATTAGATACCCKG ，检索GGATTAGATACCC位于第3行前方>250bp
+	cutadapt -g AACMGGATTAGATACCCKG -e 0.2 SL/experiment1.fa -o temp/stock_rc1.P5.fa
+	# 切除引物 http://themicrobiome.com/en/16s/16s-primers 
+	# 反向时先切反向引物，1193R ACGTCATCCCCACCTTCC，F GGAAGGTGGGGATGACGT 正常为1492R GGTTACCTTGTTACGACTT找不到，改用1391R GACGGGCGGTGTGTRCA F TGYACACACCGCCCGTC
+	cutadapt -a GGAAGGTGGGGATGACGT -e 0.2 temp/stock_rc1.P5.fa -o SL/experiment1V57.fa
+    # 一个只能注释到Enterobacteriaceae科，属为0.4可信度的Enterobacter，另一个注释为Cedecea属
+    usearch10 -sintax SL/experiment1V57.fa \
+        -db /mnt/bai/public/ref/rdp/rdp_16s_v16_sp.udb -sintax_cutoff 0.6 -strand both \
+        -tabbedout SL/experiment1V57.fa.tax -threads 32
+    grep 'Enterobacteriales' SL/experiment1V57.fa.tax
+    # R1452/R1483/R2129分别为4/5/7为肠杆菌
+    cut -f 1,4 SL/experiment1V57.fa.tax|sort # 补充至实验菌信息
 
 # 5. 图表整理 Figures and tables
 
@@ -1001,6 +1038,9 @@ mkdir -p tree
     Rscript ~/ehbio/train/04Amplicon/1809/26Evolution/table2itol/table2itol.R -a -d -c none -D tree/ -b Phylum -i OTUID -l Genus -t %s -w 0.5 tree/annotation.txt
     # 用门背景色、属 目标签、丰度
 
+### 1N. 物种/功能与表型关联(分蘗、株高、鲜重)，见fig1.Rmd/fig1_meta.Rmd 结尾。转换到fig3.phenotype.Rmd开头
+    # 相关图代码，来自 ~/rice/xianGeng/fig1/6phenotype_cor_en.rmd
+
 
 
 ##  图2. 微生物组多样性和遗传关系 2019/4/2
@@ -1024,12 +1064,6 @@ alpha_boxplot.sh -i `pwd`/result/alpha/index.txt -m '"chao1","richness","shannon
     -o `pwd`/result/alpha/ -h 3 -w 5    
 
 
-# 遗传距离与微生物组：显著性？
-
-
-
-
-
 ## 图3. SL相关基因
 
 ### 3.1 PCoA和CPCoA绘制SL所有基因型的丰度
@@ -1043,6 +1077,89 @@ alpha_boxplot.sh -i `pwd`/result/alpha/index.txt -m '"chao1","richness","shannon
         -d `pwd`/doc/SL/design.txt  -A groupID -B '"d27RtBj","d17RtBj","d10RtBj","d3NpRtBj","d14RtBj","d53RtBj","NpRtBj"' -E TRUE \
         -o `pwd`/result/beta/ -h 3 -w 5
 
+### 3.2 肠杆菌OTU在差异比较中是否显著下调
+
+    # 北京地点出现9个全部显著下调
+    grep -P 'OTU_32\t|OTU_221\t' rice_OTU_SL_Bj_wilcox_v1/result/compare/*_sig.txt | less -S | sed 's/rice_OTU_SL_Bj_wilcox_v1\/result\/compare\///;s/:/\t/;s/_sig.txt//' > SL/otu_Bj_enter.txt
+    wc -l SL/otu_Bj_enter.txt
+    # 海南差异小，基因型少，出现5次全为显著下调
+    grep -P 'OTU_32\t|OTU_221\t' rice_OTU_SL_Hn_wilcox_v1/result/compare/*_sig.txt | less -S | sed 's/rice_OTU_SL_Hn_wilcox_v1\/result\/compare\///;s/:/\t/;s/_sig.txt//' > SL/otu_Hn_enter.txt
+    wc -l SL/otu_Hn_enter.txt
+
+
+## 菌与分蘖的关系 fig/fig3/fig3.phenotype.Rmd
+
+### 以分蘖为属性进行constrained PCoA
+
+    # 再将分蘖按5个一组，取连续分类，发现有非常好的规律。/mnt/bai/yongxin/rice/integrate16s/v2/LN/result/beta/cpcoa_tiller_number_5_bray.pdf
+
+    ### 3. 科水平，分蘖划分连续型归类再求相关  /mnt/bai/yongxin/rice/integrate16s/v2/fig/fig3/pheno_LN_variety_cat5_Enterobacteriaceae_IND_tiller_cat.pdf 存在非常好的相关系数，改为pearson相关系数可以显著相关。
+    # ASV和属水平的相关分析，查看肠杆菌中的属， Enterobacteriaceae 又分为Cedecea、Pantoea、Dickeya、Cronobacter和Citrobacter属
+    grep 'Enterobacteriaceae' result/taxonomy_8.txt | cut -f 7|sort|uniq |awk '{print "\""$1"\""}'|tr "\n" ","|sed 's/,$//'
+    # 有Leminorella、Pantoea存在明显负相关，Unassigned显著正相关，即多样性越高，分蘖越多？Cedecea只有0.25负相关
+    # 再筛选肠杆菌ASV层面的118个菌
+    grep 'Enterobacteriaceae' result/taxonomy_8.txt | cut -f 1|sort|uniq|awk '{print "\""$1"\""}'|tr "\n" ","|sed 's/,$//'
+    # 采用相似度筛选，51个97%的ASV，找到14个相关>0.6，包括56 Unassigned/95 Citrobacter /100 Pantoea
+    grep -v 'OTU_18_8' SL/experiment1_otu.txt | awk '$3>97' | cut -f 2 | sort|uniq|awk '{print "\""$1"\""}'|tr "\n" ","|sed 's/,$//'
+
+### 2019/8/8 筛选与分蘖相关高丰度菌88个；2019/8/26 更新为99个
+
+    # fig3.phenotype.LN.sample.Rmd和fig3.phenotype.HN.sample.Rmd，根据OTU与分蘖显著相关，并用FDR校正，找共有的上调和下调
+    # 要先按HN/LN同时筛选丰度，的OTU再统计分析，见### 5. OTU水平，分蘖划分连续型归类再求相关
+    # 筛选显著差异的注释可培养菌
+    awk '$10<0.05' fig/fig3/HNsample/pheno_7_OTU_pearson_tiller_cat_.txt|cut -f 1,3,4,5,8,10 > temp/temp.txt
+    awk '$10<0.05' fig/fig3/LNsample/pheno_5_OTU_pearson_tiller_cat_.txt|cut -f 1,3,4,5,8,10 >> temp/temp.txt
+    cut -f 1 temp/temp.txt|sort|uniq > SL/tiller_sig_OTU.txt
+    # 添加物种注释
+    awk 'BEGIN{OFS=FS="\t"} NR==FNR{a[$1]=$2} NR>FNR{print $0"\t"a[$1]}' result/taxonomy_2.txt SL/tiller_sig_OTU.txt > SL/tiller_sig_OTU.tax
+    awk 'BEGIN{OFS=FS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print a[$1]}' result/taxonomy_8.txt SL/tiller_sig_OTU.txt > SL/tiller_sig_OTU.tax8
+    usearch10 -fastx_getseqs result/otu.fa -labels SL/tiller_sig_OTU.txt -fastaout SL/tiller_sig_OTU.fa
+    # 添加可培养ID
+    blastn -query SL/tiller_sig_OTU.fa -db ~/culture/rice/stock/sequence.fa -out SL/tiller_sig_OTU.blastn -outfmt '6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qcovs' -num_alignments 5 -evalue 1 -num_threads 9 
+    awk '$3>97' SL/tiller_sig_OTU.blastn|cut -f 1-6>SL/tiller_sig_OTU.blastn97
+    # 添加培养菌的注释
+    awk 'BEGIN{OFS=FS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print $0"\t"a[$2]}' ~/culture/rice/stock/rice_stock_190731_full.txt SL/tiller_sig_OTU.blastn97 > SL/tiller_sig_OTU.blastn97anno
+    # 输出新菌ID对应的多行：读入ID，原文件检查是否存在，存在于ID中则输出
+    awk 'BEGIN{OFS=FS="\t"} NR==FNR{a[$1]=$1} NR>FNR{if($1 in a){print $0}}' SL/newCorOTU.id SL/tiller_sig_OTU.blastn97anno > SL/tiller_sig_OTU.blastn97annoNew
+
+
+    # 与原始分菌库比较
+    blastn -query SL/tiller_sig_OTU.fa -db ~/culture/rice/result/culture_select.fa -out SL/tiller_sig_OTU.blastn -outfmt '6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qcovs' -num_alignments 1 -evalue 1 -num_threads 9 
+    awk '$3>97' SL/tiller_sig_OTU.blastn|cut -f 1-6>SL/tiller_sig_OTU.blastn97
+    sed 's/^/OTU_/' ~/culture/rice/result/culture_select.xls > ~/culture/rice/result/culture_select.xlsx
+    awk 'BEGIN{OFS=FS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print $0"\t"a[$2]}' ~/culture/rice/result/culture_select.xlsx SL/tiller_sig_OTU.blastn97 > SL/tiller_sig_OTU.blastn97annobatch1
+    # 输出新菌ID对应的多行：读入ID，原文件检查是否存在，存在于ID中则输出
+    awk 'BEGIN{OFS=FS="\t"} NR==FNR{a[$1]=$1} NR>FNR{if($1 in a){print $0}}' SL/newCorOTU.id SL/tiller_sig_OTU.blastn97annobatch1 > SL/tiller_sig_OTU.blastn97annobatch1New
+
+    # 与第二批菌库比较并追加
+    blastn -query SL/tiller_sig_OTU.fa -db ~/culture/rice/190626/result/culture_select.fa -out SL/tiller_sig_OTU.blastn -outfmt '6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qcovs' -num_alignments 1 -evalue 1 -num_threads 9 
+    awk '$3>97' SL/tiller_sig_OTU.blastn|cut -f 1-6>SL/tiller_sig_OTU.blastn97
+    sed 's/^/COTU_/' ~/culture/rice/190626/result/culture_select.xls > ~/culture/rice/190626/result/culture_select.xlsx
+    awk 'BEGIN{OFS=FS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print $0"\t"a[$2]}' ~/culture/rice/190626/result/culture_select.xlsx SL/tiller_sig_OTU.blastn97 > SL/tiller_sig_OTU.blastn97annobatch2
+    # 输出新菌ID对应的多行：读入ID，原文件检查是否存在，存在于ID中则输出
+    awk 'BEGIN{OFS=FS="\t"} NR==FNR{a[$1]=$1} NR>FNR{if($1 in a){print $0}}' SL/newCorOTU.id SL/tiller_sig_OTU.blastn97annobatch2 > SL/tiller_sig_OTU.blastn97annobatch2New
+
+
+   
+    # 结果差异OTU，D14，D53与相关均一致性比较，先以北京为例用Venny比较并统计于PPT doc/SL-新结果汇总190731.pptx
+    http://210.75.224.110/report/16Sv2/rice_OTU_SL_Bj_wilcox_v1
+    http://210.75.224.110/report/16Sv2/rice_OTU_SL_Hn_wilcox_v1
+
+    ## 分析样本与OTU直接相关性 2019/8/12
+    fig3.phenotype.LN.sample.raw.Rmd，与分蘖分组相关基本一致，只是更多正相关，而人工分组找到肠杆菌科的OTU
+    ## 分析品种与OTU直接相关性
+
+
+### 表型(分蘖)-微生物组-基因组-环境互作，解析率 (interaction/interaction.Rmd) 2019/8/13 余泓
+
+    ## 分析表型与基因型、微生物组的解析模型
+    # 需要1200个样本名，表型，微生物组PC前5，表型PC前5，以及环境因子
+    # 分别制作HN/LN的PCoA表
+
+### 分蘖在LN/HN下显著相关菌可视化 fig3.phenotype.Rmd 2019/8/14
+    # 结果见D:\work\rice\integrate16s\v2OTU\fig\fig3\LNsample\pheatmap_f_LN_HN_cor.pdf和pheatmap_OTU_LN_HN_cor.pdf
+
+### 2019/8/28 network 网络分析 丰度、正负相关菌在网络中的位置和秩数量
 
 
 # 宏基因组数据分析
@@ -1113,8 +1230,6 @@ alpha_boxplot.sh -i `pwd`/result/alpha/index.txt -m '"chao1","richness","shannon
 
 # GWAS
 
-	
-
 ## 基因型准备
 
     # 生成emmax的tped，原始bed文件见 /mnt/zhou/chulab/miniCore/snp1.5x/T2.*
@@ -1135,7 +1250,7 @@ alpha_boxplot.sh -i `pwd`/result/alpha/index.txt -m '"chao1","richness","shannon
 ## 表型数据
 
 	
-	# 以LN为例，基于beta bray_curtis挑选的3个代表样品列表 ~/rice/miniCore/180319/LN/beta_norm/sample_ids.txt
+### 以LN为例，基于beta bray_curtis挑选的3个代表样品列表 ~/rice/miniCore/180319/LN/beta_norm/sample_ids.txt
 	# 参考 ~/rice/miniCore/180319/manual.sh L165继续
 	wd=LN/result
 	mkdir -p ${wd}
@@ -1145,6 +1260,7 @@ alpha_boxplot.sh -i `pwd`/result/alpha/index.txt -m '"chao1","richness","shannon
 	usearch10 -otutab_group ${wd}/otutab_raw.txt -labels ~/rice/miniCore/180319/LN/beta_norm/sample_ids_group.txt -output ${wd}/otutab.txt
 	# 统计，最小2万，最大24万
 	usearch10 -otutab_stats ${wd}/otutab.txt -output ${wd}/otutab.txt.sum
+    cat ${wd}/otutab.txt.sum
 
 	# 采用标准流程生成alpha, beta多样性，按最小样本量抽平
     # 详见 /mnt/bai/yongxin/rice/integrate16s/v2/LN
@@ -1152,6 +1268,25 @@ alpha_boxplot.sh -i `pwd`/result/alpha/index.txt -m '"chao1","richness","shannon
     # 转换和关联详见子目录
 
 
+### 以HN为例，基于beta bray_curtis挑选的3个代表样品列表 ~/rice/miniCore/180319/HN/beta_norm/sample_ids.txt
+	# 参考 ~/rice/miniCore/180319/manual.sh L165继续
+	wd=HN/result
+	mkdir -p ${wd}
+	# 按之前筛选的样品编号提取样品，删除 R4159Ha
+	usearch10 -otutab_sample_subset result/otutab.txt -labels ~/rice/miniCore/180319/HN/beta_norm/sample_ids.txt -output ${wd}/otutab_raw.txt
+	# 按组合并，usearch group直接求合
+    paste ~/rice/miniCore/180319/HN/beta_norm/sample_ids.txt <(cut -c1-5 ~/rice/miniCore/180319/HN/beta_norm/sample_ids.txt) > ~/rice/miniCore/180319/HN/beta_norm/sample_ids_group.txt
+	usearch10 -otutab_group ${wd}/otutab_raw.txt -labels ~/rice/miniCore/180319/HN/beta_norm/sample_ids_group.txt -output ${wd}/otutab.txt
+    wc -l ${wd}/otutab.txt
+	# 统计，最小2万，最大24万
+	usearch10 -otutab_stats ${wd}/otutab.txt -output ${wd}/otutab.txt.sum
+    cat ${wd}/otutab.txt.sum
+
+	# 采用标准流程生成alpha, beta多样性，按最小样本量抽平
+    # 详见 /mnt/bai/yongxin/rice/integrate16s/v2/HN
+    cp LN/ma* HN/
+
+    # 转换和关联详见子目录
 
 
 

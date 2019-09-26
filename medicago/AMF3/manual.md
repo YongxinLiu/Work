@@ -1,63 +1,3 @@
-# 从OTU表开始生成多样性结果
-
-    make init
-	touch otutab_create
-	touch otutab_filter
-    biom convert -i result/otutab.txt -o result/otutab.biom --table-type="OTU table" --to-json
-    # 统计OTU表
-    biom summarize-table -i result/otutab.biom > result/otutab.biom.sum
-    head -n 30 result/otutab.biom.sum
-    # 检查表格
-    cat result/otutab.txt|datamash check
-    # 统计每样总量
-    # cat result/otutab.txt|datamash --header-in --header-out sum 2-203|datamash transpose|sort -k2,2n|less
-	# 根据OTU表统计 cat result/otutab.txt.sum ，修改抽样量19318，只选择两个极小的5千和1.3万
-	make otutab_norm
-	# 设置sintax的cutoff
-    ln -sf `pwd`/../result/otu.fa result/
-	make tax_assign
-	make tax_sum
-	# 生成树时间长，可touch tree_make，再ln旧文件
-	touch tree_make
-    ln -sf `pwd`/../result/otu.tree result/otu.tree
-	# 多样性计算
-	make alpha_calc
-	# Beta多样性计算
-	make beta_calc
-
-    # 添加实验设计继续
-    cut -f 2- ~/rice/miniCore/doc/minicore_list.txt > doc/design.txt
-
-
-
-# 整理emmax使用表型
-    
-    mkdir -p pheno
-    # alpha
-    awk 'NR==FNR{a[$1]=$10} NR>FNR {print $1,$2,a[$2]}' result/alpha/index.txt ../emmax/snp.tfam | sed 's/ $/ NA/' > pheno/alpha_richness.txt
-    # 与玉米不同的是第一列玉米全相同，而水稻为自己的ID，这个来自表型文件
-
-# GWAS关联
-
-    # 必须有输出目录，否则 Segmentation fault (core dumped)
-    mkdir -p emmax_out
-    # i=alpha_richness
-    time emmax -t ../emmax/snp \
-        -p pheno/${i}.txt \
-        -k ../emmax/snp.aBN.kinf \
-        -o emmax_out/${i}
-
-    # 协变量，ERROR: At this point, we do not allow missng covariates
-    mkdir -p emmax_cov
-    i=alpha_richness
-    time emmax -t ../emmax/snp \
-        -p pheno/${i}.txt \
-        -k ../emmax/snp.aBN.kinf \
-        -c ../emmax/snp.cov \
-        -o emmax_cov/${i} 
-
-
-
 
 	# 快速分析 Quick Start(所需文件准备好)
 	find . -name "*" -type f -size 0c | xargs -n 1 rm -f # 清理零字节文件，用于从头重新分析项目清空makefile点位文件
@@ -88,7 +28,7 @@
 	## 0.1 准备流程配置文件
 
 	# 设置工作目录
-	wd=rice/miniCore
+	wd=medicago/AMF3
 	# 创建环境代码见~/github/Work/initial_project.sh
 
 	## 准备实验设计
@@ -98,7 +38,8 @@
 	make init
 
 	# 保存模板中basic页中3. 测序文库列表library为doc/library.txt
-	sed -i 's/\t/\tL171121_/' doc/library.txt # time check SeqLibraryList.xlsx
+	#sed -i 's/\t/\tL171121_/' doc/library.txt # time check SeqLibraryList.xlsx
+    cp ../AMF2/doc/library.txt doc/
 	# 按library中第二列index准备测序文库，如果压缩要添加.gz，并用gunzip解压
 	awk 'BEGIN{OFS=FS="\t"}{system("ln -s /mnt/bai/yongxin/seq/amplicon/"$2"_1.fq.gz seq/"$1"_1.fq.gz");}' <(tail -n+2 doc/library.txt )
 	awk 'BEGIN{OFS=FS="\t"}{system("ln -s /mnt/bai/yongxin/seq/amplicon/"$2"_2.fq.gz seq/"$1"_2.fq.gz");}' <(tail -n+2 doc/library.txt )
@@ -108,9 +49,11 @@
 	gunzip -f seq/*.gz
 
 	# 标准多文库实验设计拆分，保存模板中design页为doc/design_raw.txt
+
+    dos2unix doc/*.txt
 	split_design.pl -i doc/design_raw.txt
 	# 从其它处复制实验设计
-	cp ~/ath/jt.HuangAC/batch3/doc/L*.txt doc/
+	# cp ~/ath/jt.HuangAC/batch3/doc/L*.txt doc/
 	# 删除多余空格，windows换行符等(苹果用户勿用)
 	sed -i 's/ //g;s/\r//' doc/*.txt 
 	head -n3 doc/L1.txt
@@ -119,6 +62,7 @@
 	# 检查是否相等
 	wc -l doc/design.txt
 	cut -f 1 doc/design.txt|sort|uniq|wc -l
+	cut -f 1 doc/design.txt|sort|uniq -d
 
 
 ## 1.2. 按实验设计拆分文库为样品
@@ -166,7 +110,7 @@
 ## 1.6. 序列去冗余
 
 	# Remove redundancy, get unique reads
-	# 输入为temp/filtered.fa，输出为temp/uniques.fa
+	# 输入为temp/filtered.fa，输出为temp/uniques.fa，根据上一步结果选择整数，此处为97
 	make fa_unqiue
 
 
@@ -258,33 +202,39 @@
 ## 2.1. Alpha多样性指数箱线图
 	
 	# Alpha index in boxplot
-	make alpha_boxplot
+    rm -rf alpha_boxplot
+    make alpha_boxplot
 
 ## 2.2. Alpha丰富度稀释曲线
 	
 	# Alpha rarefracation curve
+    rm -rf alpha_rare
 	make alpha_rare
 
 ## 2.3. 主坐标轴分析距离矩阵
 	
 	# PCoA of distance matrix
+    rm -rf beta_pcoa
 	make beta_pcoa
 
 ## 2.4. 限制性主坐标轴分析
 
 	# Constrained PCoA / CCA of bray distance matrix
 	# OTU表基于bray距离和CCA，至少3个组 
+    rm -rf beta_cpcoa
 	make beta_cpcoa
 
 ## 2.5. 样品和组各级分类学堆叠柱状图
 
 	# Stackplot showing taxonomy in each level
+    rm -rf tax_stackplot
 	make tax_stackplot
 
 ## 2.6. 组间差异比较 
 	
 	# Group compareing by edgeR, wilcox or ttest
 	# 可选负二项分布GLM、Wilcoxon秩和检验或T检验
+    rm -rf DA_compare
 	make DA_compare
 	make DA_compare_tax
 	make plot_volcano
@@ -294,6 +244,10 @@
 ## 2.7 绘制维恩图和生成报告
 	make plot_venn # 绘制OTU差异共有/特有维恩图
 	make rmd # 生成网页报告，必须依赖的只有alpha, beta, taxonomy
+
+
+
+
 
 # 3. 高级分析
 
@@ -326,6 +280,81 @@
 	awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print $0,a[$1]}' result/39culture/otu.txt data/cor/LN/otu_mean_pheno_cor.r.txt.tax | less -S > data/cor/LN/otu_mean_pheno_cor.r.txt.tax
 
 
+
+# 5. 发表图版
+
+    cd ~/medicago/AMF3
+    mkdir -p fig && cd fig
+    mkdir -p fig1 fig2 fig3 fig4 data script && cd ..
+    # 数据筛选 script/DataFilter.Rmd ## 筛选发表使用样本，otu表，alpha，beta, taxonomy
+    # OTU和物种注释不变
+    cp result/otu.fa fig/data/
+    cp result/taxonomy_* fig/data/
+
+## 1. 样本描述description fig/fig1/fig.Rmd
+
+    cp ~/medicago/AMF2/fig/fig1/fig1.Rmd fig/fig1/
+
+## 2. 差异比较compare fig2.Rmd
+
+    cp /mnt/bai/yongxin/medicago/AMF2/fig/fig2/fig2.Rmd fig/fig2/
+    ### 差异比较曼哈顿图(2/3批混合筛选点后6个基因型4组wilcox比较) http://210.75.224.110/report/16Sv2/med_AMF3_b23r6_v1
+    cp med_AMF3_b23r6_v1/result/compare/*_all.txt fig/data/
+
+### 绘制单菌的丰度图 Pseudomonadaceae 和 Bacillus
+    # 前10个菌有5个重点关注， Bacillus 2,5; Pseudomonas 3
+    # 绘制OTU2,5 Bacillus
+    alpha_boxplot.sh -i fig/data/otutab.txt -d fig/data/design.txt -A genocomp -B '"A17R","AnfpR","dmi3R","R108R","lyk9R","lyr4R","A17Rs","AnfpRs","dmi3Rs","R108Rs","lyk9Rs","lyr4Rs","soilS"' -m '"OTU_2"' -t TRUE -o fig/fig2/boxplot_ -n TRUE -U 100
+    # 绘制Bacillus属
+    alpha_boxplot.sh -i fig/data/sum_g.txt -d fig/data/design.txt -A genocomp -B '"A17R","AnfpR","dmi3R","R108R","lyk9R","lyr4R","A17Rs","AnfpRs","dmi3Rs","R108Rs","lyk9Rs","lyr4Rs","soilS"' -m '"Bacillus"' -t TRUE -o fig/fig2/boxplot_ -n TRUE -U 100
+
+## 3. 分菌
+
+### 3.1 自然样品与分菌结果比较
+
+    # 与项目中A17/R180野生型根样本与总体菌库比较
+    # 修改makefile中3.9部分，参考~/medicago/culture_start/makefile
+    # 注意与doc/design.txt中列和组对应，注意与分菌中文件名和品种名对应
+    conda deactivate
+    rm culture
+    make culture
+    rm culture_graphlan
+    make culture_graphlan
+    # A17 0.001只有58个ASV太少，改为0.0005有88个
+
+
+    # 3.9 culture和culture_graphlan，只需修改A17r或R108r，基于实验中大量样本的graphlan
+    # 2019/3/25 与使用culture_start自然样品 ~/medicago/culture_start # culture_graphlan
+    # 2019/4/9 更新 pipeline.md 中分菌部分详细注释和代码优化
+    # 统计分菌代码见文末“## Sanger测序验证菌”段落，sanger测序绘制代码参考~/culture/rice/makefile.man "# 总结：1098个单菌" 段落
+    cd ~/medicago/AMF3/fig/fig3
+    cp ~/culture/rice/verify/graphlan_culture.R ./
+    cp ~/medicago/AMF3/wet/stock_sanger/taxonomy_9.txt ./
+ 
+    Rscript graphlan_culture.R # 生成1树, 2科注释，和来原环
+    cat /mnt/bai/yongxin/culture/rice/graphlan/global.cfg 2_annotation_family.txt /mnt/bai/yongxin/culture/rice/graphlan/ring1.cfg 3_annotation_match.txt > 5_annotation.txt
+    graphlan_annotate.py --annot 5_annotation.txt 1_tree_plain.txt graphlan.xml
+    graphlan.py graphlan.xml culture_graphlan.pdf --size 5
+    # 提取相应序列
+    tail -n+2 taxonomy_9.txt|wc -l # 325 seqs
+    cut -f 1 taxonomy_9.txt|tail -n+2 > seq325.id
+    usearch10 -fastx_getseqs ~/medicago/AMF3/wet/stock_sanger/16s_full_length_list1.fa -labels seq325.id -fastaout seq325.fa
+
+    # 2019/7/2 与最新10个菌库比较
+    cwd=culture10
+    mkdir -p ${cwd}
+    blastn -query ~/medicago/AMF3/result/otu.fa -db ~/culture/medicago/190626/result/culture_select.fa -out ${cwd}/otu_culture.blastn -outfmt '6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qcovs' -num_alignments 10 -evalue 1 -num_threads 9 # 输出13列为coverage
+    awk '$3*$13>=9700' ${cwd}/otu_culture.blastn |cut -f 1 > ${cwd}/otu_cultured.txt # 197 OTU cultured, 197/535=36.8%
+    # 我们关注的菌OTU_2 k__Bacteria;p__Firmicutes;c__Bacilli;o__Bacillales;f__Bacillaceae_1;g__Bacillus，在新库中${cwd}/otu_culture.blastn 对应 COTU_61
+    # L8-10为新库，精选信息可查culture_select.xls中编号61，L8,L10中为最优解；更多孔详见 culture_bacteria.xls
+    # 添加孔的信息
+    awk 'BEGIN{OFS=FS="\t"} NR==FNR {a[$1]=$8"\t"$9"\t"$10} NR>FNR {print $0,a[$1]}' doc/design.txt result/culture_bacteria.xls > result/culture_bacteria_anno.xls
+
+    # awk 'BEGIN{OFS=FS="\t"} NR==FNR {a[$1]="culture"} NR>FNR {print $0,a[$1]}' temp/otu_cultured.txt ${nature}/otu_table.txt.mean |grep 'culture'|awk '{a=a+$2} END {print a}' # 可培养的丰度 0.847 
+
+
+
+
 # 附录
 	## 准备原始数据
 
@@ -354,4 +383,10 @@
 	
 	# 按library.txt拆分lane为library
 	# make lane_split
+
+
+# 常见问题
+
+## alpha_rare 出错，第一行不完整列，可删除
+	sed -i '/-/d' result/alpha/rare.txt
 

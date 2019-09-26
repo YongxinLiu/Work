@@ -50,7 +50,7 @@
 
 	# 创建环境代码见~/github/Work/initial_project.sh
 	# 设置工作目录
-	wd=culture/medicago/190626
+	wd=culture/maize/190810
 	## 准备实验设计
 	cd ~/$wd
 	# Initialize the working directory
