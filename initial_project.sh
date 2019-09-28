@@ -79,9 +79,10 @@
 
 ## 设置工作目录
     # 2019/7/12 culture/rice/stock 水稻分菌测序
+    # 2019/9/28 other/baiyang/190626AgrobacteriumMatchStock 鉴定农杆菌是否存在于菌库中
 
 ## 项目建立代码
-    wd=culture/rice/stock
+    wd=other/baiyang/190626AgrobacteriumMatchStock
     # 创建github目录，用于备份流程、文档
     cd ~
     mkdir -p ~/github/Work/$wd
@@ -91,6 +92,8 @@
     mkdir -p ~/$wd
     ln -s `pwd`/manual.md ~/$wd/manual.sh
     cd ~/$wd
+
+
 
 
 # 备份代码
