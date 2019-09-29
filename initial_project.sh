@@ -1,6 +1,5 @@
 # 16S/ITS v2 version project initial
 
-
 ## 设置工作目录
     # 2018/7/18 rice/integrate16s 重新分析miniCore类群和SL分蘖等9套水稻数据
     # 2018/7/24 rice/nrt1.1a 氮吸收利用基因nrt1.1a与菌群
@@ -74,8 +73,7 @@
     ln -s `pwd`/manual.md ~/$wd/manual.sh
     cd ~/$wd
 
-
-# 菌库序列和物种注释整理
+# 其它项目：菌库序列和物种注释整理
 
 ## 设置工作目录
     # 2019/7/12 culture/rice/stock 水稻分菌测序
@@ -92,6 +90,13 @@
     mkdir -p ~/$wd
     ln -s `pwd`/manual.md ~/$wd/manual.sh
     cd ~/$wd
+
+
+
+# 备份项目实验设计
+    
+    cd ~/github/Work
+
 
 
 

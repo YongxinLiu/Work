@@ -23,6 +23,17 @@
     cat index.txt
     # 保存至库文件和登记 SeqLibraryList.xlsx
     
+    # md5校验，15G的文件要1分半
+    cd 2.cleandata/
+    ll | grep -P '[^\.]/'| cut -f 11 -d ' ' > dir.list
+    cat dir.list
+    for i in `cat dir.list`; do
+        cd $i
+        time md5sum -c MD5*.txt
+        cd ..
+    done
+    cd ..
+
     # 批量整理和改名
     find 2.cleandata/ .gz|grep '_1.clean.fq.gz'|sort|sed s/1.clean.fq.gz// # 填入第一列，制作成表格rename.txt
     awk 'BEGIN{OFS=FS="\t"}{system("ln "$1"1.clean.fq.gz "$2"_1.fq.gz")}' rename.txt
@@ -59,13 +70,24 @@
     linuxnd login -u X101SC19070595-Z01-F004 -p 3gy397n0
     linuxnd cp -d oss://gxxkeyan@126.com/H101SC19070595/KY_kehu_JK/X101SC19070595-Z01/X101SC19070595-Z01-F004/2.cleandata/ ~/seq/L${id}/ # 查看指定路径下的2.cleandata
 
-
 ## 190904 王超玉米时间序列5个库
     id=190904
     mkdir ~/seq/L${id}/
     cd ~/seq/L${id}/
     linuxnd login -u X101SC19070595-Z01-F003 -p hn5hypc7
     linuxnd cp -d oss://gxxkeyan@126.com/H101SC19070595/KY_kehu_JK/X101SC19070595-Z01/X101SC19070595-Z01-F003/2.cleandata/ ~/seq/L${id}/ # 查看指定路径下的2.cleandata
+    # 实验设计
+    cp /mnt/zhou/zhiwen/mazie_16s_yajun/doc/library.txt ./
+
+## 190724
+    cd ~/seq/L190724/
+    mv 2.cleandata/DYM1902_FKDL190748303-1a/* ./
+    md5sum -c MD5_DYM1902_FKDL190748303-1a.txt
+    rename 's/DYM1902_FKDL190748303-1a/L190724/;s/.clean//' *.gz
+    fastqc -t 9 *.gz
+    ln *.gz ~/seq/amplicon/
+
+
 
 ## 160914 16S+ITS
     cd ~/seq/160914xx.rice.TF.16S.ITS/clean_data
@@ -235,14 +257,6 @@
     rename 's/^/L171013_/' *gz
     ln *.gz ~/seq/novagene/
     ls *.gz|sed 's/_[12].fq.gz//'|uniq
-
-## 190724
-    cd ~/seq/L190724/
-    mv 2.cleandata/DYM1902_FKDL190748303-1a/* ./
-    md5sum -c MD5_DYM1902_FKDL190748303-1a.txt
-    rename 's/DYM1902_FKDL190748303-1a/L190724/;s/.clean//' *.gz
-    fastqc -t 9 *.gz
-    ln *.gz ~/seq/amplicon/
 
 
 
