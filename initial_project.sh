@@ -97,7 +97,10 @@
     
     cd ~/github/Work
     # 项目列表 project_list.txt
-
+    for wd in `cat project_list.txt | cut -f 2 `; do
+    #wd=medicago/AMF3
+    cp -r ~/$wd/doc/ ~/github/Work/$wd/doc/
+    done
 
 
 
