@@ -1,0 +1,4 @@
+ACT2KOr1	热图和CPCoA离群，但与ACT2CR组拼接
+ACT2CRr4	热图和CPCoA离群
+ThadKOr16	CPCoA离群，与Col最近
+ThahKOr14	热图和CPCoA离群，与Col最近

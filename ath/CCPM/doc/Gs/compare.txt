@@ -1,0 +1,4 @@
+Cyp79B2B3	WT
+Cyp81F2	WT
+Cyp82c2	WT
+Myb	WT

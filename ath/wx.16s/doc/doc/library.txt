@@ -1,0 +1,2 @@
+LibraryID	RC_Index	Samples
+L1	TGAGTG	CACTCA

@@ -1,0 +1,5 @@
+ID	Description	ChineseDescription
+A50	japonica	粳稻，氮低效品种，品质好
+IR24	indica	籼稻，氮高效品种，品质差
+Cp	Changping	北京市昌平区平西府农场
+Sz	Shangzhuang	北京市海淀区上庄农场

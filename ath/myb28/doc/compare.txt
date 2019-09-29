@@ -1,0 +1,2 @@
+MybTot1	ColTot1
+MybPhyl2	ColPhyl2

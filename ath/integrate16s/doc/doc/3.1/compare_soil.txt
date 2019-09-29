@@ -1,0 +1,7 @@
+b3ACT2CR	b3Col
+b3ACT2KO	b3Col
+b3ThadKO	b3Col
+b3ThahKO	b3Col
+b3ThasKO1	b3Col
+b3ThasKO2	b3Col
+b3Col	b3BS

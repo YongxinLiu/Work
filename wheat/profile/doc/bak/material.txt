@@ -1,0 +1,21 @@
+Material	Description	Chinese
+XY54	XiaoYan54	小偃54
+J411		
+BS	Bulk Soil	非种植土
+取样时间		
+2		
+3		
+4		
+5		
+6		
+7		
+8		
+9		
+10		
+11		
+取样深度		
+1		
+2		
+3		
+4		
+5		

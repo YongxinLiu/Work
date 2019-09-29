@@ -1,0 +1,6 @@
+soilD42L1	soilD7L1
+soilD197L1	soilD7L1
+soilD197L1	soilD42L1
+soilD197L3	soilD197L1
+soilD197L5	soilD197L1
+soilD197L5	soilD197L3

@@ -1,0 +1,2 @@
+LibraryID	Names	index	IndexRC	Index	Samples
+L1	L171122_TCGGCA	Index48	TGCCGA	TCGGCA	6/23

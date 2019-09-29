@@ -1,0 +1,204 @@
+EFD	ACIMPT	TAXON	ACP	ACNO	PLANTID	COUNTRY	RECEIVED	Latitude	Longitude	Regions	New_Structure	Subspecies
+F4059		Oryzasativa	PI	430936	Red	Pakistan	28853	24.5428	67.4556	Subcontinent	Admix(AUS-ARO-IND)	Admix
+F4052		Oryzasativa	PI	400780	MangaKely694	Madagascar	27548	-20.4679	47.0362	Africa	Admix(AUS-IND)	Admix
+P4131		Oryzasativa	PI	430979	ShimlaEarly	Iraq	28853	33.7925	44.7457	Mideast	Admix(AUS-IND)	Admix
+T4176	LANDRACE	Oryzasativa	PI	412811	JP5	Pakistan	27941	35	72.5	Subcontinent	Admix(AUS-IND)	Admix
+R4160		Oryzasativa	PI	430909	Santhi990	Pakistan	28853	31.4521	70.8325	Subcontinent	Admix(AUS-IND-WD)	Admix
+G4067	LANDRACE	Oryzasativa	PI	549224	Jumlidhan	Nepal	31029	29.26	82.23	Subcontinent	Admix(TEJ-ARO-TRJ)	Admix
+H4073		Oryzasativa	PI	596818	BHIMDHAN	Nepal	33805	28.8539	85.949	Subcontinent	Admix(TEJ-ARO-TRJ)	Admix
+A4004		Oryzasativa	CIor	9049	RD218	DominicanRepublic	19793	19.521	-69.0327	CentralAmerica	Admix(TEJ-TRJ)	Admix
+B4016		Oryzasativa	PI	223612	Sel.No.388	Uruguay	20128	-32.0185	-56.8218	SouthAmerica	Admix(TEJ-TRJ)	Admix
+C4028		Oryzasativa	PI	346827	H57-3-1	Argentina	25547	-34.9189	-57.3734	SouthAmerica	Admix(TEJ-TRJ)	Admix
+J4081	LANDRACE	Oryzasativa	PI	154435	Ragasu	Taiwan	16932	23.8534	122.08	China	Admix(TEJ-TRJ)	Admix
+J4082	LANDRACE	Oryzasativa	PI	154481	Tobura	Taiwan	16932	24.8287	119.557	China	Admix(TEJ-TRJ)	Admix
+J4084	LANDRACE	Oryzasativa	PI	157385	YongChalByo	Korea_South	17216	37.0656	125.924	NorthPacific	Admix(TEJ-TRJ)	Admix
+K4100		Oryzasativa	PI	268003	VaryTarvaOsla	Portugal	22166	39.1689	-8.83651	WesternEurope	Admix(TEJ-TRJ)	Admix
+P4133		Oryzasativa	PI	431128	A152	Bangladesh	28853	25.3921	89.1088	Subcontinent	Admix(TEJ-TRJ)	Admix
+S4163		Oryzasativa	PI	434614	Jyanak	Bhutan	29037	26.5043	90.5562	Subcontinent	Admix(TEJ-TRJ-ARO)	Admix
+P4137		Oryzasativa	PI	584555	DARMALI	Nepal	33424	27.633	85.067	Subcontinent	Admix(TEJ-TRJ-AUS-ARO)	Admix
+F4051		Oryzasativa	PI	400672	WW8/2290	Netherlands	27548	50.4454	6.85508	WesternEurope	Admix(TRJ-ARO-IND)	Admix
+K4095		Oryzasativa	PI	215970	TAINO38	Taiwan	19842	24.2372	120.577	China	Admix(TRJ-AUS-IND-TEJ)	Admix
+C4023	LANDRACE	Oryzasativa	PI	277414	RedKhoshaCerma	Afghanistan	22605	35.0435	64.0182	Subcontinent	ARO	ARO
+H4072		Oryzasativa	PI	584625	AkTokhum	Azerbaijan	33757	38.002	45.4436	Balkans	ARO	ARO
+K4099	LANDRACE	Oryzasativa	PI	256340	2	Afghanistan	21640	34.5	62	Subcontinent	ARO	ARO
+N4125		Oryzasativa	PI	406073	79	Guyana	27711	4.89124	-59.0637	SouthAmerica	ARO	ARO
+P4136		Oryzasativa	PI	439669	GasymHany	Azerbaijan	29252	41.9741	46.7447	Balkans	ARO	ARO
+X4207		Oryzasativa	PI	431310	Pakkali	Philippines	28853	16.8243	120.909	SouthPacific	ARO	ARO
+C4024	LANDRACE	Oryzasativa	PI	277415	SafutKhosha	Afghanistan	22605	32.8781	64.6634	Subcontinent	AUS	AUS
+C4029	LANDRACE	Oryzasativa	PI	353723	IARI6626	India	25692	24.9415	93.2684	Subcontinent	AUS	AUS
+D4036	LANDRACE	Oryzasativa	PI	385826	NC1/536	Pakistan	27080	30.6447	74.6999	Subcontinent	AUS	AUS
+D4039		Oryzasativa	PI	388436	DobleCarolina	Uruguay	27093	-32.211	-56.0197	SouthAmerica	AUS	AUS
+E4046		Oryzasativa	PI	392694	PATNAI6	Myanmar	27428	16.8504	97.1346	SoutheastAsia	AUS	AUS
+G4068	LANDRACE	Oryzasativa	PI	549253	N-2703	Nepal	31029	27.445	82.9558	Subcontinent	AUS	AUS
+G4069		Oryzasativa	PI	584564	TCHAMPA	Iran	33424	31.2367	51.0068	Mideast	AUS	AUS
+G4070		Oryzasativa	PI	584566	PHUDUGEY	Bhutan	33424	27.3	90.617	Subcontinent	AUS	AUS
+K4097		Oryzasativa	PI	240638	Dular	India	20981	21.5446	84.4994	Subcontinent	AUS	AUS
+L4106	LANDRACE	Oryzasativa	PI	353722	IARI6621	India	25692	25.9432	92.2	Subcontinent	AUS	AUS
+L4109	LANDRACE	Oryzasativa	PI	373403	ARC6578	India	26385	25.75	93.25	Subcontinent	AUS	AUS
+M4111		Oryzasativa	PI	389863	99216	India	27273	21.1805	78.3261	Subcontinent	AUS	AUS
+M4116		Oryzasativa	PI	392637	SORNAVARI	Mali	27428	12.8481	-7.95841	Africa	AUS	AUS
+N4122		Oryzasativa	PI	402689	Tauli	Nepal	27610	27.095	85.1042	Subcontinent	AUS	AUS
+N4124		Oryzasativa	PI	402983	Dara	Indonesia	27610	-7.04691	108.765	SouthPacific	AUS	AUS
+N4128		Oryzasativa	PI	430339	Saraya	Fiji	28824	-19.496	178.326	SouthPacific	AUS	AUS
+P4132		Oryzasativa	PI	431092	Montakcl	Egypt	28853	27.736	29.0454	Mideast	AUS	AUS
+P4134		Oryzasativa	PI	431172	LAPLATAGENAF.A.	Argentina	28853	-34.4964	-58.2098	SouthAmerica	AUS	AUS
+Q4150		Oryzasativa	PI	352687	C.B.II	Japan	25778	35.6002	138.827	NorthPacific	AUS	AUS
+R4151		Oryzasativa	PI	373340	Gallawa	SriLanka	26385	6.24301	81.427	Subcontinent	AUS	AUS
+R4152		Oryzasativa	PI	373341	Ittikulama	SriLanka	26385	5.79231	81.2498	Subcontinent	AUS	AUS
+R4153	LANDRACE	Oryzasativa	PI	373347	Karayal	SriLanka	26385	6.10952	81.3417	Subcontinent	AUS	AUS
+R4155		Oryzasativa	PI	392768	NangBangBentre	Vietnam	27428	16.8012	105.296	SoutheastAsia	AUS	AUS
+R4156		Oryzasativa	PI	393112	DNJ179	Bangladesh	27428	24.7346	88.7922	Subcontinent	AUS	AUS
+R4157		Oryzasativa	PI	403082	DJ24	Bangladesh	27610	22.3788	91.6177	Subcontinent	AUS	AUS
+R4158		Oryzasativa	PI	403114	DJ102	Bangladesh	27610	24.924	89.5763	Subcontinent	AUS	AUS
+R4159		Oryzasativa	PI	403214	DNJ121	Bangladesh	27610	23.493	90.849	Subcontinent	AUS	AUS
+S4161		Oryzasativa	PI	431204	UZROS7-13	Uzbekistan	28853	41.7316	70.2067	Balkans	AUS	AUS
+S4162		Oryzasativa	PI	433799	SL22-620	SierraLeone	29007	9.09027	-11.8061	Africa	AUS	AUS
+S4166	LANDRACE	Oryzasativa	PI	127076	SpinMere	Afghanistan	13912	31.617	65.717	Subcontinent	AUS	AUS
+T4171	LANDRACE	Oryzasativa	PI	385697	P35	India	27080	32.0393	73.8355	Subcontinent	AUS	AUS
+T4172		Oryzasativa	PI	392630	CAROLINO164	Chad	27428	16.0526	21.0676	Africa	AUS	AUS
+T4173		Oryzasativa	PI	392677	ASWINA330	Bangladesh	27428	23.4118	88.3161	Subcontinent	AUS	AUS
+T4174		Oryzasativa	PI	403469	HKG98	Mali	27610	17.1716	-2.37513	Africa	AUS	AUS
+T4175	LANDRACE	Oryzasativa	PI	412790	DaudzaiFieldMix	Pakistan	27941	34.017	71.55	Subcontinent	AUS	AUS
+T4178		Oryzasativa	PI	584620	HiMuke	Kazakhstan	33757	46.2713	69.2312	Balkans	AUS	AUS
+X4206		Oryzasativa	PI	418207	PaBoup	SierraLeone	28321	8.53267	-11.2119	Africa	AUS	AUS
+X4208		Oryzasativa	PI	439024	THAVALU	SriLanka	29221	6.9975	81.1485	Subcontinent	AUS	AUS
+A4002		Oryzasativa	CIor	7155	MayangKhang	Indonesia	10563	-5.12713	108.295	SouthPacific	IND	IND
+A4010	LANDRACE	Oryzasativa	PI	160700	AoChiu2Hao	China	17496	28.8086	105.512	China	IND	IND
+B4014		Oryzasativa	PI	202864	BERLIN	CostaRica	19238	10	-84.5	CentralAmerica	IND	IND
+B4018		Oryzasativa	PI	263813	81B/25	Suriname	21982	4.23817	-54.7294	SouthAmerica	IND	IND
+B4019		Oryzasativa	PI	264242	ChinChin	Panama	21993	20.8999	-79.9175	CentralAmerica	IND	IND
+D4034		Oryzasativa	PI	373795	WarrangalCulture1252	India	26385	19.2231	78.1418	Subcontinent	IND	IND
+D4037	LANDRACE	Oryzasativa	PI	388304	WonSonZoNo.11	Korea	27093	37.1662	126.366	NorthPacific	IND	IND
+D4040		Oryzasativa	PI	389037	AiChuehTaPaiKu	Taiwan	27273	22.0908	121.428	China	IND	IND
+E4041		Oryzasativa	PI	389234	Thang10	Vietnam	27273	16.8168	105.544	SoutheastAsia	IND	IND
+E4043		Oryzasativa	PI	391218	TJ	Guyana	27353	3.80502	-57.1456	SouthAmerica	IND	IND
+E4044		Oryzasativa	PI	391264	PD46	SriLanka	27353	7.02404	81.393	Subcontinent	IND	IND
+E4045		Oryzasativa	PI	391691	Acheh	Malaysia	27360	1.97136	110.966	SouthPacific	IND	IND
+E4047		Oryzasativa	PI	392813	K8C-263-3	Suriname	27428	2.75086	-56.5343	SouthAmerica	IND	IND
+E4048		Oryzasativa	PI	393180	Djimoron	Guinea	27428	9.40946	-10.4584	Africa	IND	IND
+E4049		Oryzasativa	PI	393292	Anandi	India	27428	20.9237	77.7569	Subcontinent	IND	IND
+E4050		Oryzasativa	PI	400398	Chun118-33	China	27548	35.5537	103.395	China	IND	IND
+F4054		Oryzasativa	PI	403289	NamDawkMai	Thailand	27610	15.1354	100.393	SoutheastAsia	IND	IND
+F4055		Oryzasativa	PI	403422	GUYANE1	Chad	27610	13.5779	18.2232	Africa	IND	IND
+F4056		Oryzasativa	PI	408406	MAHSURI	Malaysia	27454	2.89662	102.324	SouthPacific	IND	IND
+F4057		Oryzasativa	PI	420960	INIAP7	Ecuador	28473	0.330314	-81.3986	SouthAmerica	IND	IND
+F4060		Oryzasativa	PI	431210	DichroaAlefUslkij	Kazakhstan	28853	48.3979	67.0198	Balkans	IND	IND
+G4061		Oryzasativa	PI	431499	BKN6987-68-14	Thailand	28887	13.9579	99.6854	SoutheastAsia	IND	IND
+G4062		Oryzasativa	PI	432578	IR4482-5-3-9-5	Philippines	28915	16.0132	122.161	SouthPacific	IND	IND
+G4065		Oryzasativa	PI	464597	IR9660-48-1-1-2	Philippines	29891	15.6611	120.451	SouthPacific	IND	IND
+G4066	LANDRACE	Oryzasativa	PI	493131	Bakiella1	SriLanka	31017	7.717	81.7	Subcontinent	IND	IND
+H4074		Oryzasativa	PI	596941	RP2151-173-1-8	India	34204	29.0509	77.2151	Subcontinent	IND	IND
+H4076		Oryzasativa	PI	602654	ECIA76-S89-1	Cuba	35199	23.322	-83.6698	CentralAmerica	IND	IND
+H4079		Oryzasativa	PI	67153	Toga	India	9618	31.3013	75.1656	Subcontinent	IND	IND
+H4080		Oryzasativa	CIor	7404	KinShanZim	China	10380	23.5282	114.028	China	IND	IND
+J4087		Oryzasativa	CIor	12492	KaoChioLinChou	Taiwan	22798	22.5065	121.949	China	IND	IND
+J4088	LANDRACE	Oryzasativa	PI	160530	PanJu	China	17496	29.8509	107.389	China	IND	IND
+K4093	LANDRACE	Oryzasativa	PI	208452	Juppa	Nepal	19491	28.7445	81.7418	Subcontinent	IND	IND
+K4096		Oryzasativa	PI	226313	2017/9/4	Mexico	20250	17.7656	-97.4986	NorthAmerica	IND	IND
+L4105		Oryzasativa	PI	321183	IR238	Philippines	24665	15.4201	120.845	SouthPacific	IND	IND
+L4110		Oryzasativa	PI	389069	HsinHsingPaiKu	Taiwan	27273	23.3621	119.983	China	IND	IND
+M4112		Oryzasativa	PI	389923	ShuiYaJien	HongKong	27273	24.2979	113.759	China	IND	IND
+M4113		Oryzasativa	PI	389933	TranoeupBeykher	Cambodia	27273	12.2551	104.507	SoutheastAsia	IND	IND
+M4114		Oryzasativa	PI	391214	10340	Italy	27353	41.7092	12.3055	WesternEurope	IND	IND
+M4115		Oryzasativa	PI	392605	AKP4	India	27428	20.694	83.3553	Subcontinent	IND	IND
+M4117		Oryzasativa	PI	393070	TD70	Thailand	27428	15.7332	100.488	SoutheastAsia	IND	IND
+M4118		Oryzasativa	PI	399748	IR2061-214-2-3	Philippines	27521	14.6431	120.458	SouthPacific	IND	IND
+M4119		Oryzasativa	PI	400607	TAINUNG45	Taiwan	27548	25.7093	121.297	China	IND	IND
+M4120		Oryzasativa	PI	400771	Manga629	Madagascar	27548	-19.5994	46.9647	Africa	IND	IND
+N4121		Oryzasativa	PI	402673	SapundaliLocal	India	27610	19.4558	76.7588	Subcontinent	IND	IND
+N4126		Oryzasativa	PI	417820	B805D-MR-16-8-3	Indonesia	28283	-6.29513	106.042	SouthPacific	IND	IND
+N4127		Oryzasativa	PI	430254	TONOBREA439	DominicanRepublic	28809	17.7339	-69.7105	CentralAmerica	IND	IND
+N4130		Oryzasativa	PI	430740	CO13	India	28853	19.39	83.4699	Subcontinent	IND	IND
+P4135		Oryzasativa	PI	431201	UZROS59	Uzbekistan	28853	40.2637	70.689	Balkans	IND	IND
+P4140		Oryzasativa	PI	596902	CNTLR80076-44-1-1-1	Thailand	34204	13.2888	101.079	SoutheastAsia	IND	IND
+Q4141		Oryzasativa	PI	596990	IR58614-B-B-8-2	Philippines	34204	17.284	121.447	SouthPacific	IND	IND
+Q4142		Oryzasativa	PI	608431	CM1_HAIPONG	Vietnam	35683	20.6384	106.046	SoutheastAsia	IND	IND
+Q4143		Oryzasativa	PI	614989	KECHENGNUONO.4	China	35313	38.7705	119.224	China	IND	IND
+Q4144		Oryzasativa	PI	615022	4484	China	35313	38.4703	115.311	China	IND	IND
+Q4145		Oryzasativa	PI	615033	4595	China	35313	39.208	114.85	China	IND	IND
+Q4146		Oryzasativa	PI	615192	YOU-IB	China	35313	39.3757	115.99	China	IND	IND
+R4154		Oryzasativa	PI	389960	SravPrapay	Cambodia	27273	15.8754	104.35	SoutheastAsia	IND	IND
+S4165	LANDRACE	Oryzasativa	PI	549215	Dhan	Nepal	31029	28.05	81.617	Subcontinent	IND	IND
+S4168		Oryzasativa	PI	373335	AMANE	SriLanka	26385	7.09891	79.3386	Subcontinent	IND	IND
+W4194		Oryzasativa	PI	214077	Sereno	Jamaica	19766	17.0456	-76.9894	CentralAmerica	IND	IND
+W4195		Oryzasativa	PI	281914	A36-3	Myanmar	22840	18.2742	96.2619	SoutheastAsia	IND	IND
+W4196		Oryzasativa	PI	285074	NahngSawn	Thailand	22979	11.988	101.372	SoutheastAsia	IND	IND
+W4197	LANDRACE	Oryzasativa	PI	373536	ARC10633	India	26385	26.7915	92.2167	Subcontinent	IND	IND
+W4200		Oryzasativa	PI	388917	FUJISAKA5	Japan	27273	41.8413	141.9	NorthPacific	IND	IND
+X4201		Oryzasativa	PI	389150	SOCNAU	Vietnam	27273	20.7238	106.14	SoutheastAsia	IND	IND
+X4202		Oryzasativa	PI	389267	HeoTrang	Vietnam	27273	15.3118	106.68	SoutheastAsia	IND	IND
+X4203		Oryzasativa	PI	389360	WONGCHIM	HongKong	27273	24.1056	115.42	China	IND	IND
+X4204		Oryzasativa	PI	391280	Bogarigbeli	BurkinaFaso	27353	13.5886	-1.13074	Africa	IND	IND
+X4205		Oryzasativa	PI	391904	Magoti	Burundi	27360	-3.5	30	Africa	IND	IND
+X4210		Oryzasativa	PI	473562	KrachekChap	Indochina	30225	14.7286	101.241	SoutheastAsia	IND	IND
+Y4215		Oryzasativa	PI	497682	IR64	Philippines	39730	32.8307	-92.6377	SouthPacific	IND	IND
+B4012		Oryzasativa	PI	168946	Bombilla	Spain	17838	40.6773	3.46707	WesternEurope	TEJ	TEJ
+B4017		Oryzasativa	PI	226204	SHIMIZUMOCHI	Japan	20246	40.5641	138.369	NorthPacific	TEJ	TEJ
+B4020		Oryzasativa	PI	265110	ItalicaCarolina	Poland	22033	50.794	22.2258	EasternEurope	TEJ	TEJ
+C4021		Oryzasativa	PI	266122	KRASNODARSKIJ424	RussianFederation	22075	44.8336	38.1651	EasternEurope	TEJ	TEJ
+C4022		Oryzasativa	PI	267996	Pergonil15	Portugal	22166	40.3141	-8.37204	WesternEurope	TEJ	TEJ
+C4025		Oryzasativa	PI	281630	NORIN11	Japan	22809	43.656	142.192	NorthPacific	TEJ	TEJ
+C4027		Oryzasativa	PI	291430	UZROSZM38	Uzbekistan	23168	40.0171	69.2705	Balkans	TEJ	TEJ
+D4032		Oryzasativa	PI	373761	J.P.5	Australia	26385	-24.8223	136.609	Australia	TEJ	TEJ
+D4038		Oryzasativa	PI	388427	ChacareiroUruguay	Uruguay	27093	-33.6925	-53.3585	SouthAmerica	TEJ	TEJ
+F4053		Oryzasativa	PI	402789	BLUESTICK	Fiji	27610	-18.2168	178.7	SouthPacific	TEJ	TEJ
+G4064		Oryzasativa	PI	439683	KUBANETS508	RussianFederation	29252	44.4301	39.6487	EasternEurope	TEJ	TEJ
+H4071		Oryzasativa	PI	584624	WIR3039	Tajikistan	33757	39.1759	71.2467	Balkans	TEJ	TEJ
+H4075		Oryzasativa	PI	602606	HB-6-2	Hungary	34553	47.6612	18.9556	EasternEurope	TEJ	TEJ
+J4083		Oryzasativa	PI	154531	Tamanishiki	Japan	16932	36.7219	138.22	NorthPacific	TEJ	TEJ
+J4089		Oryzasativa	PI	162113	NiwahutawMochi	Japan	17564	35.2265	138.586	NorthPacific	TEJ	TEJ
+J4090	LANDRACE	Oryzasativa	PI	177224	6360	Turkey	17958	37.533	43.5	Mideast	TEJ	TEJ
+K4091	LANDRACE	Oryzasativa	PI	184506	Somewake	Japan	18164	38.1872	138.717	NorthPacific	TEJ	TEJ
+K4094		Oryzasativa	PI	215478	Ardito	Italy	19827	43.0739	10.9219	WesternEurope	TEJ	TEJ
+L4101		Oryzasativa	PI	282173	CSORNUJ	Hungary	22850	46.3824	19.052	EasternEurope	TEJ	TEJ
+L4103		Oryzasativa	PI	291539	LUSITANO	Portugal	23168	38.42	-9.1	WesternEurope	TEJ	TEJ
+L4108	LANDRACE	Oryzasativa	PI	373939	Gazan	Afghanistan	26483	36.1566	67.8055	Subcontinent	TEJ	TEJ
+N4123		Oryzasativa	PI	402794	Bombon	Spain	27610	39.315	-3.41141	WesternEurope	TEJ	TEJ
+P4139		Oryzasativa	PI	584629	Celiaj	Azerbaijan	33757	39.793	46.9282	Balkans	TEJ	TEJ
+Q4147		Oryzasativa	PI	615198	CHUNJIANGZAONO.1	China	35313	39.5004	115.471	China	TEJ	TEJ
+Q4148	LANDRACE	Oryzasativa	PI	182254	EgyptianWildType	Turkey	18050	39.983	42.567	Mideast	TEJ	TEJ
+Q4149		Oryzasativa	PI	245694	A5	Japan	21222	35.6778	138.023	NorthPacific	TEJ	TEJ
+S4167		Oryzasativa	PI	189460	Romeno	Portugal	18384	38.7613	-8.03134	WesternEurope	TEJ	TEJ
+T4177		Oryzasativa	PI	439674	Karabaschak	Bulgaria	29252	42.1597	24.1737	EasternEurope	TEJ	TEJ
+T4179	LANDRACE	Oryzasativa	PI	597033	WIR911	RussianFederation	34452	43.6307	132.363	EasternEurope	TEJ	TEJ
+Y4211		Oryzasativa	PI	584632	KRASNODARSKIJ3352	RussianFederation	33757	44.7223	38.2919	EasternEurope	TEJ	TEJ
+Y4216		Oryzasativa	PI	494105	M202	UnitedStates	39730	32.6024	-91.017	NorthAmerica	TEJ	TEJ
+Y4217/A4000		Oryzasativa	PI	514663	NIPPONBARE	Japan	39730	30.5381	-92.4255	NorthPacific	TEJ	TEJ
+A4001	LANDRACE	Oryzasativa	CIor	2490	KarangSerang	Indonesia	5449	-6.35	108.1	SouthPacific	TRJ	TRJ
+A4003		Oryzasativa	CIor	9032	EBGopher	UnitedStates	19793	31.0886	-99.1713	NorthAmerica	TRJ	TRJ
+A4005		Oryzasativa	CIor	9723	C5560	Thailand	25538	16.3093	99.4677	SoutheastAsia	TRJ	TRJ
+A4006		Oryzasativa	CIor	9979	LEAH	UnitedStates	29889	33.285	-91.4786	NorthAmerica	TRJ	TRJ
+A4007	LANDRACE	Oryzasativa	CIor	12153	Quinimpol	Philippines	6180	14.733	121.117	SouthPacific	TRJ	TRJ
+A4008		Oryzasativa	PI	154464	TAICHUMOCHI59	Taiwan	16932	25.6962	123.097	China	TRJ	TRJ
+A4009		Oryzasativa	PI	155990	WC2811	Micronesia	17046	4.48964	157.9	SouthPacific	TRJ	TRJ
+B4011		Oryzasativa	PI	161567	CriolloChivacoa2	Venezuela	17527	9.96527	-67.2544	SouthAmerica	TRJ	TRJ
+B4013		Oryzasativa	PI	199553	SecanodoBrazil	ElSalvador	19059	13.0989	-90.6469	CentralAmerica	TRJ	TRJ
+B4015		Oryzasativa	PI	220214	BritishHondurasCreole	Belize	19935	17	-88.5	CentralAmerica	TRJ	TRJ
+C4026		Oryzasativa	PI	282769	R75	Senegal	22886	15.637	-11.5133	Africa	TRJ	TRJ
+C4030		Oryzasativa	PI	373232	KhaoPhoi	Laos	26385	18.2735	102.844	SoutheastAsia	TRJ	TRJ
+D4031		Oryzasativa	PI	373249	KhaoLuang	Laos	26385	19.4263	104.426	SoutheastAsia	TRJ	TRJ
+D4033		Oryzasativa	PI	373771	C8429	PapuaNewGuinea	26385	-5.20328	149.354	SouthPacific	TRJ	TRJ
+D4035		Oryzasativa	PI	373816	PadiPohonBatu	Malaysia	26385	1.8331	113.502	SouthPacific	TRJ	TRJ
+E4042		Oryzasativa	PI	389876	Sipirasikkam	Indonesia	27273	-1.96229	101.791	SouthPacific	TRJ	TRJ
+F4058		Oryzasativa	PI	430397	OnuB	Zaire	28828	1.15745	23.707	Africa	TRJ	TRJ
+G4063		Oryzasativa	PI	434632	MOROBEREKAN	Guinea	29037	9.29	-13.49	Africa	TRJ	TRJ
+H4077	LANDRACE	Oryzasativa	PI	37215	WC3532	Peru	5162	-10.0887	-76.2088	SouthAmerica	TRJ	TRJ
+H4078		Oryzasativa	CIor	2169	GPNO1106	Guatemala	5631	15.6019	-88.7292	CentralAmerica	TRJ	TRJ
+J4085		Oryzasativa	CIor	8913	Grassy	Haiti	17319	19.8263	-72.1007	CentralAmerica	TRJ	TRJ
+J4086		Oryzasativa	CIor	11030	GPNO5055	UnitedStates	28277	34.0368	-92.1069	NorthAmerica	TRJ	TRJ
+K4092	LANDRACE	Oryzasativa	PI	198134	Buphopa	Myanmar	18872	17.965	96.8093	SoutheastAsia	TRJ	TRJ
+K4098		Oryzasativa	PI	245071	NANTONNO.131	Taiwan	21201	22.6146	122.794	China	TRJ	TRJ
+L4102		Oryzasativa	PI	282768	R67	Senegal	22886	15.3386	-14.3885	Africa	TRJ	TRJ
+L4104	LANDRACE	Oryzasativa	PI	291608	WC4443	Bolivia	23175	-17.35	-63.4	SouthAmerica	TRJ	TRJ
+L4107	LANDRACE	Oryzasativa	PI	373786	Mitak	Indonesia	26385	-8.15	122.088	SouthPacific	TRJ	TRJ
+N4129		Oryzasativa	PI	430387	BotikaS/R	Zaire	28828	-0.413294	26.6185	Africa	TRJ	TRJ
+P4138		Oryzasativa	PI	584567	KAUKKYIANI	Myanmar	33424	23.2717	97.8197	SoutheastAsia	TRJ	TRJ
+S4169	LANDRACE	Oryzasativa	PI	373781	TiaBura	Indonesia	26385	-8.49154	122.598	SouthPacific	TRJ	TRJ
+S4170		Oryzasativa	PI	373820	PadiTarabArab	Malaysia	26385	2.73445	110.203	SouthPacific	TRJ	TRJ
+W4193	LANDRACE	Oryzasativa	PI	54344	LuaChuaChan	Vietnam	7915	15.4424	104.548	SoutheastAsia	TRJ	TRJ
+W4198		Oryzasativa	PI	373798	Simpor	Brunei	26385	-4.667	114.667	SouthPacific	TRJ	TRJ
+W4199		Oryzasativa	PI	373899	Coppocina	Bulgaria	26385	46.0897	26.4442	EasternEurope	TRJ	TRJ
+X4209		Oryzasativa	PI	469300	WC10253	Uncertain	30133				TRJ	TRJ
+Y4212		Oryzasativa	PI	585042	EMBRAPA1200	Brazil	33319	-14.5368	-45.1984	SouthAmerica	TRJ	TRJ
+Y4213		Oryzasativa	PI	602637	WAB462-10-3-1	CoteD'Ivoire	35199	5.71182	-6.6676	Africa	TRJ	TRJ
+Y4214		Oryzasativa	PI	561734	cypress	UnitedStates	39730	34.7475	-91.5883	NorthAmerica	TRJ	TRJ

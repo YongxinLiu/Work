@@ -1,0 +1,95 @@
+#!/bin/bash
+# 16S扩增子操作手册 16S Amplicon pipeline manual, v1.3 2017/12/1
+# 按如下命令执行，并修改makefile.16s中的参数
+cd ~/wheat/profile/ 
+
+
+# 0. 配置实验参数
+# 复制最新版流程+配置文件+操作手册
+cp /mnt/bai/yongxin/wheat/NP/makefile ./
+# 修改工作目录wd
+pwd
+# 初始化工作目录
+make init
+# 上传原始数据*.fq.gz至clean_data/
+for i in AGTCAA AGTTCC ATGTCA CCGTCC GTAGAG GTCCGC GTGAAA GTGGCC GTTTCG CGTACG;do
+	ln ~/seq/171121/L1-Index-${i}/FCHY555BCXY_L1_CWHPEPI00001607_Index-${i}_1.fq.gz clean_data/${i}_1.fq.gz
+	ln ~/seq/171121/L1-Index-${i}/FCHY555BCXY_L1_CWHPEPI00001607_Index-${i}_2.fq.gz clean_data/${i}_2.fq.gz
+done
+
+# 简化文件名(可选) rename 's/Med-//g;s/_HLY73BCXY_L1//g;s/clean\.//g' *.gz 
+# 编辑并上传实验设计至doc/，必选(mappingfiles/summary/material/library/group_compare), 可选(group_venn, group_tern)
+# 原始数据文件名重命名为L1/2/3_1/2.fq.gz，并格式化文本信息
+make rename
+# 基于mappingfile生成实验设计
+cat <(head -n1 doc/L1.txt|sed 's/#//g') doc/L* |grep -v '#' > doc/design.txt
+# 修改文库列表list
+ll clean_data/*.gz|cut -f 2 -d '/'|cut -f 1 -d '_'|sort -u|tr "\n" " "
+# tail -n+2 doc/library.txt |cut -f 1|tr "\n" " " # 另一种方法，但需要有library.txt
+# 显示实验设计,修改实验的主要和次要分组类型g1/g2，如groupID, genotype, compartment, soiltype，没有g2可使用默认batch
+head doc/design.txt
+# 获取主、次、第三分组信息：具体根据实验设计进一步筛选
+tail -n+2 doc/design.txt|cut -f 5|sort|uniq|awk '{print "\""$1"\""}'|tr "\n" ","
+# 最简单的实验只需一组信息，第二组填batch和1；复杂实验需要次、三分组信息
+# 仔细全文阅读配置文件，修改所有与本项目相关参数
+
+
+
+# 1. 数据质控
+make qc # 原始数据质控
+make merge # 双端数据合并再质控
+make extract_barcodes # 提取样本的barcodes
+make split # 拆分样品
+make cutadapt # 切除双端接头
+make stat # 统计文库各步操作stat each library
+make multiqc # 汇总数据合并前后的评估报告
+
+grep -v -c '#' doc/L* | sed 's/doc\/L//;s/.txt:/\t/' | sort -k1,1n # 统计各库中样品数据
+cut -f 1,13 clean_data/multiqc_data/multiqc_fastqc.txt|grep '_1'|sed 's/L//;s/_1//;s/\.0//'|sort -k1,1n # 展示库数据量
+
+
+# 2. 标准流程
+make merge_library # 合并所有文库，并简单统计绘图
+make derep # 数据去冗余
+make unoise # 鉴定生物特征序列
+make rm_chimeras # (可选)去嵌合体，执行完Unoise后，不执行此步可直接跳过
+make otu_table # 生成OTU表
+make assign_tax # 基于gg13.8注释物种
+make tree # 构建进化树，用于多样性分析
+make alpha # 计算alpha多样性
+make rarefaction # (可选)，采用qiime进行稀释曲线分析，大量抽样比较费时；可继续运行其它步骤
+make beta # 计算beta多样性
+make graphlan # 绘制高丰度物种树
+make ggtree # 绘制高丰度进化树
+make diversity # 多样性绘制箱线和散点
+
+cat result/qc.sum # 显示数据量统计
+
+
+# 3. 个性分析
+make filter # 过滤高丰度菌分析，默认0.05%。如lefse只有1%，ruben文章常用0.5-0.1%
+make rediv # 新表重新多样性分析
+make draw_div # 多样性绘图
+make draw_tax # 物种门-属级别比较
+make draw_otu # OTUs水平差异比较
+make draw_ter # OTUs三元图比较
+make rmd # 生成可读性报告 write report 
+
+
+
+# 4. 可选高级分析
+make culture_graphlan # 绘制高丰度菌可培养比例物种树
+
+# 5. 新功能测试 
+# rarefraction
+alpha_rare_usearch.sh -d /mnt/bai/yongxin/wheat/NP/doc/design.txt -m FALSE -A groupID -B '"BSNP","RsBDHNP","BDHNP"' -C compartment -D '"rhizosphere","root","soil"' -o result -g TRUE -h 5 -w 8 -s 7
+
+
+# 常见问题
+1. split_libraries_fastq.py: incorrect value for phred_offset
+A: 修改phred_score 33/64
+2. 批处理文库
+for i in L1 L2 L3 L4 L5 L6 L7 L8 L9 L10; do
+	unzip ${i}_1_fastqc.zip
+	unzip ${i}_2_fastqc.zip
+done

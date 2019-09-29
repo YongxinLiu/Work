@@ -1,0 +1,3 @@
+LibraryID	IndexRC	Index	Names	index	Samples
+L1	GTGAAA	TTTCAC	WWAT	19	60
+L2	GTGGCC	GGCCAC	WWAT	20	36

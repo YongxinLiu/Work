@@ -1,0 +1,10 @@
+b3ACT2KO	b3Col
+b3ThadKO	b3Col
+b3ThahKO	b3Col
+b3ThasKO	b3Col
+RiceCp35	b3Col
+RiceCp42	b3Col
+RiceCp49	b3Col
+WheatD35L1	b3Col
+WheatD42L1	b3Col
+WheatD43L1	b3Col

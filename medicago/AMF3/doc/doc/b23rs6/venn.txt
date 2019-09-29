@@ -1,0 +1,6 @@
+Anfp_A17_E	dmi3_A17_E
+Anfp_A17_D	dmi3_A17_D
+lyk9_R108_E	lyr4_R108_E
+lyk9_R108_D	lyr4_R108_D
+dmi3_A17_E	lyk9_R108_E	lyr4_R108_E
+dmi3_A17_D	lyk9_R108_D	lyr4_R108_D

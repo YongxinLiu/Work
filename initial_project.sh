@@ -96,7 +96,7 @@
 # 备份项目实验设计
     
     cd ~/github/Work
-
+    # 项目列表 project_list.txt
 
 
 
@@ -105,6 +105,7 @@
 
     # 文件加入缓冲区
     cd ~/github/Work
+    find . -size +50M -print # 检查大文件
     git add . 
     # 提交修改
     git commit -m "v2019" 

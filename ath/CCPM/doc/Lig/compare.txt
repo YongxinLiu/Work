@@ -1,0 +1,5 @@
+Cad45	WT
+Cad451	WT
+CCR1	WT
+CSE	WT
+Fah	WT

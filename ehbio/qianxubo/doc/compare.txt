@@ -1,0 +1,3 @@
+patients	controls
+patients	negativecontrols
+controls	negativecontrols

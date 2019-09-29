@@ -1,0 +1,4 @@
+b3ACT2KO_b3Col_D	b3ThadKO_b3Col_D	b3ThahKO_b3Col_D	b3ThasKO2_b3Col_D	
+b3ACT2KO_b3Col_E	b3ThadKO_b3Col_E	b3ThahKO_b3Col_E	b3ThasKO2_b3Col_E	
+IR24Cp35_b3Col_D	J411D35L1_b3Col_D	All3T_D
+IR24Cp35_b3Col_E	J411D35L1_b3Col_E	All3T_E

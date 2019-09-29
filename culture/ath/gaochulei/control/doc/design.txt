@@ -1,0 +1,3 @@
+SampleID	BarcodeSequence	LinkerPrimerSequence	ReversePrimer	groupID	genotype	compartment	batch	replicate	groupID2	species
+clRoBr1	TCTGACGTCA	AACMGGATTAGATACCCKG	ACGTCATCCCCACCTTCC	clRoB	cl	Ro	B	r1	clRo	Arabidopsis
+clRoBr2	TGAGTCAGTA	AACMGGATTAGATACCCKG	ACGTCATCCCCACCTTCC	clRoB	cl	Ro	B	r2	clRo	Arabidopsis

@@ -1,0 +1,8 @@
+lyk3	A17
+dmi2	A17
+dmi3	A17
+Anfp	A17
+Rnfp	R108
+lyr4	R108
+lyk9	R108
+lyk9nfp	R108

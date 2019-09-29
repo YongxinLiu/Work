@@ -1,0 +1,5 @@
+Cyp71A122	WT
+Cyp71A131	WT
+Pad31	WT
+Pen21pad31	WT
+Pen22	WT

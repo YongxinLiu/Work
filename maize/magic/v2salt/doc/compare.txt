@@ -1,0 +1,6 @@
+JtSt	JtSs
+JtSt	JtMst
+JtMst	JtSs
+SkSt	SkSs
+SkSt	SkMst
+SkMst	SkSs

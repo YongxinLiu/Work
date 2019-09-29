@@ -1,0 +1,4 @@
+XY54.11.1vsXY54.1.1_enriched	XY54.6.1vsXY54.1.1_enriched
+XY54.11.1vsXY54.1.1_depleted	XY54.6.1vsXY54.1.1_depleted
+XY54.11.3vsXY54.11.1_enriched	XY511.5.1vsXY54.11.1_enriched
+XY54.11.3vsXY54.11.1_depleted	XY511.5.1vsXY54.11.1_depleted

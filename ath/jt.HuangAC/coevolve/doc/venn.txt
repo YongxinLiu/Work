@@ -1,0 +1,6 @@
+b3ACT2KO_b3Col_D	b3ThadKO_b3Col_D	b3ThahKO_b3Col_D	b3ThasKO_b3Col_D	
+b3ACT2KO_b3Col_E	b3ThadKO_b3Col_E	b3ThahKO_b3Col_E	b3ThasKO_b3Col_E	
+RiceCp35_b3Col_D	WheatD35L1_b3Col_D	All3T_D
+RiceCp35_b3Col_E	WheatD35L1_b3Col_E	All3T_E
+RiceCp35_b3Col_D	WheatD35L1_b3Col_D	All3T_E
+RiceCp35_b3Col_E	WheatD35L1_b3Col_E	All3T_D

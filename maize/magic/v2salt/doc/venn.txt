@@ -1,0 +1,4 @@
+JtSt_JtSs_D	JtSt_JtMst_D	JtMst_JtSs_D
+JtSt_JtSs_E	JtSt_JtMst_E	JtMst_JtSs_E
+SkSt_SkSs_D	SkSt_SkMst_D	SkMst_SkSs_D
+SkSt_SkSs_E	SkSt_SkMst_E	SkMst_SkSs_E

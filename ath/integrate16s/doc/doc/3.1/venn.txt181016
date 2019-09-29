@@ -1,0 +1,8 @@
+b3ACT2CR_b3Col_E	b3ACT2KO_b3Col_E		
+b3ACT2CR_b3Col_D	b3ACT2KO_b3Col_D		
+b3ThasKO1_b3Col_E	b3ThasKO2_b3Col_E		
+b3ThasKO1_b3Col_D	b3ThasKO2_b3Col_D		
+Thas_E	b3ThahKO_b3Col_E	b3ThadKO_b3Col_E	ACT2_E
+Thas_D	b3ThahKO_b3Col_D	b3ThadKO_b3Col_D	ACT2_D
+b3ACT2KO_b3Col_E	b3ThasKO2_b3Col_E	b3ThahKO_b3Col_E	b3ThadKO_b3Col_E
+b3ACT2KO_b3Col_D	b3ThasKO2_b3Col_D	b3ThahKO_b3Col_D	b3ThadKO_b3Col_D

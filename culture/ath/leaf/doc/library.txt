@@ -1,0 +1,2 @@
+LibraryID	IndexRC
+L1	L180210_TCGAAG

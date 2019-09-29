@@ -1,0 +1,14 @@
+DM1b2vsWTb2_enriched	DM2b2vsWTb2_enriched			
+DM1b2vsWTb2_depleted	DM2b2vsWTb2_depleted			
+DO1b2vsWTb2_enriched	DO2b2vsWTb2_enriched			
+DO1b2vsWTb2_depleted	DO2b2vsWTb2_depleted			
+DM3b2vsWTb2_enriched	DM4b2vsWTb2_enriched			
+DM3b2vsWTb2_depleted	DM4b2vsWTb2_depleted			
+TPS25ab2vsWTb2_enriched	TPS25bb2vsWTb2_enriched			
+TPS25ab2vsWTb2_depleted	TPS25bb2vsWTb2_depleted			
+TPS30ab2vsWTb2_enriched	TPS30bb2vsWTb2_enriched			
+TPS30ab2vsWTb2_depleted	TPS30bb2vsWTb2_depleted			
+TPS25ab2vsWTb2_enriched	TPS25bb2vsWTb2_enriched	TPS30ab2vsWTb2_enriched	TPS30bb2vsWTb2_enriched	
+TPS25ab2vsWTb2_depleted	TPS25bb2vsWTb2_depleted	TPS30ab2vsWTb2_depleted	TPS30bb2vsWTb2_depleted	
+DM3b2vsWTb2_enriched	TPS25ab2vsWTb2_enriched	TPS25bb2vsWTb2_enriched	TPS30ab2vsWTb2_enriched	TPS30bb2vsWTb2_enriched
+DM3b2vsWTb2_depleted	TPS25ab2vsWTb2_depleted	TPS25bb2vsWTb2_depleted	TPS30ab2vsWTb2_depleted	TPS30bb2vsWTb2_depleted

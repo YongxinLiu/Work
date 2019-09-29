@@ -1,0 +1,9 @@
+SampleID	BarcodeSequence	groupID	genotype	compartment	species
+A17R1	CATAGTAGTG	A17	A17	Root	Medicagotruncatula
+R108R1	CGAGAGATAC	R108	R108	Root	Medicagotruncatula
+A17R	ATACGACGTA	A17	A17	Root	Medicagotruncatula
+R108R	TCACGTACTA	R108	R108	Root	Medicagotruncatula
+A17RS	CGTCTAGTAC	A17RS	A17	Rhizosphere	Medicagotruncatula
+R108RS	TCTACGTAGC	R108RS	R108	Rhizosphere	Medicagotruncatula
+A17N	CACGCGAGTC	A17RS	A17	Nodule	Medicagotruncatula
+R108N	ACGACTACAG	R108RS	R108	Nodule	Medicagotruncatula

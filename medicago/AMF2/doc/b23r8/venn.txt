@@ -1,0 +1,4 @@
+Anfp_A17_E	Rnfp_R108_E
+Anfp_A17_D	Rnfp_R108_D
+lyk9_R108_E	Rnfp_R108_E
+lyk9_R108_D	Rnfp_R108_D
