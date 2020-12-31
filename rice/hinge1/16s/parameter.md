@@ -171,7 +171,7 @@ SHELL:=/bin/bash
 	g1=groupID
 	# tail -n+2 ${doc}/design.txt|cut -f 5|sort|uniq|awk '{print "\""$1"\""}'|tr "\n" ","
 	# 绘图使用的实验组，顺序即图中显示顺序；为空时使用所有组和默认顺序
-	#g1_list='"Col","ThasKO2","ThahKO","ThadKO","ACT2KO"'
+	# design中groupID与实验设计compare中不匹配，多Bac，在Excel替换为空删除 
 	# 从实验设计比较组中提取组名，自动获得目录组 (推荐)
 	g1_list=`cat doc/${sub}/compare.txt|tr '\t' '\n'|sort|uniq|awk '{print "\""$$1"\""}'|tr "\n" ","|sed 's/,$$//'`
     # 从实验设计提取组(可选)

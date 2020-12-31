@@ -7,10 +7,22 @@
     chmod +x Downloads/linuxnd/linuxnd
     sudo mv Downloads/linuxnd/linuxnd /usr/local/bin/
     # 登陆和查看
-    linuxnd login -u X101SC19070595-Z01-F003 -p hn5hypc7
+    linuxnd login -u X101SC19070595-Z01-J011 -p 444h86p5
     linuxnd list # 查看用户根目录，确定是否登陆成功
-    linuxnd list oss://gxxkeyan@126.com/H101SC19070595/KY_kehu_JK/X101SC19070595-Z01/X101SC19070595-Z01-F003/ # 查看邮件路径文件
-    linuxnd cp -d oss://gxxkeyan@126.com/H101SC19070595/KY_kehu_JK/X101SC19070595-Z01/X101SC19070595-Z01-F003/2.cleandata/ ~/seq/L${id}/ # 查看指定路径下的2.cleandata
+    linuxnd list oss://gxxkeyan@126.com/H101SC19070595/RSCS0500/X101SC19070595-Z01/X101SC19070595-Z01-J011/  # 查看邮件路径文件
+    linuxnd cp -d oss://gxxkeyan@126.com/H101SC19070595/RSCS0500/X101SC19070595-Z01/X101SC19070595-Z01-J011/2.cleandata/ ~/seq/L${id}/ # 查看指定路径下的2.cleandata
+  
+    # md5校验，15G的文件要1分半
+    cd 2.cleandata/
+    # ll | grep -P '[^\.]/'| cut -f 10 -d ' ' > dir.list
+    ls -F | grep "/$" > dir.list
+    cat dir.list
+    for i in `cat dir.list`; do
+        cd $i
+        time md5sum -c MD5*.txt
+        cd ..
+    done
+    cd ..
 
     # 根据反向标准获得完整信息
     # 准备Index列表拆分，需要IndexRC列，可由ID或Index列检索到
@@ -22,22 +34,13 @@
         /mnt/bai/yongxin/ref/culture/IlluminaIndex48.txt index > index.txt
     cat index.txt
     # 保存至库文件和登记 SeqLibraryList.xlsx
-    
-    # md5校验，15G的文件要1分半
-    cd 2.cleandata/
-    ll | grep -P '[^\.]/'| cut -f 11 -d ' ' > dir.list
-    cat dir.list
-    for i in `cat dir.list`; do
-        cd $i
-        time md5sum -c MD5*.txt
-        cd ..
-    done
-    cd ..
+  
 
-    # 批量整理和改名
-    find 2.cleandata/ .gz|grep '_1.clean.fq.gz'|sort|sed s/1.clean.fq.gz// # 填入第一列，制作成表格rename.txt
-    awk 'BEGIN{OFS=FS="\t"}{system("ln "$1"1.clean.fq.gz "$2"_1.fq.gz")}' rename.txt
-    awk 'BEGIN{OFS=FS="\t"}{system("ln "$1"2.clean.fq.gz "$2"_2.fq.gz")}' rename.txt
+    # 批量整理和改名，包括时间和索引值
+    find 2.cleandata/ .gz|grep '_1.clean.fq.gz'|sort|sed s/1.clean.fq.gz// # 填入第一列，注意排序与文库顺序一致，制作成表格rename.txt
+    find 2.cleandata/ .gz|grep '_1.clean.fq.gz'|sort|sed s/1.clean.fq.gz//|cut -f 3 -d '/'|cut -f 1  -d '_'
+    awk 'BEGIN{OFS=FS="\t"}{system("ln "$1"_1.clean.fq.gz "$2"_1.fq.gz")}' rename.txt
+    awk 'BEGIN{OFS=FS="\t"}{system("ln "$1"_2.clean.fq.gz "$2"_2.fq.gz")}' rename.txt
 
     # 质控和报告汇总
     fastqc -t 48 L*.fq.gz
@@ -46,7 +49,7 @@
     l=`head -n1 multiqc_data/multiqc_fastqc.txt|sed 's/\t/\n/g'|awk '{print NR"\t"$0}'|grep 'Total Sequences'|cut -f 1`
     cut -f 1,${l} multiqc_data/multiqc_fastqc.txt | sed 's/_.\t/\t/' | uniq > datasize.txt
     cat datasize.txt
-    # 分双端统计md5值
+    # 分双端统计md5值，登记 SeqLibraryList.xlsx
     md5sum L*_1.fq.gz > /tmp/md5sum1.txt
     md5sum L*_2.fq.gz > /tmp/md5sum2.txt
     paste /tmp/md5sum1.txt /tmp/md5sum2.txt | awk '{print $2"\t"$1"\t"$4"\t"$3}' > md5sum.txt
@@ -55,6 +58,66 @@
     ls L*.gz
     ls L*.gz|wc
     ln L*.gz ../amplicon/
+
+
+## 201130 拟南芥磷吸收补充实验
+
+    id=201130
+    mkdir -p ~/seq/L${id}/
+    cd ~/seq/L${id}/
+
+
+## 201030 钱景美苜蓿SynCom和单菌实验
+
+    id=201030
+    mkdir -p ~/seq/L${id}/
+    cd ~/seq/L${id}/
+    ls -F | grep "fq.gz" | cut -f 1 -d '.'|sed 's/_1$//;s/_2$//'|uniq > dir.list
+    for i in `cat dir.list`; do
+        md5sum -c MD5_${i}.txt
+    done
+    # 发现L2_2和L3_1不完整，从/mnt/bai/jingmei/med/AMF/syncom/seq复制完整数据并压缩，但md5sum与原来不同
+
+
+
+## 200527/200715/200923 水稻分蘖
+
+    id=200923
+    mkdir -p ~/seq/L${id}/
+    cd ~/seq/L${id}/
+
+
+## 200116 中农 卢讯丽 刘迪，张娜
+
+    id=200116
+    mkdir ~/seq/L${id}/
+    cd ~/seq/L${id}/
+    linuxnd login -u X101SC19070595-Z01-J003 -p h7t2mjtw
+    linuxnd cp -d oss://gxxkeyan@126.com/H101SC19070595/KY_kehu_JK/X101SC19070595-Z01/X101SC19070595-Z01-J003/2.cleandata/ ~/seq/L${id}/
+    # 上面的文件md5sum -c 校对出错，删除后重新下载timeout，改用windows版本地软件下载
+
+## 191226 中农 卢讯丽 刘迪，张娜
+
+    id=191226
+    mkdir ~/seq/L${id}/
+    cd ~/seq/L${id}/
+    linuxnd login -u X101SC19070595-Z01-J002 -p wcawcf63
+    linuxnd cp -d oss://gxxkeyan@126.com/H101SC19070595/KY_kehu_JK/X101SC19070595-Z01/X101SC19070595-Z01-J002/2.cleandata/ ~/seq/L${id}/
+
+## 191212 中农 卢讯丽 刘迪
+
+    id=191212
+    mkdir ~/seq/L${id}/
+    cd ~/seq/L${id}/
+    linuxnd login -u X101SC19070595-Z01-J001 -p juz7r3sn
+    linuxnd cp -d oss://gxxkeyan@126.com/H101SC19070595/KY_kehu_JK/X101SC19070595-Z01/X101SC19070595-Z01-J001/2.cleandata/ ~/seq/L${id}/ # 查看指定路径下的2.cleandata
+
+## 191022 徐浩然 13个库 
+    id=191022
+    mkdir ~/seq/L${id}/
+    cd ~/seq/L${id}/
+    linuxnd login -u X101SC19070595-Z01-F006 -p fehhcwkx 
+    linuxnd cp -d oss://gxxkeyan@126.com/H101SC19070595/KY_kehu_JK/X101SC19070595-Z01/X101SC19070595-Z01-F006/2.cleandata/ ~/seq/L${id}/ # 查看指定路径下的2.cleandata
 
 ## 190921 郭晓璇 8个库
     id=190921

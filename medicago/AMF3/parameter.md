@@ -165,15 +165,16 @@ SHELL:=/bin/bash
 	# 实验设计文件位置，全局，其它图默认调此变量，也可单独修改；并选择表中的组列和具体分组
 	# 设置子版本目录 
 	# cp -r ../AMF2/doc/b23r6 doc/ 参考格式，使用 DataFilter.Rmd生成doc/b23r6/design.txt
-	sub="b23rs6"
+	# 子版本有b23r6 b23rs6 b23r6S
+	sub="b23r6S"
 	doc=doc/${sub}
 	design=${wd}/${doc}/design.txt 
 	g1=genotype
 	# tail -n+2 ${doc}/design.txt|cut -f 6|sort|uniq|awk '{print "\""$1"\""}'|tr "\n" ","
 	# 绘图使用的实验组，顺序即图中显示顺序；为空时使用所有组和默认顺序
-	g1_list='"A17","Anfp","dmi3","R108","lyk9","lyr4"'
+	#g1_list='"A17","Anfp","dmi3","R108","lyk9","lyr4","soil"'
 	# 从实验设计比较组中提取组名，自动获得目录组 (推荐)
-	#g1_list=`cat doc/${sub}/compare.txt|tr '\t' '\n'|sort|uniq|awk '{print "\""$$1"\""}'|tr "\n" ","|sed 's/,$$//'`
+	g1_list=`cat doc/${sub}/compare.txt|tr '\t' '\n'|sort|uniq|awk '{print "\""$$1"\""}'|tr "\n" ","|sed 's/,$$//'`
     # 从实验设计提取组(可选)
 	# g1_list=`tail -n+2 ${doc}/design.txt|cut -f 5|sort|uniq|awk '{print "\""$$1"\""}'|tr "\n" ","|sed 's/,$$//'`
 
@@ -190,7 +191,8 @@ SHELL:=/bin/bash
 	# 图中显示legend, 如taxonomy的数量，5，8(default)，10
 	legend_number=8
 	# 差异统计按丰度过滤 abundance filter，如丰度按万分之一过滤，减少计算量，提高OTU的FDR值，根据组数量多少可选十万5或万分之5
-	abundance_thre=0.01
+	# 苜蓿中，0.5千五37OTU72.6%; 0.1千一133OTU86.6%；0.05万五216OTU90.5%；0.01万一545OTU95.4%
+	abundance_thre=0.1
 	# 差异比较方法，默认是 edgeR ，可选 wilcox秩和检验、t.test 
 	compare_method="wilcox"
 	# 显著性P值过滤 threshold of P-value，可选0.05, 0.01, 0.001。采用FDR校正，此参数意义不大，即使0.001也没有FDR < 0.2过滤严格
@@ -204,7 +206,7 @@ SHELL:=/bin/bash
 	# 统计绘图和网页报告版本控制
 	species="med"
 	keyword="AMF3"
-	version=${species}_${keyword}_${sub}_v1
+	version=${species}_${keyword}_${sub}_v2
 
 
 ## 2.1 alpha_boxplot Alpha多样性指数箱线图 Alpha index in boxplot
@@ -376,16 +378,16 @@ SHELL:=/bin/bash
 	culture_db=/mnt/bai/yongxin/culture/medicago/result/${type}culture_select
 	# 可培养菌结果输出文件
 	# 绘制Graphlan图的筛选阈值
-	graph_thre=0.0005
+	graph_thre=0.003
 	filter=culture_${type}
 	# 过滤方法，默认median，可选max, mean, median, min，数据依次减少
 	filter_method=max
 	otu_table=`pwd`/result/otutab.txt
 
 	# 指定具体的实验设计、列、组筛选
-	cg_design=`pwd`/doc/design.txt
-	cg_group_name=groupID
+	cg_design=`pwd`/doc/b23r6/design.txt
+	cg_group_name=genotype
 	# A17B0R / R108B0R
-	cg_group_list='"R108B0R"'
+	cg_group_list='"R108"'
 
 include /mnt/bai/yongxin/github/Amplicon/16Sv2/pipeline.md

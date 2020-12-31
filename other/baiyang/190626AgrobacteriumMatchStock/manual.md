@@ -1,6 +1,6 @@
 # 查找某农杆菌是否存在于菌库中 —— 黄安诚
 
-    cd ~/other/baiyang/190626AgrobacteriumMatchStock/
+    cd ~/other/baiyang/190926AgrobacteriumMatchStock/
 
 ## 菌名查找Agrobacterium rhizogenes strains-可信度不高
 
@@ -37,3 +37,16 @@ Announc 4(4):e00746-16. doi:10.1128/genomeA.00746-16.
     blastn -query LYBK01.1.fsa_nt -db A907.fa -out LYBK01_ath.blastn -outfmt 6  -num_alignments 1 -evalue 1 -num_threads 9 # 全长有5个mismatch
 
 
+# 2019/10/14 菌鉴定
+
+    # 比对鉴定序列至基因组，1.2kb, 最高97.22%
+    makeblastdb -dbtype nucl -in LYBK01.1.fsa_nt
+    data=191014seq
+    cluture_db=LYBK01.1.fsa_nt
+    format_seq2fasta.pl -i "${data}/*.seq" -o ${data}.fa # seq merge and format to fasta
+    blastn -query ${data}.fa -db ${cluture_db} -out ${data}.blastn -outfmt '6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qcovs' -num_alignments 1 -evalue 1 -num_threads 9 # 输出13列为coverage
+    sed 's/^A//' ${data}.blastn|sort -k1n
+    
+    # 比对至COTU
+    blastn -query ${data}.fa -db A907.fa -out ${data}.blastnA907 -outfmt '6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qcovs' -num_alignments 1 -evalue 1 -num_threads 9 # 输出13列为coverage
+    sed 's/^A//' ${data}.blastnA907|sort -k1n

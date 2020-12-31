@@ -8,12 +8,21 @@
 	# 清除统计绘图标记(重分析时使用)
     # 实验设计来自上级目录 cp -r ../doc/SL_*/ doc/ # Hn Bj
 	rm -rf alpha_boxplot 
-	make DA_compare # 绘制alpha、beta、taxonomy和差异OTU比较
+    make DA_compare # 或下面两t地
+    rm measurable_OTU
+	make DA_compare2 # 绘制alpha、beta、taxonomy和差异OTU比较 或DA_compare
 	rm -f plot_volcano # 删除OTU差异比较可化标记
 	make plot_manhattan # 绘制差异比较的火山图、热图、曼哈顿图
 	make plot_venn # 绘制OTU差异共有/特有维恩图
+    make culture
+    make culture_graphlan
 	make DA_compare_tax # 高分类级差异比较，维恩图绘制，2为reads count负二项分布统计
 	make rmd # 生成网页报告，必须依赖的只有alpha, beta, taxonomy
+
+
+# 相关脚本
+
+    GWAS —— 云协作 GWAS流程-emmax-rice
 
 
 # 1. 标准流程 Standard pipeline
@@ -230,9 +239,9 @@
 	make otutab_gg
 
 
-# 设置实验设计 ../xianGeng/doc/design.txt，计算soildtype, H、L下IND/TEJ/TRJ、AUS/
-cp ../xianGeng/doc/design.txt doc/design_xiangeng.txt 
-# 拥用solitype x subspecies列 soiltypesubspecies，更准确的手工修正为gorupID
+    # 设置实验设计 ../xianGeng/doc/design.txt，计算soildtype, H、L下IND/TEJ/TRJ、AUS/
+    cp ../xianGeng/doc/design.txt doc/design_xiangeng.txt 
+    # 拥用solitype x subspecies列 soiltypesubspecies，更准确的手工修正为gorupID
 
 
 # 2. 统计绘图 Statistics and plot
@@ -282,11 +291,21 @@ cp ../xianGeng/doc/design.txt doc/design_xiangeng.txt
     awk 'BEGIN{OFS=FS="\t"} NR==FNR {a[$1]=$14} NR>FNR {print $0,a[$1]}' $version/ZH11LnCp6-soilLnCp6_all.txt $version/diff.list.vennZH11LnCp6_soilLnCp6_DIR24LnCp6_soilLnCp6_DA50LnCp6_soilLnCp6_D.xls.xls > result/nrt/2016/LN/soil_enriched1
     awk 'BEGIN{OFS=FS="\t"} NR==FNR {a[$1]=$14} NR>FNR {print $0,a[$1]}' $version/IR24LnCp6-soilLnCp6_all.txt result/nrt/2016/LN/soil_enriched1 > result/nrt/2016/LN/soil_enriched2
     awk 'BEGIN{OFS=FS="\t"} NR==FNR {a[$1]=$14"\t"$15} NR>FNR {print $0,a[$1]}' $version/ZH11LnCp6-soilLnCp6_all.txt result/nrt/2016/LN/soil_enriched2 > result/nrt/2016/LN/soil_enriched3.xls
-
     # 查看土壤里特异菌的
 	alpha_boxplot.sh -i `pwd`/result/otutab.txt -m '"OTU_61","OTU_95","OTU_256","OTU_49","OTU_421","OTU_150","OTU_959","OTU_261","OTU_456","OTU_347","OTU_2881","OTU_991","OTU_3077"' \
         -d `pwd`/doc/"nrt"/design.txt -A groupID -B '"ZH11LnCp6","IR24LnCp6","A50LnCp6","soilLnCp6"' \
         -o `pwd`/result/otu_boxplot_soil/ -h 3 -w 5 -t TRUE -n TRUE
+
+    ## 比较nrt 中突变体与野生型及近等基因系 (NBT文中8个组) 2020/2/25
+    mkdir -p doc/nrt
+    tail -n4 ~/rice/xianGeng/doc/compare.txt > doc/nrt/compare.txt
+    # http://210.75.224.110/report/16Sv2/rice_OTU_nrt_wilcox_v1
+
+    ## 比较nrt 中突变体与野生型及近等基因系 (全部) 2020/2/25
+    mkdir -p doc/nrt2
+    tail -n+3 ~/rice/xianGeng/doc/compare1.txt > doc/nrt2/compare.txt
+    # http://210.75.224.110/report/16Sv2/rice_OTU_nrt_wilcox_v1
+
 
 ## 2.1. Alpha多样性指数箱线图
 	
@@ -520,6 +539,10 @@ compare.sh -i `pwd`/result/otutab.txt -c `pwd`/doc/compare_sp.txt -m "wilcox" \
     # ggplot2绘制SL所有基因型的丰度
 	alpha_boxplot.sh -i `pwd`/result/otutab.txt -m '"OTU_667","OTU_33","OTU_371"' \
         -d `pwd`/doc/"SL"/design.txt -A groupID -B '"d27RtBj","d17RtBj","d10RtBj","d3AHLRtBj","d3NpRtBj","d3RtBj","d14AHLRtBj","d14RtBj","d53RtBj","NpRtBj","d27RtHn","d17RtHn","d10RtHn","d3RtHn","d14RtHn","d53RtHn","NpRtHn"' \
+        -o `pwd`/result/otu_boxplot/ -h 3 -w 10 -t TRUE -n TRUE
+    # 绘制D27在北京和上海的丰度
+	alpha_boxplot.sh -i `pwd`/result/otutab.txt -m '"OTU_39"' \
+        -d `pwd`/doc/design_SL.txt -A genotypeID -B '"d27RtBj","NpRtBj","d27RtHn","NpRtHn"' \
         -o `pwd`/result/otu_boxplot/ -h 3 -w 10 -t TRUE -n TRUE
 
 
@@ -786,7 +809,6 @@ compare.sh -i `pwd`/result/otutab.txt -c `pwd`/doc/compare_sp.txt -m "wilcox" \
     mkdir -p snp1_a
     for i in `ls k1/GAPIT.MLM.*.GWAS.Results.csv|cut -f 3 -d '.'|sort|uniq`; do
     #i=OTU_9
-    grep -P '1m31230247,|1m31230250,|1m31230333,|1m31230363,|1m31230368,|1m31230401,|1m31230445,|1m31230618,|1m31230624,|1m31230694,|1m31230761,|1m31230960,|1m31231213,|1m31231368,|1m31231377,|1m31231381,|1m31231417,|1m31231496,|1m31231524,|1m31232165,|1m31232397,|1m31232399,|1m31232412,|1m31232428,|1m31232527,|1m31232610,|1m38370381,|1m38370402,|1m38370498,|1m38370698,|1m38370715,|1m38370863,|1m38370966,|1m38371087,|1m38371126,|1m38371138,|1m38371194,|1m38371230,|1m38371375,|1m38371546,|1m38371599,|1m38371676,|1m38371748,|1m38371783,|1m38372432,|1m38372434,|1m38372441,|1m38372504,|1m38372568,|1m38372621,|1m38372803,|1m38372860,|1m38372948,|1m38372999,|1m38373007,|1m38373023,|1m38373102,|1m38373112,|1m38373113,|1m38373121,|1m38373136,|1m38373146,|1m38373455,|1m38373571,|1m38373622,|1m38373695,|1m38373719,|1m38373732,|1m38373743,|1m38373757,|1m38373758,|1m38373772,|1m38373792,|1m38373816,|1m38373878,|1m38373898,|1m38374214,|1m38374310,|1m38374330,|1m38374400,|1m38374589,|1m38374725,|1m38374790,|1m38374820,|1m38374921,|1m38375013,|1m38375048,|1m38376962,|1m38376963,|1m38377142,|1m38377155,|1m38377178,|1m38377227,|1m38377240,|1m38377288,|1m38377325,|1m38377337,|1m38377382,|1m38377428,|1m38377473,|1m38377718,|1m38377868,|1m38378231,|1m38378262,|1m38378302,|1m38378328,|1m38378332,|1m38378343,|1m38378368,|1m38378420,|1m38378470,|1m38378659,|1m38378668,|1m38378687,|1m38378750,|1m38378960,|1m38379068,|1m38379477,|1m38380261,|1m38380318,|1m38380369,|1m38380410,|1m38380563,|1m38380634,|1m38380836,|1m38380863,|1m38380873,|1m38380875,|1m38380886,|1m38380927,|1m38380929,|1m38380946,|1m38380981,|1m38380986,|1m38380997,|1m38381039,|1m38381175,|1m38381188,|1m38381358,|1m38381393,|1m38381483,|1m38381658,|1m38381676,|1m38381681,|1m38381706,|1m38381767,|1m38381785,|1m38381800,|1m38381934,|1m38381935,|1m38381991,|1m38382080,|1m38382084,|1m38382111,|1m38382137,|1m38382194,|1m38382292,|1m38383221,|1m38389314,|1m38389919,|1m39595895,|1m39595988,|1m39596071,|1m39596115,|1m39596269,|1m39596400,|1m39596699,|1m39596713,|1m39596808,|1m39596921,|1m39597779,|1m39598158,|1m39598992,|1m39600096,|1m39601505,|1m39601550,|1m39601906,|1m39602780,|1m39603303,|1m39603503,|1m39605678,|1m39606189,|1m39606807,|1m39606845,|1m39606849,|1m39606902,|1m39606917,|1m39606926,|1m39606946,|1m39606985,|1m39607030,|1m39607054,|1m39607082,|1m39607122,|1m39607126,|1m39607199,|1m39607264,|1m39607492,|1m39607495,|1m39607499,|1m39607524,|1m39607557,|1m39607565,|1m39607575,|1m39607608,|1m39607614,|1m39607655,|1m39607714,|1m39607719,|1m39607851,|1m39607941,|1m39607999,|1m39608034,|1m39608059,|1m39608078,|1m39608079,|1m39608086,|1m39608191,|1m39608214,|1m39608293,|1m39608372,|1m39608499,|1m39608565,|1m39609498,|1m39609782,|1m39609928,|1m39609967,|1m39609971,|1m39610271,|1m39610508,|1m39611111,|1m40649334,|1m40649417,|1m40649451,|1m40649606,|1m40649654,|1m40649657,|1m40649666,|1m40649668,|1m40649672,|1m40649704,|1m40649747,|1m40649799,|1m40649810,|1m40650110,|1m40650193,|1m40650195,|1m40650492,|1m40650547,|1m40650595,|1m40650671,|1m40650672,|1m40650738,|1m40651054,|1m40651194,|1m40651416,|1m40651511,|1m40651791,|1m40651873,|1m40651955,|1m40652366,|1m40652575,|1m40652711,|1m40652778,|1m40652784,|1m40652916,|1m40653029,|1m40653145,|1m40653187,|1m40653760,|1m40654191,|1m40654878,|1m40655838,|1m40657001,|1m40658900,|1m40659706,|1m40659949,|1m40663740,|1m40669137,|2m28749717,|2m28751006,|2m28751302,|2m28751738,|2m28752575,|2m28757766,|3m5422399,|3m5423417,|3m5423420,|3m5423574,|3m5426011,|3m5426371,|3m5426494,|3m5426662,|3m5426713,|3m5426823,|3m5426883,|3m5426909,|3m5426919,|3m5426954,|3m5427129,|3m5427130,|3m5427182,|3m5427226,|3m5427257,|3m5427287,|3m5427338,|3m5427346,|3m5427362,|3m5427376,|3m5427386,|3m5427434,|3m5427435,|3m5427488,|3m5427500,|3m5427553,|3m5427590,|3m5427614,|3m5427658,|3m5427662,|3m5427693,|3m5427739,|3m5427746,|3m5428618,|3m5428669,|3m5428670,|3m5428718,|4m25496921,|4m25499289,|4m25499381,|4m25499449,|4m25499615,|4m25507542,|4m25507833,|4m25507839,|4m25507877,|4m25507921,|4m25508042,|4m25508289,|4m25508297,|4m25508364,|4m25508409,|4m25508484,|4m25508500,|4m25508511,|4m25508556,|4m25508628,|4m25508694,|4m25508773,|4m25508834,|4m25508866,|4m25508886,|4m25508899,|4m25508949,|4m25509042,|4m25509068,|4m25509087,|4m25509114,|4m25509188,|4m25509189,|4m25509197,|4m25509209,|4m25509230,|4m25509585,|4m25510254,|4m27567935,|4m27568586,|4m27568602,|4m27568838,|4m27568855,|4m27569961,|4m27569991,|4m27570368,|5m5938960,|5m5939076,|5m5939344,|5m5939353,|5m5939420,|5m5939477,|5m5939644,|5m5939650,|5m5939739,|5m5939741,|5m5939770,|5m5939801,|5m5939905,|5m5939912,|5m5939916,|5m5939954,|5m5939965,|5m5940240,|5m5940458,|5m5940547,|5m5940684,|5m5941101,|5m5941257,|5m5941396,|5m5941964,|5m5943888,|5m5944557,|5m5944851,|5m5944944,|5m5946865,|5m5946869,|5m5946922,|5m5946947,|5m19871018,|5m19871081,|5m19884756,|5m19884773,|5m19884780,|5m19884790,|5m19884794,|5m19884798,|5m19884803,|5m19884846,|5m19885030,|5m19885032,|6m577626,|8m3182631,|8m3182703,|8m3182725,|8m3183208,|8m3184252,|8m3184413,|8m3184700,|8m3184729,|8m3184950,|8m3185444,|8m3185825,|8m3185896,|8m3186716,|8m3186889,|8m3187203,|8m3187354,|8m3187376,|8m3187406,|8m3187411,|8m3187421,|8m3187430,|8m3187491,|8m3187504,|8m3187516,|8m3187594,|8m3187602,|8m3187641,|8m3187669,|8m3187674,|8m3187685,|8m3187698,|8m3187699,|8m3187723,|8m3187740,|8m3187747,|8m3187757,|8m3187784,|8m3187789,|8m3187796,|8m3187827,|8m3187866,|8m3187867,|8m3187942,|8m3187976,|8m3188073,|8m3188097,|8m3188306,|8m3188396,|8m3188405,|8m3188419,|8m3188441,|8m3188473,|8m3188482,|8m3188493,|8m3188503,|8m3188523,|8m3188527,|8m3188541,|8m3188588,|8m3188602,|8m3188619,|8m3188679,|8m3189468,|8m3189495,|8m3189556,|8m3189724,|8m3189782,|8m3189860,|8m3189971,|8m3190010,|8m3190301,|8m3190328,|8m3190360,|8m3190550,|8m3190556,|8m3190559,|8m3190700,|8m3190708,|8m3190710,|8m3190731,|8m3190754,|8m3190757,|8m3190777,|8m3190782,|8m3190785,|8m3190799,|8m3190839,|8m3190847,|8m3190855,|8m3190858,|8m3190872,|8m3190949,|8m3190977,|8m3191013,|8m3191022,|8m3191028,|8m3191032,|8m3191040,|8m3191077,|8m3191083,|8m3191087,|8m3191121,|8m3191172,|8m3191179,|8m3191190,|8m3191216,|8m3191221,|8m3191240,|8m3191259,|8m3191290,|8m3191312,|8m3191349,|8m3191358,|8m3191465,|8m3191488,|8m3191549,|8m3191617,|8m3191625,|8m3191661,|8m3191669,|8m3191778,|8m3191874,|8m3191877,|8m3191977,|8m3192006,|8m3192009,|8m3192017,|8m3192357,|9m16406496,|9m16406528,|9m16406545,|9m16406555,|9m16406563,|9m16406577,|9m16406664,|9m16406690,|9m16406718,|9m16406753,|9m16406779,|9m16406821,|9m16406829,|9m16406839,|9m16406859,|9m16406883,|9m16406913,|9m16406922,|9m16406940,|9m16411594,|9m16413000,|9m16414341,|9m16414399,|9m16414429,|9m16414735,|9m16414739,|9m16415032,|9m16415104,|9m16415203,|9m16415254,|9m16415255,|9m16415391,|9m16415724,|9m16415831,|9m16415859,|9m16416012,|9m16416126,|9m16416275,|9m16416891,|9m16416892,|10m21757901,|10m21759092,|10m21761740,|10m21761946,|10m21761997,|10m21762382,|10m21762724,|10m21762787,|10m21762831,|10m21762917,|10m21763222,|10m21763261,|10m21763301,|10m21763315,|10m21763345,|10m21763361,|10m21763372,|10m21763380,|10m21763384,|10m21763396,|10m21763411,|10m21763413,|10m21763418,|10m21763450,|10m21763663,|10m21763687,|10m21763762,|10m21763782,|10m21763783,|10m21763799,|10m21763874,|10m21764084,|10m21764124,|10m21764165,|10m21765227,|10m21765231,|10m21765273,|10m21765292,|10m21765339,|10m21765387,|10m21765393,|10m21765413,|10m21765495,|10m21765591,|10m21765600,|10m21765611,|10m21765683,|10m21765691,|10m21766422,|10m21766437,|10m21766633,|10m21766668,|10m21766741,|10m21766780,|10m21766853,|10m21766868,|10m21766884,|10m21766893,|10m21766918,|10m21767257,|10m21767288,|10m21767291,|10m21767602,|10m21767725,|10m21767738,|10m21768009,|10m21768017,|10m21768028,|10m21768048,|10m21768062,|10m21768066,|10m21768091,|10m21768094,|10m21768131,|10m21768140,|10m21768247,|10m21768257,|10m21768452,|10m21768562,|10m21768660,|10m21768751,|10m21768768,|10m21768838,|10m21768905,|10m21768950,|10m21769062,|10m21769093,|10m21769101,|10m21769105,|10m21769119,|11m194222,|11m195792,|11m195980,|11m22230369,|11m22230384,|11m22230417,|11m22230594,|11m22230660,|11m22230777,|11m22230789,|11m22230893,|11m22230904,|11m22230908,' k1/GAPIT.MLM.${i}.GWAS.Results.csv | sed 's/,/\t/g' |awk '$4<0.001' | awk -v i=$i '{print i"\t"$0}' > snp1_a/${i} &
     done
     # 删除零字节文件
     find ./snp1_a -name "*" -type f -size 0c | xargs -n 1 rm -f
@@ -815,6 +837,7 @@ compare.sh -i `pwd`/result/otutab.txt -c `pwd`/doc/compare_sp.txt -m "wilcox" \
     # 提取第8列LOC
     cut -f 8 ${i}_1_anno.txt|sort|uniq|grep 'LOC' >${i}_LOC.txt # AgriGO的Oryza sative无法识别
     done
+
 
 ## 4.14 抑制分蘖功能菌
     
@@ -946,6 +969,7 @@ sed -i '1 s/EFD/Variety/' doc/minicore_list.txt
 # 添加亚种注释
 awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$2]=$13} NR>FNR{print $1,$2,$3,$4,a[$2]}' doc/minicore_list.txt meta/design.txt > meta/metadata.txt
 cut -f 5 meta/metadata.txt|sort|uniq -c
+
 
 ### 1D. phylogenetics tree 进化树
 
@@ -1156,6 +1180,35 @@ alpha_boxplot.sh -i `pwd`/result/alpha/index.txt -m '"chao1","richness","shannon
     # 需要1200个样本名，表型，微生物组PC前5，表型PC前5，以及环境因子
     # 分别制作HN/LN的PCoA表
 
+    # 2019/10/10 获得分析代码继续分批分析
+    cd LinearModel
+
+    cp ../interaction/HN/HN_tiller_M_G.data ./
+    sed -i "1 s/^/\t/" HN_tiller_M_G.data
+    cut -f 1-6 HN_tiller_M_G.data > HN_tiller_M.data
+    cut -f 1-2,7- HN_tiller_M_G.data > HN_tiller_G.data
+
+    cp ../interaction/LN/LN_tiller_M_G.data ./
+    sed -i "1 s/^/\t/" LN_tiller_M_G.data
+    cut -f 1-6 LN_tiller_M_G.data > LN_tiller_M.data
+    cut -f 1-2,7- LN_tiller_M_G.data > LN_tiller_G.data
+
+    cut -f 3-4,6-9,16-20 ../interaction/data/tiller_microbiomePCo_genoPC_envNPKtxt | less > AN_tiller_M_G_E.data
+    cut -f 1-6 AN_tiller_M_G_E.data > AN_tiller_M.data
+    cut -f 1-2,7-10 AN_tiller_M_G_E.data > AN_tiller_G.data
+    cut -f 1-2,11 AN_tiller_M_G_E.data > AN_tiller_E.data
+    cut -f 1-10 AN_tiller_M_G_E.data > AN_tiller_M_G.data
+    cut -f 1-2,7-11 AN_tiller_M_G_E.data > AN_tiller_G_E.data
+    cut -f 1-6,11 AN_tiller_M_G_E.data > AN_tiller_M_E.data
+    sed -i '1 s/rownames//' AN*.data
+    wc -l *.data
+    perl 3_calculate_regressino_lm.pl # 遍历*.data文件，计算1行与其它相关，输出脚本Run_LM.r
+    rm result.summary 
+    Rscript Run_LM.r # 输出结果为 result.summary 
+    cat result.summary 
+
+
+
 ### 分蘖在LN/HN下显著相关菌可视化 fig3.phenotype.Rmd 2019/8/14
     # 结果见D:\work\rice\integrate16s\v2OTU\fig\fig3\LNsample\pheatmap_f_LN_HN_cor.pdf和pheatmap_OTU_LN_HN_cor.pdf
 
@@ -1226,8 +1279,6 @@ alpha_boxplot.sh -i `pwd`/result/alpha/index.txt -m '"chao1","richness","shannon
         --kingdom Archaea,Bacteria,Mitochondria,Viruses" \
         ::: `tail -n+2 result/metadata.txt | cut -f 1 | tail -n 50`
 
-
-
 # GWAS
 
 ## 基因型准备
@@ -1247,7 +1298,7 @@ alpha_boxplot.sh -i `pwd`/result/alpha/index.txt -m '"chao1","richness","shannon
     cat -A emmax/snp.cov|less
 
 
-## 表型数据
+## LN/HN子版本 2019/7/31 
 
 	
 ### 以LN为例，基于beta bray_curtis挑选的3个代表样品列表 ~/rice/miniCore/180319/LN/beta_norm/sample_ids.txt
@@ -1289,6 +1340,547 @@ alpha_boxplot.sh -i `pwd`/result/alpha/index.txt -m '"chao1","richness","shannon
     # 转换和关联详见子目录
 
 
+# 2019/10/31 D:\work\rice\integrate16s\v2OTU\fig\191031\ 整理最新版图
+
+### 群体结构SNP树
+
+    # 参考 ~/ehbio/train/08ReSeq/reseq/population_genomics/pipeline.sh
+    # vcf生成fasta，然后建树，itol可视化
+    # 参考 ~/rice/miniCore/mwas/genotype
+    # 需要先将vcf合并，再拆分为样品
+    cd ~/rice/integrate16s/v2OTU
+    mkdir -p genotype
+    cd genotype
+    
+   # 按染色体合并vcf-concat -c 检查列名，-f指定列表
+    #ln ~/rice/miniCore/mwas/genotype/*.vcf ./
+    #vcf-concat Chr*.vcf > rice.vcf # 2GB 太大，无法建树
+    # 提取单个样品，只提取基因区差异SNP
+    # 参考~/rice/miniCore/ # 筛选基因型只留引起AA变化的SNP
+
+    # 按指定顺序合并结果为空
+#    ls *.vcf|sed 's/Chr//'|sort -n|sed 's/^/Chr/' > VcfChr.list
+#    vcf-concat -c -f VcfChr.list > rice.vcf
+    # 仅合并missense类型的SNP
+    vcf-concat /mnt/bai/yongxin/rice/miniCore/mwas/genotype/missense/Chr*.vcf > rice.vcf # 80M
+    # 拆分
+    mkdir -p sample
+    # 所有SNP要5min，只要60s，共5万多个位点
+    time vcf-subset -c X4202_X4202 rice.vcf > sample/X4202.vcf
+    # 以Chr9为例
+    head -n 7 /mnt/bai/yongxin/rice/miniCore/mwas/genotype/Chr9.vcf | tail -n1 | cut -f 10- | sed 's/\t/\n/g'| cut -f 1 -d '_' > varieties.list # less > 
+    mkdir -p sample
+    for i in `cat varieties.list`; do
+        time vcf-subset -c ${i}_${i} rice.vcf > sample/${i}.vcf
+    done
+
+    # 提取序列
+    # 只提取了ref和Chr9，改用
+    cd ~/rice/integrate16s/v2OTU/genotype/sample
+    CreateSnpTreeSeq.py ../varieties.list .vcf > ../merge_seq.fsa
+    cd ..
+    grep '>' -c merge_seq.fsa # 207条序列，此时可以进一步筛选序列，或提取部分
+    # 转换为phy格式
+    fasta2phy.pl -i merge_seq.fsa -o merge_seq.phy
+    # 方法1. fasttree
+    
+# 2019/10/31 D:\work\rice\integrate16s\v2OTU\fig\191031\ 整理最新版图
+
+## 群体结构
+
+    # 参考 ~/ehbio/train/08ReSeq/reseq/population_genomics/pipeline.sh
+    # vcf生成fasta，然后建树，itol可视化
+    # 参考 ~/rice/miniCore/mwas/genotype
+    # 需要先将vcf合并，再拆分为样品
+    cd ~/rice/integrate16s/v2OTU
+    mkdir -p genotype
+    cd genotype
+    
+   # 按染色体合并vcf-concat -c 检查列名，-f指定列表
+    #ln ~/rice/miniCore/mwas/genotype/*.vcf ./
+    #vcf-concat Chr*.vcf > rice.vcf # 2GB 太大，无法建树
+    # 提取单个样品，只提取基因区差异SNP
+    # 参考~/rice/miniCore/ # 筛选基因型只留引起AA变化的SNP
+
+    # 按指定顺序合并结果为空
+    #    ls *.vcf|sed 's/Chr//'|sort -n|sed 's/^/Chr/' > VcfChr.list
+    #    vcf-concat -c -f VcfChr.list > rice.vcf
+        # 仅合并missense类型的SNP
+        vcf-concat /mnt/bai/yongxin/rice/miniCore/mwas/genotype/missense/Chr*.vcf > rice.vcf # 80M
+
+    # vcf提取fasta
+        # 方法1. 按ehbio/reseq示例制作单样本文件，vcf格式不同，此脚本不读取样本信息列
+        # 拆分
+    #    mkdir -p sample
+    #    # 所有SNP要5min，只要60s，共5万多个位点
+    #    time vcf-subset -c X4202_X4202 rice.vcf > sample/X4202.vcf
+    #    # 以Chr9为例
+    #    head -n 7 /mnt/bai/yongxin/rice/miniCore/mwas/genotype/Chr9.vcf | tail -n1 | cut -f 10- | sed 's/\t/\n/g'| cut -f 1 -d '_' > varieties.list # less > 
+    #    mkdir -p sample
+    #    for i in `cat varieties.list`; do
+    #        time vcf-subset -c ${i}_${i} rice.vcf > sample/${i}.vcf
+    #    done
+    #    # 只提取了ref和Chr9，改用
+    #    cd ~/rice/integrate16s/v2OTU/genotype/sample
+    #    CreateSnpTreeSeq.py ../varieties.list .vcf > ../merge_seq.fsa # 脚本不参考0/1的值，结果全一样。
+    #    cd ..
+    #    grep '>' -c merge_seq.fsa # 207条序列，此时可以进一步筛选序列，或提取部分
+    #    # 转换为phy格式
+    #    fasta2phy.pl -i merge_seq.fsa -o merge_seq.phy
+
+
+    # 方法2. vcf-consensus提取序列，tabix报错
+    # vcf排序
+    cat rice.vcf | vcf-sort > rice_sort.vcf
+    tabix -p vcf rice_sort.vcf # tbx_index_build failed: rice_sort.vcf
+    cat /mnt/bai/public/ref/rice/IRGSP1/IRGSP-1.0_genome.fasta|vcf-consensus rice_sort.vcf > merge_seq.fsa
+    # vcf-consensus
+
+    # 手动编写提取
+    # perl脚本提取
+    vcf2fasta.pl -i rice_sort.vcf -o merge_seq.fa -h 11
+    # 方法1. fasttree,3s
+    time fasttreeMP -nt -gtr merge_seq.fa > merge_seq.tree # MP是多线程版，nt核酸，-gtr适合核酸的广义时间重塑模型
+    # fasttree -nt -gtr merge_seq.fa > merge_seq.tree
+    # 方法2. iqtree，也很快，也准确
+    # 只筛选四大亚种的序列
+    mv merge_seq.fa merge_seq.fa.bak
+    wc -l ~/rice/miniCore/doc/minicore_list.txt # 203个品种
+    # R脚本筛选
+    table_subset.sh -i ~/rice/miniCore/doc/minicore_list.txt \
+        -A Subspecies -B '"IND","TEJ","TRJ","AUS"' \
+        -o minicore4subspecies.txt # 203 to 178
+    # csvtk筛选
+    csvtk -t grep -f Subspecies -p AUS,IND,TEJ,TRJ ~/rice/miniCore/doc/minicore_list.txt > minicore4subspecies.txt
+    tail -n+2 minicore4subspecies.txt|cut -f 2| awk '{print $1"_"$1}' > select.id
+    # 与实验数据筛选
+    tail -n+2 ../fig/data/miniCore_metadata.txt|cut -f 4|sort|uniq > miniCore165.id # 165个品种
+    # cat miniCore165.id <(cut -f 1 -d '_' select.id) | sort | uniq -u
+    # 找到G4064、X4201和X4202三个特异的编号
+    # cat miniCore165.id <(cut -f 1 -d '_' select.id) | sort | uniq -d | wc  # 与miniCore165.id一致
+    # 提取序列，找到173条序列
+    awk '{print $1"_"$1}' miniCore165.id > select.id
+    usearch10 -fastx_getseqs merge_seq.fa.bak -labels select.id -fastaout merge_seq.fa
+    # 查看缺失的序列 L4102 / M4120
+    # cat <(grep '>' merge_seq.fa|sed 's/>//') select.id | sort | uniq -u 
+    # 提取最后使用的样本ID
+    grep '>' merge_seq.fa | cut -f 1 -d '_' | sed 's/>//' > final_varieties.id
+    # 统计使用的SNP数量
+    head -n2 merge_seq1.fa|tail -n+2|awk '{print length($1)}' # 58450个SNP misense
+
+    # 再用datafilter筛选品种
+    # 建树 10h
+    iqtree --version # 1.6.12
+    time iqtree -s merge_seq.fa -st DNA -m TEST -bb 1000 -alrt 1000 -nt 20 -pre iqtree165 -quiet # 结果为genotype/iqtree.contree
+    format_fasta_1line.pl -i merge_seq.fa -o merge_seq1.fa
+    grep -v '>' merge_seq1.fa |sort|uniq |wc -l # 165非冗余序列
+    
+    # 注释树
+    grep '>' merge_seq.fa|sed 's/>//' >merge_seq.id
+    paste merge_seq.id <(cut -f 1 -d '_' merge_seq.id) | sed '1 i ID\tEFD' > merge_seq.id2
+    awk 'BEGIN{OFS=FS="\t"} NR==FNR{a[$2]=$13} NR>FNR {print $0,a[$2]}' ~/rice/miniCore/doc/minicore_list.txt merge_seq.id2 | sed 's/\t$/\tNA/' > merge_seq.id3
+    Rscript ~/ehbio/amplicon/02Software/script/table2itol.R -a -c double -D planA -i ID -l EFD -t %s -w 0.5 merge_seq.id3
+    Rscript ~/ehbio/amplicon/02Software/script/table2itol.R -a -d -c none -D planB -b New_Structure -i ID -l EFD -t %s -w 0.5 merge_seq.id3
+
+
+### 亚种建树
+
+    cd ~/rice/integrate16s/v2OTU/genotype
+    # 按亚种，把序列进行一致性序列计算，再构建进化树
+    cut -f 1 -d '_' merge_seq.fa > merge_clean.fa
+    consensus_fa.pl -i merge_seq.fa -o consensus_merge # 生成.fa一致序列和.stat统计
+    cut -f 2,13 ../doc/minicore_list.txt > ../doc/minicore_subspecies.txt
+
+    # 4大亚种无法确定根，需要有ARO在内当外类群
+    for i in IND TEJ TRJ AUS ARO; do
+    # i=AUS
+    # 筛选亚种ID
+    grep -P "\t${i}$" ../doc/minicore_subspecies.txt | cut -f 1 > subspecies_${i}.id
+    # 提取序列
+    usearch10 -fastx_getseqs merge_clean.fa -labels subspecies_${i}.id -fastaout subspecies_${i}.fa
+    # 转换为单行fasta格式
+    format_fasta_1line.pl -i subspecies_${i}.fa -o subspecies_${i}1.fa
+    # 统计一致序列
+    consensus_fa.pl -i subspecies_${i}1.fa -o subspecies_${i}_consensus
+    done
+    rm consensus*
+    cat subspecies_*_consensus.fa > consensus.fa
+    sed -i 's/subspecies_//;s/_consensus//' consensus.fa
+    time iqtree -s consensus.fa -st DNA -m TEST -bb 1000 -alrt 1000 -nt 20 -pre subspecies5 -quiet -redo # 结果为 subspecies5.contree
+    # 结果采用itol展示
+
+    # 以LN下均值为例进行高低分蘖的差异比较，均值下分蘖和菌丰度更能代表品种的真实情况
+    cd ~/rice/integrate16s/v2OTU/LN
+    # 新实验设计，由D:\work\rice\integrate16s\v2OTU\fig\191031\fig1.Rmd ### LN分蘖分组 产生LNmean/metadata.txt
+    http://210.75.224.110/report/16Sv2/rice_miniCore_LN_tiller_v1
+
+
+### 实验菌与高丰度菌比较
+
+    # 2019/11/20号邮件，实验用菌 wet/徐浩然-分蘖相关细菌两批实验结果.xlsx
+    # 选择菌的序列为final列，保存ID和序列为experiment.fa，效果为experiment.txt
+    cd ~/rice/integrate16s/v2OTU/wet
+    sed -i 's/\t/\n/' experiment.fa
+    sed -i 's/^/>/' experiment.fa
+    grep -c '>' experiment.fa # 65个实验菌
+    # 筛选高丰度菌3%
+    cut -f 1 ../LN/rice_miniCore_LN_tiller_v0.3/result/compare/T6-T1_all.txt > otu.id
+    usearch10 -fastx_getseqs ../result/otu.fa -labels otu.id -fastaout otu.fa # 46个高丰度菌
+    makeblastdb -dbtype nucl -in otu.fa
+    blastn -query experiment.fa -db otu.fa -out experiment_otu.txt -outfmt '6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qcovs' -num_alignments 1 -evalue 1 -num_threads 9 
+    # 比对中有63个可比对，36个大于97%
+    awk '$3>97' experiment_otu.txt | cut -f 1-3 > experiment_otu97.txt
+    # 添加差异和相关及作用类型
+    awk 'BEGIN{OFS=FS="\t"} NR==FNR{a[$1]=$6} NR>FNR {print $0,a[$2]}' ../LN/rice_miniCore_LN_tiller_v0.3/result/compare/T6-T1_all.txt experiment_otu97.txt > temp
+    dos2unix ../fig/191031/LNmean/pheno_variety_OTU_pearson_tiller.txt
+    awk 'BEGIN{OFS=FS="\t"} NR==FNR{a[$1]=$2"\t"$3} NR>FNR {print $0,a[$2]}' ../fig/191031/LNmean/pheno_variety_OTU_pearson_tiller.txt temp > temp1
+    awk 'BEGIN{OFS=FS="\t"} NR==FNR{a[$1]=$5} NR>FNR {print $0,a[$1]}' experiment.txt temp1 > experiment_otu97_anno.txt
 
 
 
+## 与菌库对应示例代码
+
+    # 提取差异OTUID和序列
+    cd ~/rice/integrate16s/v2OTU/wet
+    cut -f 1 ../fig/191031/otutab_mean.txt > otu.id
+    usearch10 -fastx_getseqs ../result/otu.fa -labels otu.id -fastaout otu.fa # 65个高丰度菌
+    # 与水稻菌库比对
+    blastn -query otu.fa -db /mnt/bai/yongxin/culture/rice/stock/sequence.fa -out experiment_otu.txt -outfmt '6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qcovs' -num_alignments 1 -evalue 1 -num_threads 9 
+    # 筛选97%以上相似匹配结果
+    awk '$3>97' experiment_otu.txt | cut -f 1-3 > experiment_otu97.txt
+    sed -i 's/\r//g' ../fig/191031/K2DiffCor.txt
+    awk 'BEGIN{OFS=FS="\t"} NR==FNR{a[$1]=$2"\t"$3} NR>FNR {print $0,a[$1]}' experiment_otu97.txt ../fig/191031/K2DiffCor.txt > ../fig/191031/K2DiffCor_culture.txt
+    # 筛选更多的比对结果
+    blastn -query otu.fa -db /mnt/bai/yongxin/culture/rice/stock/sequence.fa -out experiment_otu10.txt -outfmt '6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qcovs' -num_alignments 10 -evalue 1 -num_threads 9 
+    awk '$3>97' experiment_otu10.txt | cut -f 1-3 > experiment_otu97-10.txt
+    # 添加来源
+    awk 'BEGIN{OFS=FS="\t"} NR==FNR{a[$1]=$5"\t"$6"\t"$7} NR>FNR {print $0,a[$2]}' /mnt/bai/yongxin/culture/rice/stock/rice_stock_200103_full.txt experiment_otu97-10.txt  > experiment_otu97-10_anno.txt
+
+    # K2DiffCor_culture.txt HN/LN的差异、相关共4个批量的结果整合，最后标注出了显著的次数和是否有菌保
+    #experiment_otu97-10_anno.txt OTU对应菌库中多个菌株的信息
+
+    # 与原始分菌库比较 2019/12/23
+    mkdir -p hts
+    blastn -query otu.fa -db ~/culture/rice/result/culture_select.fa -out hts/tiller_sig_OTU.blastn -outfmt '6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qcovs' -num_alignments 1 -evalue 1 -num_threads 9 
+    awk '$3>97' hts/tiller_sig_OTU.blastn|cut -f 1-6>hts/tiller_sig_OTU.blastn97
+    sed 's/^/OTU_/' ~/culture/rice/result/culture_select.xls > ~/culture/rice/result/culture_select.xlsx
+    awk 'BEGIN{OFS=FS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print $0"\t"a[$2]}' ~/culture/rice/result/culture_select.xlsx hts/tiller_sig_OTU.blastn97 > hts/tiller_sig_OTU.blastn97annobatch1
+    # 输出新菌ID对应的多行：读入ID，原文件检查是否存在，存在于ID中则输出
+    awk 'BEGIN{OFS=FS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print $0,a[$1]}' hts/tiller_sig_OTU.blastn97annobatch1 ../fig/191031/K2DiffCor_culture.txt> hts/tiller_sig_OTU.blastn97annobatch1New
+
+    # 与第二批菌库比较并追加
+    blastn -query otu.fa -db ~/culture/rice/190626/result/culture_select.fa -out hts/tiller_sig_OTU.blastn -outfmt '6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qcovs' -num_alignments 1 -evalue 1 -num_threads 9 
+    awk '$3>97' hts/tiller_sig_OTU.blastn|cut -f 1-6>hts/tiller_sig_OTU.blastn97
+    sed 's/^/COTU_/' ~/culture/rice/190626/result/culture_select.xls > ~/culture/rice/190626/result/culture_select.xlsx
+    awk 'BEGIN{OFS=FS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print $0"\t"a[$2]}' ~/culture/rice/190626/result/culture_select.xlsx hts/tiller_sig_OTU.blastn97 > hts/tiller_sig_OTU.blastn97annobatch2
+    # 输出新菌ID对应的多行：读入ID，原文件检查是否存在，存在于ID中则输出
+    awk 'BEGIN{OFS=FS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print $0,a[$1]}' hts/tiller_sig_OTU.blastn97annobatch2 hts/tiller_sig_OTU.blastn97annobatch1New > hts/tiller_sig_OTU.blastn97annobatch2New
+
+    # 添加OTU物种注释
+    awk 'BEGIN{OFS=FS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print a[$1]"\t"$0}' ../result/taxonomy_8.txt hts/tiller_sig_OTU.blastn97annobatch2New > hts/tiller_sig_OTU.blastn97annobatch2New.tax
+
+    # Batch5分蘖实验 wet/batch5  2020/2/18
+    # wet/batch5/R2413-B02.txt 为一株错误菌保但有正相关；保存序列为stock.fa
+    cd ~/rice/integrate16s/v2OTU/wet
+    sed -i 's/^/>/;s/\t/\n/' batch5/stock.fa
+    blastn -query batch5/stock.fa  -db otu.fa -out batch5/stock.blastn -outfmt '6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qcovs' -num_alignments 10 -evalue 1 -num_threads 9 
+    awk '$3>97' batch5/stock.blastn |cut -f 1-6 > batch5/stock.blastn97 # 与表比对基本一致，2413对应OTU_268，在tiller_sig_OTU.blastn97annobatch2New.xlsx中显著差异或相关
+    less batch5/stock.blastn97 # 查看到原始表对应，重点看四个目标菌-正确
+    # 查R2413对应OTU_268外其它序列和相关分类菌 2020/5/6
+    blastn -query batch5/stock.fa  -db ../result/otu.fa -out batch5/stock.blastnA -outfmt '6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qcovs' -num_alignments 10 -evalue 1 -num_threads 9 
+
+### 200509batch6verify 2020/5/9 
+
+    # 根据表格A7/B7为R2413
+    cd ~/rice/integrate16s/v2OTU/wet/200509batch6verify
+    cat seq/*.txt > seq.fa
+    blastn -query seq.fa  -db ../../result/otu.fa -out stock.blastn -outfmt '6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qcovs' -num_alignments 10 -evalue 1 -num_threads 9 
+
+
+## GWAS结果与实验菌比较 2020/1/13
+    # GWAS分析结果见HN 或 LN/emmax/target_symbol.txt 
+    cd ~/rice/integrate16s/v2OTU
+    cat ?N/emmax/target_symbol.txt | cut -f 1 | sed 's/log2.//' | grep -v 'PositiveControl' | sort | uniq | tr '\n' '|'
+    grep -P 'Azospirillum|Flavobacterium|Hyphomicrobium|Methylobacterium|OTU_20|OTU_203|OTU_28|OTU_39|OTU_43|OTU_61|Paenibacillus|Spirochaeta' wet/hts/tiller_sig_OTU.blastn97annobatch2New.tax
+    # 在tiller_sig_OTU.blastn97annobatch2New.xlsx标记匹配结果，同时查看wet/experiment_otu97_anno.txt文件
+    # R2488抑制分蘖效果好，查找其与OTU_5相近， k__Bacteria;p__Proteobacteria;c__Betaproteobacteria;o__Burkholderiales;f__Burkholderiaceae;g__Burkholderia;s__Burkholderia_cenocepacia
+
+
+## R2488抑制分蘖菌
+    # 查看菌来源，与OTU对应关系
+    grep 'R2488' wet/* # 为与OTU_5 98.39%相似，在 experiment_otu97_anno.txt 中一致
+    # OTU的物种注释
+    # OTU_5/OTU_39/OTU_4/OTU_268分别查看
+    grep -P 'OTU_268\t' result/taxonomy_2.txt # c__Betaproteobacteria;o__Burkholderiales;f__Burkholderiaceae;g__Burkholderia;s__Burkholderia_cenocepacia
+    # 查看在miniCore中根据分蘖分组的差异情况
+    grep -P 'OTU_268\t' fig/191031/K2DiffCor_culture.txt # 它在HN/LN均显著差异和显著相关
+    # 查看SL中差异情况
+    grep -P 'OTU_268\t' rice_OTU_SL_Bj_wilcox_v1/result/compare/*sig.txt # 结果没有OTU_268，是在这两地中不表达吗？表达低，我看
+    grep -P 'OTU_268\t' rice_OTU_SL_Hn_wilcox_v1/result/compare/*sig.txt
+    grep -P 'OTU_4\t' rice_OTU_nrt_wilcox_v1/result/compare/*sig.txt
+    grep -P 'OTU_4\t' rice_OTU_nrt2_wilcox_v1/result/compare/*sig.txt
+    # 查看OTU_268在基因型中的分布，绝大多数无表达或极低；进一步看属也比较低
+	alpha_boxplot.sh -i `pwd`/result/otutab_norm.txt -m '"OTU_268"' \
+        -d `pwd`/doc/design_SL.txt -A genotypeID -B '"d27RtBj","d17RtBj","d10RtBj","d3AHLRtBj","d3NpRtBj","d3RtBj","d14AHLRtBj","d14RtBj","d53RtBj","NpRtBj","d27RtHn","d17RtHn","d10RtHn","d3RtHn","d14RtHn","d53RtHn","NpRtHn"' \
+        -o `pwd`/result/otu_boxplot/ -h 3 -w 10 -t TRUE -n TRUE
+    # 对应属为 Burkholderia/Pleomorphomonas/Exiguobacterium/Sphingomonas
+    # 查看属水平差异
+    grep -P 'Sphingomonas\t' rice_OTU_SL_Bj_wilcox_v1/result/compare_g/*sig.txt # 找到多个结果，都是下调
+    grep -P 'Sphingomonas\t' rice_OTU_SL_Bj_wilcox_v1/result/compare_g/*sig.txt|cut -f 4 -d '/'|cut -f 1 -d '-'
+    grep -P 'Sphingomonas\t' rice_OTU_SL_Hn_wilcox_v1/result/compare_g/*sig.txt # 在Hn无显著差异
+    grep -P 'Pleomorphomonas' rice_OTU_nrt2_wilcox_v1/result/compare_g/*sig.txt # 在Hn无显著差异
+	alpha_boxplot.sh -i `pwd`/result/tax/sum_g.txt -m '"Sphingomonas"' \
+        -d `pwd`/doc/design_SL.txt -A genotypeID -B '"d27RtBj","d17RtBj","d10RtBj","d3AHLRtBj","d3NpRtBj","d3RtBj","d14AHLRtBj","d14RtBj","d53RtBj","NpRtBj","d27RtHn","d17RtHn","d10RtHn","d3RtHn","d14RtHn","d53RtHn","NpRtHn"' \
+        -o `pwd`/result/otu_boxplot/ -h 3 -w 10 -t TRUE -n TRUE
+    # 只看北京在该属在SL中变化，有显著下调的结果
+	alpha_boxplot.sh -i `pwd`/result/tax/sum_g.txt -m '"Sphingomonas"' \
+        -d `pwd`/doc/design.txt -A groupID -B '"A50HnCp6","A50HnCp7","A50HnSz7","A50LnCp6","A50LnCp7","A50LnSz7","A56HnCp6","A56HnCp7","A56HnSz7","A56LnCp6","A56LnCp7","A56LnSz7","nrtHnCp7","nrtHnSz7","nrtLnCp7","nrtLnSz7","V3703HnCp6","V3703LnCp6","ZH11HnCp6","ZH11HnCp7","ZH11HnSz7","ZH11LnCp6","ZH11LnCp7","ZH11LnSz7"' \
+        -o `pwd`/result/otu_boxplot/ -h 3 -w 10 -t TRUE -n TRUE
+
+## 优秀表型菌 2020/02/24
+    # 代码参考上面 ## R2488抑制分蘖菌
+
+    # 查看GWAS关联
+    # /mnt/bai/yongxin/rice/integrate16s/v2OTU/LN/emmax 中 OTU_5 Burkholderia，并在HN/LN中查找统计结果
+    grep -P 'OTU_5|Burkholderia' emmax/target_symbol.txt
+    # LN下OTU_5位于emmax目录，log2.OTU_5位于emmax_log2中; HN下全在emmax目录中
+    
+    # 查看t-test结果
+    代码参考云笔记：GWAS流程-emmax-rice，表型与基因SNP分组统计
+    grep -P 'HIGH|MODERATE' ${out}/${i}.anno | cut -f 2-4,7 | uniq | less -S > ${out}/${i}.anno.good
+
+
+## miniCore核心微生物组 2019/11/24
+    
+    mkdir -p miniCore
+    # 203个品种在两块地中的分布，详见 fig/CoreMicrobiome.Rmd
+
+### 绘制cladogram
+    # 筛选核心菌ID及对应物种注释
+    awk '$3>=0.9' otutab_metadata.txt | cut -f 4 > otu0.9.id # 289个，288OTU，去除末注释的乘95个  taxonomy.txt
+    awk 'BEGIN{OFS=FS="\t"} NR==FNR{a[$1]=$0} NR>FNR {print a[$1]}' ../result/taxonomy_8.txt otu0.9.id | awk '$6!="Unclassified"' > taxonomy.txt # grep -v 'Unclassified' 
+    
+    # 生成骨架和背景色、标签和方向 fig/CoreMicrobiome.Rmd ### 制作graphlan文件
+    cat /mnt/bai/yongxin/culture/rice/graphlan/global.cfg 2_annotation_Family.txt > track0
+    # 结点ID
+    cut -f 5 -d '.' 1_tree_plain.txt > genus.id
+
+    # 1. 添加属合并丰度均值 ###属水平均计算，OTU按属合并，再筛选即可
+    study=miniCore
+    track=1
+    awk 'BEGIN{OFS=FS="\t"} NR==FNR{a[$1]=$2} NR>FNR {print $1,a[$1]}' RAmean_genus.txt genus.id > taxonomy.txt.RA${track}${study}
+    cat <(cat ~/github/Note/R/format2graphlan/cfg/heat3.cfg|sed "s/3/${track}/;s/green/yellow/") <(sed "s/\t/\tring_alpha\t${track}\t/g" taxonomy.txt.RA${track}${study} | tail -n+2 ) > track${track}${study}
+    # 柱状用log2，热图用zscore效果最好？默认也挺好，好像已经内部进行了转换
+    awk '{a=a+$2} END {print a}' taxonomy.txt.RA${track}${study} # 80.3%
+
+    # 2. 添加NBT北京野生型数据
+    mkdir -p pubNBT2019
+    ## 中国北京2019 NBT ~/rice/integrate16s/v2OTU/fig/CoreMicrobiome.Rmd # pubNBT2019
+    study=pubNBT2019
+    track=2
+    awk 'BEGIN{OFS=FS="\t"} NR==FNR{a[$1]=$2} NR>FNR {print $1,a[$1]}' RAmean_genus_${study}.txt genus.id | sed 's/\t$/\t0/' > taxonomy.txt.RA${study} 
+    awk '$2>0' taxonomy.txt.RA${study}|wc -l # 115个属，有115个检测到值
+    awk '{a=a+$2} END {print a}' taxonomy.txt.RA${study} # 73.4%
+    # 绘制丰度热度
+    # sed "s/\t/\tring_alpha\t${track}\t/g" taxonomy.txt.RA${study} | tail -n+2 > taxonomy.txt.RA${study}${track} # 柱状用log2，热图用zscore
+    # cat  <(cat /mnt/bai/yongxin/culture/rice/graphlan/abundance_heat.cfg|sed "s/3/${track}/") taxonomy.txt.RA${study}${track} > track${study}
+    # 绘制有无，track为位置整数，m为颜色,0控制丰度筛选，R为形状
+    cat <(cat /mnt/bai/yongxin/culture/rice/graphlan/ring1.cfg|sed "s/1/${track}/;s/m/b/") <(awk '$2>0' taxonomy.txt.RA${study} | cut -f 1 | sed "s/$/\tring_shape\t${track}\tR/") > track${track}${study}
+
+    # 3. 添加日本公共数据热图，需要继续研究实验设计筛选
+    study=pubRice2016
+    track=3
+    awk 'BEGIN{OFS=FS="\t"} NR==FNR{a[$1]=$2} NR>FNR {print $1,a[$1]}' RAmean_genus_${study}.txt genus.id | sed 's/\t$/\t0/' > taxonomy.txt.RA${study}${track} 
+    awk '$2>0' taxonomy.txt.RA${study}${track}|wc -l # 115个属，有104个检测到值
+    awk '{a=a+$2} END {print a}' taxonomy.txt.RA${study}${track} # 18.6%
+    #sed "s/\t/\tring_alpha\t${track}\t/g" taxonomy.txt.RA${study} | tail -n+2 > taxonomy.txt.RA${study}${track} # 柱状用log2，热图用zscore
+    #cat  <(cat /mnt/bai/yongxin/culture/rice/graphlan/abundance_heat.cfg|sed "s/3/${track}/") taxonomy.txt.RA${study}${track} > track${track}${study}
+    cat <(cat /mnt/bai/yongxin/culture/rice/graphlan/ring1.cfg|sed "s/1/${track}/;s/m/g/") <(awk '$2>0' taxonomy.txt.RA${study}${track} | cut -f 1 | sed "s/$/\tring_shape\t${track}\tR/") > track${track}${study}
+    
+    # 4. 添加美国公共数据热图
+    study=pubGB2019
+    track=4
+    awk 'BEGIN{OFS=FS="\t"} NR==FNR{a[$1]=$2} NR>FNR {print $1,a[$1]}' RAmean_genus_pubGB2019.txt genus.id | sed 's/\t$/\t0/' > taxonomy.txt.RA${study}${track}
+    # sed 's/\t/\tring_alpha\t4\t/g' taxonomy.txt.RA2 | tail -n+2 > 4_annotation_match.txt # 柱状用log2，热图用zscore
+    awk '$2>0' taxonomy.txt.RA2|wc -l # 115个属，有107个检测到值
+    awk '{a=a+$2} END {print a}' taxonomy.txt.RA2 # 29.6%
+    #cat  <(cat /mnt/bai/yongxin/culture/rice/graphlan/abundance_heat.cfg|sed 's/3/4/') 4_annotation_match.txt > track2
+    # 添加公共数据有无
+    #awk '$2>0' taxonomy.txt.RA2 | cut -f 1 | sed 's/$/\tring_shape\t11\tR/' > 11taxonomy.txt.RA2_R
+    #cat <(cat /mnt/bai/yongxin/culture/rice/graphlan/ring1.cfg|sed 's/1/11/') 11taxonomy.txt.RA2_R > track${track}${study}
+    cat <(cat /mnt/bai/yongxin/culture/rice/graphlan/ring1.cfg|sed "s/1/${track}/;s/m/m/") <(awk '$2>0' taxonomy.txt.RA${study}${track} | cut -f 1 | sed "s/$/\tring_shape\t${track}\tR/") > track${track}${study}
+
+    # 5. 添加意大利属有无
+    study=pubEMR2016
+    track=5
+    cat <(cat /mnt/bai/yongxin/culture/rice/graphlan/ring1.cfg|sed "s/1/${track}/;s/m/c/") <(cat RAmean_genus_${study}.txt | sed "s/$/\tring_shape\t${track}\tR/") > track${track}${study}
+    wc -l track${track}${study} # 74/115
+    # 添加列表，有填1
+    awk 'BEGIN{OFS=FS="\t"} NR==FNR{a[$1]=1} NR>FNR {print $1,a[$1]}' RAmean_genus_${study}.txt genus.id | sed 's/\t$/\t0/' > taxonomy.txt.RA${study}${track}
+
+
+    # 6. 添加埃及属有无(太差，删除)
+    study=pubME2019
+    track=6
+    cat <(cat /mnt/bai/yongxin/culture/rice/graphlan/ring1.cfg|sed "s/1/${track}/;s/m/y/") <(cat RAmean_genus_${study}.txt | sed "s/$/\tring_shape\t${track}\tR/") > track${track}${study}
+    wc -l track${track}${study} # 46/115
+
+    # 汇总
+    # 生成注释文件
+    cat track* > graphlan_annotate.txt
+    # 注释文件修改树
+    graphlan_annotate.py --annot graphlan_annotate.txt 1_tree_plain.txt graphlan.xml
+    # 绘图，size是图片大小，越大，字相对越小
+    graphlan.py graphlan.xml graphlan5.pdf --size 5
+
+### 检查目标13个属是否表达和丰度
+    
+    cd ~/rice/integrate16s/v2OTU/miniCore
+    # 查看属
+    tail -n+2 ../fig/data/genus_list_1sig_simCor_2dot.txt|cut -f1
+    # 按fig3中保存列表cor_genus.id
+    # 查看数据格式
+    head -n3 RAmean_genus_*
+    # 以一个为例 pubNBT2019 pubRice2016 pubGB2019 pubEMR2016 pubME2019
+    pub=pubME2019
+    sed -i 's/\r//' cor_genus.id
+    for i in `cat cor_genus.id`; do
+      grep $i RAmean_genus_${pub}.txt
+    done
+    # 整理至minicore/cor_genus.xlsx
+
+
+## 附录1. 公共数据整理比对核心菌
+
+### 美国Genome Biology 2019 (GB2019) 2019/11/20
+
+    # 下载github https://github.com/bulksoil/SoilDomestication
+    cd ~/github/SoilDomestication
+    git clone https://github.com/bulksoil/SoilDomestication
+    # 数据全完没有，只有一个目录中有RDS数据，读取后有119个样品名，也无物种信息
+    # Zenodo数据
+    wget https://zenodo.org/record/3372822#.XdSzUpozYUE
+    # SoilDomesticationData/OTU_Files/soil_domestication_sample_info.tsv # 442个样品
+    #NCBI under project no. PRJNA548898 [56]. All processed datasets have been deposited in a Zenodo repository https://doi.org/10.5281/zenodo.3372822 [57]. R notebooks for the full analyses are freely available under the GNU General Public License v3.0 in the GitHub r
+    # PRJNA548898在NCBI有样本214个，附表15个中没有实验设计，https://www.ncbi.nlm.nih.gov/bioproject/PRJNA548898
+    # 点击样本数量 214进行列表，再点击Send results to Run selector，下载样本列表 Table
+    # 筛选水稻且非土壤，找到95个水稻的根内和根际土样品
+    # 下载数据
+    prefetch SRR9617953
+    # -A按编号下载数据无效；可以转换
+    fastq-dump SRR9617953/SRR9617953.sra --split-spot -O seq/ --gzip --split-3 # 2.10.0
+
+    # 批量下载
+    cd ~/rice/integrate16s/v2OTU/pubGB2019/
+    mkdir -p seq/sample
+    for i in `tail -n+2 doc/metadata.txt|cut -f 1`; do
+        # prefetch ${i} --output-directory seq/
+        fastq-dump seq/${i}/${i}.sra --split-spot -O seq/ --split-3
+    done
+    rename 's/fastq/fq/' seq/sample/* # 改名至符合流程，从merge开始
+    # GTGCCAGCMGCCGCGGTAA GGACTACHVGGGTWTCTAAT # 正反向引物均没匹配成功，是否已经去除了吗？
+    # 接下来采用流程进行 pubGB2019/
+
+### 日本2016 Rice Greengene
+    mkdir -p pubRice2016
+    cd pubRice2016    
+    ln ../doc/list/07* ./
+    biom convert -i 07JapanRice.biom -o otutab_gg85.txt --to-tsv
+    sed -i '/# Construc/d;s/#OTU ID/OTUID/' otutab_gg85.txt
+    wc -l otutab_gg85.txt # 有152300行
+    # 只筛选greengeneID的，去除New后10797，也绝不可能是85_otus，而且基本无法匹配
+    grep -v 'New' otutab_gg85.txt > otutab.txt # |wc -l
+    grep '>' -c ~/ref/greengenes/gg_13_8_otus/rep_set/85_otus.fasta # 才有5088条序列，只有97和99比此表大，分别20万和40万条
+    # 比较见CoreMicrobiome.Rmd ## pubRice2016 
+
+### 意大利 2014 Rice 物种注释，与我们的注释文字比对
+    mkdir -p pubEMR2016
+    cd pubEMR2016
+    cut -f 1 taxonomy.txt|tail -n+2|awk '{print "OTU_"NR"\t"$0}'|less>taxonomy2.txt
+    sed 's/;/\t/g' taxonomy2.txt | sed '1 s/^/OTUID\tKingdom\tPhylum\tClass\tOrder\tFamily\tGenus\tSpecies\n/' > otus.tax
+    # 与树比对，见pubEMR2016
+
+### 埃及 2019 ME 
+    # PRJNA526033 但检索不到，可能末公开
+    # 查看20个附件，没有目录；在文中有ESM中描述，需要检索；找到ESM3保存为taxonomy
+    mkdir -p pubME2019/
+    cd pubME2019/
+    awk 'BEGIN{OFS=FS="\t"}{delete a; a["d"]="Unassigned";a["p"]="Unassigned";a["c"]="Unassigned";a["o"]="Unassigned";a["f"]="Unassigned";a["g"]="Unassigned";a["s"]="Unassigned";\
+        split($2,x,";");for(i in x){split(x[i],b,"__");a[b[1]]=b[2];} \
+        print $1,a["d"],a["p"],a["c"],a["o"],a["f"],a["g"],a["s"];}' \
+        taxonomy.txt > otus.tax
+    sed -i '1 s/^/OTUID\tKingdom\tPhylum\tClass\tOrder\tFamily\tGenus\tSpecies\n/' otus.tax
+
+
+### 与核心OTU比对：gg提取v5-v7区域，sintax物种注释；按科和属合并丰度 2019/11/28
+    # 提取采用QIIME2导入，提取和导出
+    cd ~/ref/greengenes/gg_13_8_otus/rep_set
+    conda activate qiime2-2019.7
+    time qiime tools import \
+      --type 'FeatureData[Sequence]' \
+      --input-path 97_otus.fasta \
+      --output-path 97_otus.qza
+    time qiime feature-classifier extract-reads \
+      --i-sequences 97_otus.qza \
+      --p-f-primer AACMGGATTAGATACCCKG \
+      --p-r-primer ACGTCATCCCCACCTTCC \
+      --o-reads 97_otusV5-7.qza # 7m
+    qiime tools export \
+      --input-path 97_otusV5-7.qza \
+      --output-path 97_otusV5-7
+    # 物种注释
+    usearch10 -sintax 97_otusV5-7/dna-sequences.fasta \
+        -db /mnt/bai/public/ref/rdp/rdp_16s_v16_sp.udb -sintax_cutoff 0.8 -strand both \
+        -tabbedout 97_otusV5-7/dna-sequences.fasta.tax -threads 32
+    cut -f 1,4 97_otusV5-7/dna-sequences.fasta.tax | sed 's/\td/\tk/;s/:/__/g;s/,/;/g;s/"//g;s/\/Chloroplast//' > 97_otusV5-7/taxonomy_2.txt
+    # 生成物种表格：注意OTU中会有末知为空白，补齐分类未知新物种为Unclassified
+    awk 'BEGIN{OFS=FS="\t"} {delete a; a["k"]="Unclassified";a["p"]="Unclassified";a["c"]="Unclassified";a["o"]="Unclassified";a["f"]="Unclassified";a["g"]="Unclassified";a["s"]="Unclassified"; split($2,x,";");for(i in x){split(x[i],b,"__");a[b[1]]=b[2];} print $1,a["k"],a["p"],a["c"],a["o"],a["f"],a["g"],a["s"];}' 97_otusV5-7/taxonomy_2.txt | sed '1 i #OTU ID\tKingdom\tPhylum\tClass\tOrder\tFamily\tGenus\tSpecies' > 97_otusV5-7/taxonomy_8.txt
+    # 去除#号和空格，会引起读取表格分列错误
+    sed -i 's/#//g;s/ //g' 97_otusV5-7/taxonomy_8.txt
+    # 在fig/CoreMicrobiome.Rmd中按科、属汇总求均值
+
+
+
+## 选菌合成群落方案SynComm 2020/6/3
+
+    # 筛选4个基因中千分之一共有上调47个，下调14个，不变12个。
+    ll result/compare/*.xls.xls
+    tail -n 47 result/compare/*E.xls.xls | cut -f 1,2,3,5 | sed 's/$/\tEnriched/' > wet/SL4_conserved_OTU.txt
+    tail -n 14 result/compare/*D.xls.xls | cut -f 1,2,3,5 | sed 's/$/\tDepleted/' >> wet/SL4_conserved_OTU.txt
+    tail -n 12 result/compare/*N.xls.xls | cut -f 1,2,3,5 | sed 's/$/\tNotSig/' >> wet/SL4_conserved_OTU.txt
+    sed -i '1 i OTUID\tStockID\tSimilarity\tRA\tLevel' wet/SL4_conserved_OTU.txt
+    # 筛选可培养菌，25个
+    awk '$3>=97' wet/SL4_conserved_OTU.txt > wet/SL4_conserved_OTU_cultured.txt
+
+    # 建树可视化选菌
+    # 筛选高丰度，conserved建树，可培养，并树上注释门、可培养
+    # 标注列的序列
+    #### 方案1. 千分之1保守的菌
+    mkdir -p wet/syncom
+    # 提取序列
+    cut -f 1 wet/SL4_conserved_OTU_cultured.txt > temp/syncom_OTU.id
+    usearch10 -fastx_getseqs result/otu.fa -labels temp/syncom_OTU.id -fastaout temp/syncom_OTU.fa
+    # 建树
+    threshold=0.1
+    mkdir -p wet/syncom/p${threshold}
+    time muscle -in temp/syncom_OTU.fa -out temp/syncom_OTU_aligned.fas
+    time iqtree -s temp/syncom_OTU_aligned.fas -st DNA -m TEST -bb 1000 -alrt 1000 -nt 20 -pre wet/syncom/p${threshold}/tree -quiet -redo
+    # 制作注释文件
+    awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print $0,a[$1]}' result/taxonomy_8.txt wet/SL4_conserved_OTU_cultured.txt |cut -f 1-5,7-> wet/syncom/p${threshold}/annotation.txt
+    Rscript ~/bin/table2itol/table2itol.R -a -c double -D  wet/syncom/p${threshold} -i OTUID -l Genus -t %s -w 0.5 wet/syncom/p${threshold}/annotation.txt
+    # 输出更多候选
+    blastn -query temp/syncom_OTU.fa -db /mnt/bai/yongxin/culture/rice/stock/sequence.fa -out temp/culture_otu.blastn -outfmt '6 qseqid sseqid pident qcovs length mismatch gapopen qstart qend sstart send evalue bitscore' -num_alignments 999 -evalue 1 -num_threads 9
+    awk '$3>97' temp/culture_otu.blastn | cut -f 1-3,6,7 | sed '1 i OTUID\tStockID\tSimilarity\tMismatch\tGaps'> wet/syncom/p${threshold}/culture_otu.blastn.txt
+
+
+    #### 人工挑选菌去冗余
+    cd ~/rice/integrate16s/v2OTU/wet
+    i=200617
+    cat ${i}/plan1.id | sort | uniq -d # 无重复
+    cat ${i}/plan1.id | sort | uniq > ${i}/plan1.id.nr
+    wc -l ${i}/plan1.id.nr # 67个非冗余
+    usearch10 -fastx_getseqs /mnt/bai/yongxin/culture/rice/stock/sequenceV5-7.fa -labels ${i}/plan1.id.nr -fastaout ${i}/plan1.fa
+    makeblastdb -in ${i}/plan1.fa -dbtype nucl
+    blastn -query ${i}/plan1.fa -db ${i}/plan1.fa -out ${i}/plan1.blastn -outfmt '6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qcovs' -num_alignments 100 -evalue 1 -num_threads 9
+    grep 100.00 ${i}/plan1.blastn|less|wc -l # 153重复
+    # 结果用wet/blast_self_heatmap.Rmd可视化

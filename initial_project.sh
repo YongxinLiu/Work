@@ -32,9 +32,27 @@
     # 2019/7/6 rice/integrate16s/v2/LN 水稻GWAS LN
     # 2019/7/6 rice/integrate16s/v2/HN 水稻GWAS HN
     # 2019/9/10 medicago/AMF3 苜蓿按新思路并修改实验设计
+    # 2019/10/8 rice/hinge1/16s2 水稻hinge1细菌重测数据替换部分文库
+    # 2019/10/24 rice/alkali 水稻耐盐碱能力
+    # 2019/10/25 rice/timecourse 水稻时间序列
+    # 2019/11/20 ath/pi.absort.GaoCL 拟南芥磷吸引
+    # 2019/11/20 rice/integrate16s/v2OTU/pubGB2019 水稻公共GB数据95个
+    # 2019/12/13 rice/blast 水稻稻瘟病 - 卢训丽
+    # 2020/2/17 wheat/FHB/sourcetrack 小麦赤霉病 - 陈云
+    # 2020/5/29 rice/rnaSL - 张婧赢
+    # 2020/11/8 rice/miniCore2 - miniCore样本重拆库为双端
+    # 2020/11/9 rice/strigolactone.LiJY2 - strigolactone.LiJY样本重拆库为双端
+    # 2020/12/3 medicago/AMF4 苜蓿按新思路并修改实验设计
+    # 2020/12/10 medicago/AMF4/SynCom2Sand 苜蓿SynCom2沙子体系实验有参分析
+    # 2020/12/16 medicago/AMF4/SynCom1Sand 苜蓿SynCom1沙子体系实验有参分析
+    # 2020/12/24 medicago/AMF4/SynCom1SandDenovo 苜蓿SynCom1沙子体系实验
+    # 2020/12/27 medicago/AMF4/SynCom2SandDenovo 苜蓿SynCom2沙子体系实验
+    # 2020/12/31 medicago/AMF4/SynCom1FlowPotDenovo 苜蓿SynCom1在FlowPot体系中实验
+
+
 
 ## 项目建立代码
-    wd=medicago/AMF3
+    wd=medicago/AMF4/SynCom1FlowPotDenovo
     # 创建github目录，用于备份流程、文档
     cd ~
     mkdir -p ~/github/Work/$wd

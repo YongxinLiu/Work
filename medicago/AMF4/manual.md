@@ -28,7 +28,7 @@
 	## 0.1 准备流程配置文件
 
 	# 设置工作目录
-	wd=medicago/AMF3
+	wd=medicago/AMF4
 	# 创建环境代码见~/github/Work/initial_project.sh
 
 	## 准备实验设计
@@ -38,8 +38,9 @@
 	make init
 
 	# 保存模板中basic页中3. 测序文库列表library为doc/library.txt
-	#sed -i 's/\t/\tL171121_/' doc/library.txt # time check SeqLibraryList.xlsx
-    cp ../AMF2/doc/library.txt doc/
+    cp ../AMF3/doc/library.txt doc/
+    cat doc/library.txt
+    # 共12个文库，来自17个8，11，12三批
 	# 按library中第二列index准备测序文库，如果压缩要添加.gz，并用gunzip解压
 	awk 'BEGIN{OFS=FS="\t"}{system("ln -s /mnt/bai/yongxin/seq/amplicon/"$2"_1.fq.gz seq/"$1"_1.fq.gz");}' <(tail -n+2 doc/library.txt )
 	awk 'BEGIN{OFS=FS="\t"}{system("ln -s /mnt/bai/yongxin/seq/amplicon/"$2"_2.fq.gz seq/"$1"_2.fq.gz");}' <(tail -n+2 doc/library.txt )
@@ -49,7 +50,7 @@
 	gunzip -f seq/*.gz
 
 	# 标准多文库实验设计拆分，保存模板中design页为doc/design_raw.txt
-
+    cp ../AMF3/doc/design_raw.txt doc/
     dos2unix doc/*.txt
 	split_design.pl -i doc/design_raw.txt
 	# 从其它处复制实验设计
@@ -72,7 +73,7 @@
 	make library_split
 	make library_split_stat
 	# 统计结果见result/split有txt/pdf/png，推荐看png方便快速查看每张位图
-	# 查看样本量排序
+	# 查看样本量排序，仅有3上个小于4.8万
 	sort -k2,2n result/sample_split.log|less
 
 ## 1.3. 样品双端合并、重命名、合并为单一文件
@@ -148,13 +149,22 @@
 
 ## 1.11. 过滤样本和OTUs
 
+    # 链接之前的OTU表
+    ln ../AMF3/temp/otutab.txt temp/
 	# OTU table filter samples and OTU
 	# 推荐过滤低测序量<5000的样本，筛选大于1RPM的OTU
-	make otutab_filter 
+	make otutab_filter
+    # 其余最小值为23907，仅有2个2万，3个3万，7个4万，3个5万，10个6万。
+    # 筛选非第一批的结果，仅有2个2万，3个2万，1个4万，2个5万，10个6万。
+    tail -n+16 result/otutab.biom.sum |  grep -v 'B0' | less
+    # 采用6万抽平
+    make otutab_norm
 
 
 ## 1.12. 物种注释
 
+    # 链接之前的OTU序列
+    ln ../AMF3/result/otu.fa result/
 	# Assign taxonomy
 	# 默认使用RDP trainset快而准，GG太旧，Silva太慢
 	# 推荐阈值为0.6保证注释更完整
@@ -163,13 +173,15 @@
 
 ## 1.13. 物种统计
 	
-	# Taxonomy summary
+	# Taxonomy summary(ASV多，时间长)
 	# 必须所有物种有注释，否则有可能报错
 	make tax_sum
 
 
 ## 1.14. 多序列比对和进化树
 	
+    touch tree_make
+    ln ../AMF3/result/otu.tree temp/
 	# Multiply alignment and make_phylogeny
 	# usearch10/culsterO结果不同可能影响多样性分析(usearch unifrac结果更可信)
 	# 进化树，用于树图和多样性分析

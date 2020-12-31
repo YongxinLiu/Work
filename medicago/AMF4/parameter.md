@@ -12,7 +12,7 @@ SHELL:=/bin/bash
 	# make init # 建立分析所需子目录
 
 	# 设置任务最大运行任务/线程数，超过CPU数量效率反而会降低
-	p=36
+	p=32
 	
 	# 数据库
 	# Greengene 13 May database, fa for usearch format, udb for usearch index
@@ -28,20 +28,25 @@ SHELL:=/bin/bash
 	# 注意：务必查看文库文件中Index具体格式，默认为#Index，其它情况需修改主流程源代码main_pipeine.sh
 	# 文库名
 	lane=lane
+	lib_log=result/library.log
 
-## 1.2. library_split 拆分文库为样品
+## 1.2. library_split_stat 拆分文库为样品
 
 	# Split library into sample
 	# 默认只拆分单左端barcode类型的样品:先匹配左端，再提取序列ID，再提取右端，最后改名，注意实验设计要严格规范无空格
+	# 每个文库中数量统计为result/split/L?.txt，结果有文本、PDF和PNG见result/split目录
+	sample_split=result/sample_split.log
 
-## 1.3. sample_merge 双端序列合并
+## 1.3. sample_merge_stat 双端序列合并
 
-	# Merge pair-end reads
+	# Merge pair-end reads 结果位于seq/merge中可用于提交NCBI，并合样品文件为seq/all.fq
 	# 如果是pair-end reads是phred64，需要先使用fastp转换为33且关闭质控(质控影响序列长度)，再使用usearch10 mergepair
+	sample_merge=result/sample_merge.log
 
 ## 1.4. fq_trim 切除引物和标签
 
 	# Cut barcode 10bp + primer V5 19bp in left, and primer V7 18bp in right
+	# Cut barcode 10bp + ITS1F 22bp in left， and ITS2 20bp in right
 	stripleft=29
 	stripright=18
 
@@ -54,14 +59,15 @@ SHELL:=/bin/bash
 ## 1.6. fa_unqiue 序列去冗余
 
 	# Remove redundancy
-	# 最小序列频率miniuniqusize默认为8，去除低丰度，增加计算速度，整lane的序列可更改为30，4亿条序列，甚至400(百万分之一，7500个样中单样本最大千7，10个重复均值才万7，已经非常小了)
-	minuniquesize=500
+	# 最小序列频率默认为8，去除低丰度，增加计算速度，整lane的序列推荐1/1M，即上一步最后一行的数据量
+	# 根据fq_qc输出结果判断，如最后一行输出数据据量53M，推荐阈值为50
+	minuniquesize=96
 
 ## 1.7. otu_pick 挑选OTU
 
 	# Pick OTUs
 	# 可选97% cluster_otus 和 unoise3 ，默认unoise3
-	otu_method=cluster_otus
+	otu_method=unoise3
 	# OTU日志文件，记录从挑选至过滤为最终的过程
 	otu_log=result/otu.log
 
@@ -79,7 +85,7 @@ SHELL:=/bin/bash
 ## 1.9. host_rm 去宿主
 
 	# Remove host original sequences
-	# 去宿主方法选择 blast / sintax_gg / sintax_silva，推荐：sintax_silva
+	# 去宿主方法选择 blast / sintax_gg / sintax_silva / sintax_silva_its / sintax_unite / none，推荐：sintax_silva
 	host_method=sintax_silva
 	# 方法1. blast宿主基因组(含叶绿体/线粒体)去除同源序列，如水稻微生物，需要提供水稻基因组；可调相似度和覆盖度的阈值(百分数)
 	host=/mnt/bai/public/ref/rice/msu7/all.con
@@ -92,11 +98,11 @@ SHELL:=/bin/bash
 ## 1.10. otutab_create 生成OTU表
 
 	# Creat OTUs table
-	# 有 usearch10 和 vsearch 两个软件可选，默认usearch10，vsearch多线程会更快些
-	map_method=vsearch
+	# 有 usearch10 和 vsearch 两个软件可选，默认 usearch10 ，vsearch多线程会更快些
+	map_method=usearch10
 	map_identify=0.97
 
-## 1.11. otutab_filter/norm OTU表筛选
+## 1.11. otutab_filter OTU表筛选
 
 	# Filter OTU table
 	# OTU表筛选日志文件
@@ -108,16 +114,20 @@ SHELL:=/bin/bash
 	min_otu_size=8
 	# 按频率筛选，推荐十万分之一0.00001，范围千一至百分一0.001 - 0.000001之间
 	min_otu_freq=0.000001
+
+## 1.11. otutab_norm 重采样标准化
+
 	# 抽样标准化的值，推荐最小10000，根据统计结果选择筛选后最小值或可保留大部分样品的值
-	sample_size=5000
+	# 根据../AMF3/temp/otutab.biom.sum观察594个样本，3个小于5千。选择5万标准化，仅在多样性中去年5个样<1%
+	sample_size=60000
 
 ## 1.12. tax_assign 物种注释
 
 	# Assign taxonomy
 	# 物种注释推荐使用小而准的数据库，如rdp trainset 16(由Robert整理)
-	# 可选gg, rdp, silva，分别从官网下载并shell调整格式
+	# 可选gg, silva, rdp分别从官网下载并shell调整格式，gg较准但旧，silva全但不准，rdp少而准，比较通用
 	sintax_db=${usearch_rdp}
-	# 分类准确度阈值，默认0.8，注释太少最小可改0.5，推荐0.6注释较完整，发现有明显错误可最高上升为0.95
+	# 分类准确度阈值，默认0.8，注释太少最小可改0.6，发现有明显错误可最高上升为0.9，改为零为最大化显示物种注释
 	sintax_cutoff=0.6
 
 ## 1.13. tax_sum 物种注释统计
@@ -142,7 +152,7 @@ SHELL:=/bin/bash
 	# Beta diversity tree and distance matrix
 	# 距离矩阵计算方法，34种可选： abund_jaccard, binary_chisq, binary_chord, binary_euclidean, binary_hamming, binary_jaccard, binary_lennon, binary_ochiai, binary_otu_gain, binary_pearson, binary_sorensen_dice, bray_curtis, bray_curtis_faith, bray_curtis_magurran, canberra, chisq, chord, euclidean, gower, hellinger, kulczynski, manhattan, morisita_horn, pearson, soergel, spearman_approx, specprof, unifrac, unifrac_g, unifrac_g_full_tree, unweighted_unifrac, unweighted_unifrac_full_tree, weighted_normalized_unifrac, weighted_unifrac
 	# 默认使用4种
-	dis_method=bray_curtis,weighted_unifrac,unweighted_unifrac
+	dis_method=bray_curtis,binary_jaccard,weighted_unifrac,unweighted_unifrac
 	tree_method=qiime
 
 ## 1.17. otutab_ref 有参比对生成OTU表
@@ -156,19 +166,21 @@ SHELL:=/bin/bash
 # 2. 统计绘图
 
 	# 绘图通用参数
-	# 实验设计文件位置，全局，其它图默认调此变量，也可单独修改；并选择表中的组列和具体分组 head -n2 doc/design.txt
-	# 统计绘图和网页报告版本控制，默认为空，可修改为任意子目录的实验设计
-	# SL_Bj SL_Hn nrt
-	sub="SL_Bj3"
+	# 实验设计文件位置，全局，其它图默认调此变量，也可单独修改；并选择表中的组列和具体分组
+	# 设置子版本目录 
+	# ln ../AMF3/doc/meta/design.txt  doc/meta/ 参考格式，使用 DataFilter.Rmd生成doc/meta/design.txt
+	# 子版本有meta
+	sub="meta"
 	doc=doc/${sub}
-	design=${wd}/doc/design.txt 
-	g1=groupID
-	# tail -n+2 ${doc}/design.txt|cut -f 9|sort|uniq|awk '{print "\""$1"\""}'|tr "\n" ","
-	# 绘图使用的实验组，顺序即图中显示顺序；为空时使用所有组和默认顺序"HIND","HTEJ","HAUS","HTRJ","LIND","LTEJ","LAUS","LTRJ"
-	# 根据实验比对较获得实验组列表: cat doc/compare.txt|tr '\t' '\n'|sort|uniq|awk '{print "\""$1"\""}'|tr "\n" "," 
-	# "d10RtBj","d10RtHn","d14AHLRtBj","d14RtBj","d14RtHn","d17RtBj","d17RtHn","d27RtBj","d27RtHn","d3AHLRtBj","d3NpRtBj","d3RtBj","d3RtHn","d53RtBj","d53RtHn","NpRtBj","NpRtHn"
-	#g1_list=`cat doc/${sub}/compare.txt|tr '\t' '\n'|sort|uniq|awk '{print "\""$$1"\""}'|tr "\n" ","|sed 's/,$$//'`
-	g1_list='"NpRtBj","d10RtBj","d17RtBj","d14RtBj","d53RtBj"'
+	design=${wd}/${doc}/design.txt 
+	g1=genotype
+	# tail -n+2 ${doc}/design.txt|cut -f 6|sort|uniq|awk '{print "\""$1"\""}'|tr "\n" ","
+	# 绘图使用的实验组，顺序即图中显示顺序；为空时使用所有组和默认顺序
+	#g1_list='"A17","Anfp","dmi3","R108","lyk9","lyr4","soil"'
+	# 从实验设计比较组中提取组名，自动获得目录组 (推荐)
+	g1_list=`cat doc/${sub}/compare.txt|tr '\t' '\n'|sort|uniq|awk '{print "\""$$1"\""}'|tr "\n" ","|sed 's/,$$//'`
+    # 从实验设计提取组(可选)
+	# g1_list=`tail -n+2 ${doc}/design.txt|cut -f 5|sort|uniq|awk '{print "\""$$1"\""}'|tr "\n" ","|sed 's/,$$//'`
 
 	# 组间比较列表
 	compare=${wd}/${doc}/compare.txt
@@ -176,65 +188,62 @@ SHELL:=/bin/bash
 	venn=${wd}/${doc}/venn.txt
 	# 图片长宽，按nature全面版、半版页面设置
 	# 图片长宽和字体大小，7组以下用默认，7组以上改为8x5或更大； figure size, recommend 4x2.5, 5x3(default), 8x5, 16x10, text_size 6, 7(default), 8
-	width=4
-	height=2.5
-	text_size=8
+	width=5
+	height=3
+	text_size=7
 
 	# 图中显示legend, 如taxonomy的数量，5，8(default)，10
 	legend_number=10
-	# 差异统计按丰度过滤 abundance filter，单位为百分比，如丰度按每组最位数大于万分之5过滤，即0.05，减少计算量，降低OTU的FDR值，可选千一，或万一
-	# 0.1 - 212; 0.01
-	abundance_thre=0.0001
-	# 差异比较方法，默认是 edgeR 可选 wilcox 秩和检验
+	# 差异统计按丰度过滤 abundance filter，如丰度按万分之一过滤，减少计算量，提高OTU的FDR值，根据组数量多少可选十万5或万分之5
+	# 苜蓿中，0.5千五37OTU72.6%; 0.1千一133OTU86.6%；0.05万五216OTU90.5%；0.01万一545OTU95.4%
+	abundance_thre=0.1
+	# 差异比较方法，默认是 edgeR ，可选 wilcox秩和检验、t.test 
 	compare_method="wilcox"
-	# 显著性P值过滤 threshold of P-value，可选0.05, 0.01, 0.001。采用FDR校正，此参数意义不大，即使0.001也没有FDR < 0.2过于严格
+	# 显著性P值过滤 threshold of P-value，可选0.05, 0.01, 0.001。采用FDR校正，此参数意义不大，即使0.001也没有FDR < 0.2过滤严格
 	pvalue=0.05
-	# 统计检验方式fdr
+	# 统计检验方式FDR，常用0.05, 0.1, 0.2; FDR < 0.1使用9.5万次，且为菌群近期的Nature和Sciences; 0.2使用7.7万次
 	FDR=0.05
 	# 差异变化倍数常用1.5, 2, 4倍，对应logFC为0.585, 1, 2；菌丰度变化倍数不明显，还可用1.3和1.7倍对应0.379和0.766
-	FC=1.2
+	# 差异倍数只为限制edgeR的异常差异，在wilcox比较中无意义
+	FC=1.1
 
-	# 报告输出目录
-	version=rice_OTU_${sub}_${compare_method}_v2
+	# 统计绘图和网页报告版本控制
+	species="med"
+	keyword="AMF3"
+	version=${species}_${keyword}_${sub}_v2
 
 
 ## 2.1 alpha_boxplot Alpha多样性指数箱线图 Alpha index in boxplot
-
 	# alpha箱线图绘制参数
 	ab_input=${wd}/result/alpha/index.txt
 	# alpha指数种类14种 head -n1 result/alpha/index.txt | tr '\t' '\n'|tail -n+2|awk '{print "\""$1"\""}'|tr "\n" ","
 	# "berger_parker","buzas_gibson","chao1","dominance","equitability","jost","jost1","reads","richness","robbins","simpson","shannon_e","shannon_2","shannon_10"
-	# 默认使用chao1, richness和shannon_e三种，可修改ab_type添加或减少，shannon2/10与e相似，仅y值略有差异
+	# 默认使用chao1, richness和shannon_e三种，可修改ab_type添加或减少
 	ab_method='"chao1","richness","shannon_e"'
 	ab_design=${design}
 	ab_group_name=${g1}
-	# 默认 ab_group_list=${g1_list}
-	# 主图 ab_group_list='"V3703HnCp6","ZH11HnCp6","A50LnCp7","A56LnCp7"'
-	#ab_group_list=`cat doc/${sub}/compare.txt|tr '\t' '\n'|sort|uniq|awk '{print "\""$$1"\""}'|tr "\n" ","|sed 's/,$$//'`
 	ab_group_list=${g1_list}
 	ab_output=${wd}/result/alpha/
 	ab_width=${width}
 	ab_height=${height}
 
-
+	
 ## 2.2 alpha_rare Alpha丰富度稀释曲线 Alpha rarefracation curve
-
 	ar_input=${wd}/result/alpha/rare.txt
 	ar_design=${design}
 	ar_group_name=${g1}
-	ar_group_list=${ab_group_list}
+	ar_group_list=${g1_list}
 	ar_output=${wd}/result/alpha/
 	ar_width=${width}
 	ar_height=${height}
 
-
-## 2.3 beta_pcoa 主坐标轴分析距离矩阵 PCoA of distance matrix "bray_curtis","binary_jaccard","weighted_unifrac","unweighted_unifrac"
-
+## 2.3 beta_pcoa 主坐标轴分析距离矩阵 PCoA of distance matrix
 	bp_input=${wd}/result/beta/
-	bp_method='"bray_curtis","weighted_unifrac","unweighted_unifrac"'
+	# "binary_jaccard",
+	bp_method='"bray_curtis","unweighted_unifrac","weighted_unifrac"'
 	bp_design=${design}
 	bp_group_name=${g1}
-	bp_group_list=${ab_group_list}
+	bp_group_list=${g1_list}
 	bp_output=${wd}/result/beta/
 	bp_width=${width}
 	bp_height=${height}
@@ -243,38 +252,35 @@ SHELL:=/bin/bash
 	# 实验比较组，可用默认，也可设置单独文件，没有则不计算
 	bp_compare=${compare}
 
-
 ## 2.4 beta_cpcoa 限制性主坐标轴分析: OTU表基于bray距离和CCA  CCA of bray distance matrix
 	# 输入的OTU表，可原始count，也可以标准化的结果，无差异
 	bc_input=${wd}/result/otutab_norm.txt
 	# Method from vegdist() of vegan: "manhattan", "euclidean", "canberra", "bray", "kulczynski", "jaccard", "gower", "altGower", "morisita", "horn", "mountford", "raup" , "binomial", "chao", "cao" or "mahalanobis"
-	bc_method='"bray"'
+	bc_method='"bray","jaccard"'
 	bc_design=${design}
 	bc_group_name=${g1}
-	bc_group_list=${ab_group_list}
+	bc_group_list=${g1_list}
 	bc_output=${wd}/result/beta/
 	bc_width=${width}
 	bc_height=${height}
 	# 散点图是否按组添加置信椭圆，TRUE添加，FALSE不添加，默认T
 	bc_ellipse=TRUE
 
-
-## 2.5 tax_stackplot 样品和组分类学各级别的堆叠柱状图 Stackplot showing taxonomy in each level
+	# 2.5 tax_stackplot 样品和组分类学各级别的堆叠柱状图 Stackplot showing taxonomy in each level
 	ts_input=${wd}/result/tax/sum_
-	ts_level='"p","c","o","f","g"'
+	ts_level='"p","pc","c","o","f","g"'
 	ts_design=${design}
 	ts_group_name=${g1}
-	ts_group_list=${ab_group_list}
+	ts_group_list=${g1_list}
 	ts_output=${ts_input}
 	ts_width=${width}
 	ts_height=${height}
 	# 显列图例的数量，推荐6，8，10，默认10
 	ts_number=${legend_number}
 	# 设置图例的顺序，默认FALSE按分类单元字母顺序排列，TRUE则按丰度由到大小排列
-	ts_order=FALSE
+	ts_order=TRUE
 
-
-## 2.6 DA_compare 组间差异比较
+### 2.6 DA_compare 组间差异比较
 	Dc_input=${wd}/result/otutab.txt
 	# 差异比较方法edgeR or wilcox，默认edgeR
 	Dc_compare=${compare}
@@ -286,22 +292,21 @@ SHELL:=/bin/bash
 	Dc_design=${design}
 	Dc_group_name=${g1}
 	Dc_group_list=${g1_list}
-	# 按丰度筛选列，默认为${g1}
-	Dc_group_name2=groupID
 	Dc_output=${wd}/result/compare/
+	Dc_group_name2=${Dc_group_name}
 
-
-## 2.6.1 DA_compare_tax 组间差异比较,phylum/order/genus
+### 2.6.1 DA_compare_tax 组间差异比较,phylum/order/genus
 	# 物种分类级，p/c/o/f/g五级可选
 	#Dct_tax=g
 	#Dct_input=${wd}/result/tax/sum_${Dct_tax}.txt
-	# 差异比较方法edgeR or wilcox，默认edgeR
+	# 差异比较方法edgeR or wilcox，默认相对丰富仅能使用wilcox，只有count才能用edgeR
 	Dct_compare=${compare}
-	Dct_method=${compare_method}
+	Dct_method=wilcox
 	Dct_pvalue=${pvalue}
 	Dct_FDR=${FDR}
 	Dct_FC=${FC}
-	Dct_thre=${abundance_thre}
+	# 门-属数量不大，无须过滤丰度
+	Dct_thre=0
 	Dct_design=${design}
 	Dct_group_name=${g1}
 	Dct_group_list=${g1_list}
@@ -356,10 +361,10 @@ SHELL:=/bin/bash
 	pb_trans=TRUE
 
 
-# 2.10 plot_venn 维恩图
+# 2.11 plot_venn 维恩图
 
-	# venn OTU注释数据库，如差异比较result/compare/database.txt、菌库result/39culture/otu.txt等
-	venn_anno=result/39culture/otu.txt
+	# venn OTU注释数据库，如差异比较result/compare/database.txt、菌库需要选先修改3.9的数据库位置，并make culture生成result/39culture/otu.txt等
+	venn_anno=result/compare/database.txt
 
 # 3 高级分析
 
@@ -367,34 +372,26 @@ SHELL:=/bin/bash
 
 	fapro_list='"nitrate_ammonification","nitrogen_fixation"'
 
-## 3.9 culture_graphlan 可培养菌
+## 3.9 culture 可培养菌
 	 
 	# 可培养菌库类型，包括组织root / rhizosphere / leaf 和品种A50 / IR24
 	# 苜蓿medicago，包括A17 R108两个野生型品种根，A17Root, R108Root
-	# 拟南芥填 Root
-	type=""
-	# 指定可培养菌库位置，fa为OTU，fasta为物种如rice, ath
-	culture_db=/mnt/bai/yongxin/culture/rice/stock/sequence
+	# A17Root, R108Root
+	type="R108Root"
+	# 指定可培养菌库位置，修改物种名rice/ath/medicago，fa为OTU，fasta为物种如rice, ath
+	culture_db=/mnt/bai/yongxin/culture/medicago/result/${type}culture_select
 	# 可培养菌结果输出文件
 	# 绘制Graphlan图的筛选阈值
-	graph_thre=0.001
+	graph_thre=0.003
 	filter=culture_${type}
 	# 过滤方法，默认median，可选max, mean, median, min，数据依次减少
 	filter_method=max
 	otu_table=`pwd`/result/otutab.txt
 
 	# 指定具体的实验设计、列、组筛选
-	cg_design=${design}
-	cg_group_name=${g1}
-	cg_group_list=${ab_group_list}
-#	cg_design=`pwd`/doc/b23r/design.txt
-#	cg_group_name=genotype
-#	cg_group_list='"R108"'
+	cg_design=`pwd`/doc/b23r6/design.txt
+	cg_group_name=genotype
+	# A17B0R / R108B0R
+	cg_group_list='"R108"'
 
-
-# 9. 其它
-
-	# 整合主流程
-	include /mnt/bai/yongxin/github/Amplicon/16Sv2/pipeline.md
-
-
+include /mnt/bai/yongxin/github/Amplicon/16Sv2/pipeline.md

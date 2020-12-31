@@ -1,5 +1,6 @@
 # 从OTU表开始生成多样性结果
 
+    cd ~/rice/integrate16s/v2OTU/HN
     make init
 	touch otutab_create
 	touch otutab_filter
@@ -26,17 +27,21 @@
 	make beta_calc
 
     # 添加实验设计继续
+    sed -i 's/Y4217\/A4000/Y4217/' ~/rice/miniCore/doc/minicore_list.txt
     cut -f 2- ~/rice/miniCore/doc/minicore_list.txt > doc/design.txt
     # 原始实验设计，只有分组
     mv doc/design.txt doc/design_raw.txt
-    cp ~/rice/integrate16s/v2OTU/fig/191031/LNmean/metadata.txt doc/design.txt
+    cp ~/rice/integrate16s/v2OTU/fig/191031/HNmean/metadata.txt doc/design.txt
+    # 与LN保持分组一致
+    cp -r ~/rice/integrate16s/v2OTU/LN/doc/tiller doc/
+
 
 	rm -rf alpha_boxplot 
 	rm -rf DA_compare 
 	make DA_compare # 绘制alpha、beta、taxonomy和差异OTU比较
 
     # 指定OTU进行比对，采用Measurable OTU
-    compare_OTU_ref.sh -i `pwd`/result/otutab.txt -c `pwd`/doc/"tiller"/compare.txt -m "wilcox" \
+compare_OTU_ref.sh -i `pwd`/result/otutab.txt -c `pwd`/doc/"tiller"/compare.txt -m "wilcox" \
         -p 0.05 -q 0.2 -F 1.5 -t 0.3 \
         -d `pwd`/doc/design.txt  -A tiller_cat -B `cat doc/"tiller"/compare.txt|tr '\t' '\n'|sort|uniq|awk '{print "\""$1"\""}'|tr "\n" ","|sed 's/,$//'` \
         -o `pwd`/result/compare/  -r ../miniCore/otutabK1.txt
@@ -47,84 +52,57 @@
 	make DA_compare_tax # 高分类级差异比较，维恩图绘制，2为reads count负二项分布统计
 	make rmd # 生成网页报告，必须依赖的只有alpha, beta, taxonomy
 
-    # 绘制差异菌的箱线图
-    mkdir -p result/compare/boxplot
-    cat <(tail -n+2 ../fig/191031/LNmean/DA_CPM_FC.txt) <(tail -n+2 ../fig/191031/HNmean/DA_CPM_FC.txt) | cut -f 1 | sort | uniq > temp/OTUID.txt
-    alpha_boxplot.sh -i result/otutab.txt -d doc/design.txt -A tiller_cat -B '"T6","T1"' -m `cat temp/OTUID.txt|awk '{print "\""$1"\""}'|tr "\n" ","|sed 's/,$//'` -t TRUE -o result/compare/boxplot/ -n TRUE -h 2 -w 3
 
-# GWAS分析
-
-## 1. 制作emmax表型文件
-
+# 整理emmax使用表型
+    
     mkdir -p pheno
     # alpha
-    awk 'NR==FNR{a[$1]=$10} NR>FNR {print $1,$2,a[$2]}' result/alpha/index.txt ../emmax/snp.tfam | sed 's/ $/ NA/;s/ /\t/g' > pheno/alpha_richness
-        # 对数2转换，log(x)/log(2)
-    awk 'NR==FNR{a[$1]=$10} NR>FNR {print $1,$2,log(a[$2])/log(2)}' result/alpha/index.txt ../emmax/snp.tfam | sed 's/-inf$/NA/' > pheno/log2.alpha_richness
-    # beta2-4(PC1-3), beta多样性有负数无法log2转换
-    for i in `seq 2 4`;do
-        awk 'NR==FNR{a[$1]=$2} NR>FNR {print $1,$2,a[$2]}' <(cut -f 1,${i} result/beta/bray_curtis14.txt) ../emmax/snp.tfam | sed 's/ $/ NA/;s/ /\t/g' > pheno/beta_bc${i}; done
-    cut -f 1 ../fig/191031/otutab_mean.txt | tail -n+2 > pheno/otuid
-    # 实现特征表筛选(可选)，并根据fam顺序制作表型文件和对数转换结果
-    Rscript ~/github/Amplicon/16Sv2/script/gwas_otutab2emmax.R --input result/otutab_norm.txt \
-        --list pheno/otuid --fam /mnt/bai/yongxin/rice/integrate16s/v2OTU/genotype/emmax/filtered.tfam \
-        --output pheno/
+    awk 'NR==FNR{a[$1]=$10} NR>FNR {print $1,$2,a[$2]}' result/alpha/index.txt ../emmax/snp.tfam | sed 's/ $/ NA/' > pheno/alpha_richness.txt
+    # 与玉米不同的是第一列玉米全相同，而水稻为自己的ID，这个来自表型文件
 
-
-## 2. GWAS关联
+# GWAS关联
 
     # 必须有输出目录，否则 Segmentation fault (core dumped)
-    # -c ../emmax/snp.cov \ 群体结构中有NA，无法分析，使用小宁gcta计算结果，但结果均为e-100次方明显错误
-    awk '{print $1"\t"$0}' /mnt/bai/xiaoning/past/software/gcta_1.91.3beta/T2.sativaPca > ../emmax/snp.pca
-    # 改用志文计算结果Plink计算
-    time plink --vcf /mnt/zhou/zhiwen/rice_GWAS/rice_snp/T2.vcf --pca -out snp.pca
-    rm snp.pca
-    ln snp.pca.eigenvec snp.pca
+    mkdir -p emmax_out
+    # i=alpha_richness
+    time emmax -t ../emmax/snp \
+        -p pheno/${i}.txt \
+        -k ../emmax/snp.aBN.kinf \
+        -o emmax_out/${i}
 
-    cd ~/rice/integrate16s/v2OTU/LN
-    mkdir -p emmax
+    # 协变量，ERROR: At this point, we do not allow missng covariates
+    mkdir -p emmax_cov
     i=alpha_richness
-    snp=/mnt/bai/yongxin/rice/integrate16s/v2OTU/genotype/emmax/filtered
-    time emmax -v -d 5 -t ${snp} \
-        -p pheno/${i} \
-        -k ${snp}.aBN.kinf \
-        -c ${snp}.pca.eigenvec \
-        -o emmax/${i}
-
-    mkdir -p emmax_log2
-    for i in `cat pheno/otuid|head -n1`; do
-    echo $i
-    time emmax -v -d 5 -t ${snp} \
-        -p pheno/log2.${i} \
-        -k ${snp}.aBN.kinf \
-        -c ${snp}.pca.eigenvec \
-        -o emmax_log2/${i}
-    done
-
-## 3. 结果筛选并可视化
-
-    dir=emmax
-    # 按P值过滤<1e-3，输出ID两次和P值，格式化ID为染色体
-    i=alpha_richness
-    awk '$4<1e-100' emmax/${i}.ps | awk '{print $1"\t"$1"\t"$4}' | sed 's/m/\t/' | awk '{print $1"\t"$3"\t"$2"\t"$4}' | sed '1 i CHR\tSNP\tBP\tP' > emmax/${i}.qqman
-    # 结果全为上百次方，全显著
-
-# alpha_richness alpha_chao1 alpha_shannon_e beta_bc2 beta_bc3 beta_bc4
-for i in `cut -f 2 pheno/otu.id|tail -n+30`; do
-# i=alpha_shannon_e
-awk '$4<0.001' ${dir}/${i}.ps | awk '{print $1"\t"$1"\t"$4}' | sed 's/chr//;s/.s_/\t/' | awk '{print $1"\t"$3"\t"$2"\t"$4}' | sed '1 i CHR\tSNP\tBP\tP' > ${dir}/${i}.qqman
-qqman.R -i ${dir}/${i}.qqman
-done
-
-## 4. QTL定位
-
-    
+    time emmax -t ../emmax/snp \
+        -p pheno/${i}.txt \
+        -k ../emmax/snp.aBN.kinf \
+        -c ../emmax/snp.cov \
+        -o emmax_cov/${i} 
 
 
 
 
+	# 快速分析 Quick Start(所需文件准备好)
+	find . -name "*" -type f -size 0c | xargs -n 1 rm -f # 清理零字节文件，用于从头重新分析项目清空makefile点位文件
+	make library_split # 样本拆分、
+	make fq_qc # 合并、去接头和引物、质控，获得纯净扩增子序列temp/filtered.fa
+	make host_rm # 序列去冗余、去噪、挑选代表序列、去嵌合、去宿主，获得OTU代表序列result/otu.fa
+	make beta_calc # 生成OTU表、过滤、物种注释、建库和多样性统计
+	# 清除统计绘图标记(重分析时使用)
+	rm -rf alpha_boxplot 
+	make DA_compare # 绘制alpha、beta、taxonomy和差异OTU比较
+	#rm -f plot_volcano # 删除OTU差异比较可化标记
+	make plot_manhattan # 绘制差异比较的火山图、热图、曼哈顿图
+	make plot_venn # 绘制OTU差异共有/特有维恩图
+	make DA_compare_tax # 高分类级差异比较，维恩图绘制，2为reads count负二项分布统计
+	make rmd # 生成网页报告，必须依赖的只有alpha, beta, taxonomy
 
-
+	# 提取脚本
+	submit=3T
+	make -n -B fq_qc > pipeline.sh # 样本拆分、合并、去接头和引物、质控，获得纯净扩增子序列temp/filtered.fa
+	make -n -B host_rm >> pipeline.sh # 序列去冗余、去噪、挑选代表序列、去嵌合、去宿主，获得OTU代表序列result/otu.fa
+	make -n -B beta_calc >> pipeline.sh # 生成OTU表、过滤、物种注释、建库和多样性统计
+	grep -v '#' pipeline.sh > ${submit}/pipeline.sh
 
 # 1. 处理序列 Processing sequences
 
@@ -369,4 +347,34 @@ done
 	awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$4} NR>FNR{print $0,a[$1]}' result/otus_no_host.tax data/cor/LN/otu_mean_pheno_cor.r.txt | less -S > result/cor/LN/otu_mean_pheno_cor.r.txt.tax
 	# 再添加可培养相关菌
 	awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print $0,a[$1]}' result/39culture/otu.txt data/cor/LN/otu_mean_pheno_cor.r.txt.tax | less -S > data/cor/LN/otu_mean_pheno_cor.r.txt.tax
+
+
+# 附录
+	## 准备原始数据
+
+	# 拆lane和质量转换归为原始seq目录中处理
+	# Prepare raw data
+	#ln ~/seq/180210.lane9.ath3T/Clean/CWHPEPI00001683/lane_* ./
+	#cp ~/ath/jt.HuangAC/batch3/doc/library.txt doc/
+	
+	# 检查数据质量，转换为33
+	#determine_phred-score.pl seq/lane_1.fq.gz
+	# 如果为64，改原始数据为33
+	rename 's/lane/lane_33/' seq/lane_*
+	# 关闭质量控制，主要目的是格式转换64至33，不然usearch无法合并
+	#time fastp -i seq/lane_64_1.fq.gz -I seq/lane_64_2.fq.gz \
+	#	-o seq/lane_1.fq.gz -O seq/lane_2.fq.gz -6 -A -G -Q -L -w 9
+	# 1lane 80GB, 2 threads, 102min
+
+## 1.1. 按实验设计拆分lane为文库
+
+	# Split lane into libraries
+	# lane文件一般为seq/lane_1/2.fq.gz
+	# lane文库信息doc/library.txt：至少包括编号、Index和样品数量三列和标题
+	# head -n3 doc/library.txt
+	#LibraryID	IndexRC	Samples
+	#L1	CTCAGA	60
+	
+	# 按library.txt拆分lane为library
+	# make lane_split
 
