@@ -48,11 +48,18 @@
     # 2020/12/24 medicago/AMF4/SynCom1SandDenovo 苜蓿SynCom1沙子体系实验
     # 2020/12/27 medicago/AMF4/SynCom2SandDenovo 苜蓿SynCom2沙子体系实验
     # 2020/12/31 medicago/AMF4/SynCom1FlowPotDenovo 苜蓿SynCom1在FlowPot体系中实验
-
+    # 2021/1/5 medicago/AMF4/SynCom2FlowPotDenovo 苜蓿SynCom2在FlowPot体系中实验
+    # 2021/1/6 medicago/AMF4/SterileSoil 苜蓿农大灭菌土SterileSoil体系中实验
+    # 2021/1/7 medicago/AMF4/SynCom1FlowPot 苜蓿SynCom1在FlowPot体系中实验
+    # 2021/1/11 ath/pi.absort.GaoCL2 拟南芥磷吸引
+    # 2021/1/25 human/liyong/esophagusCancer 食道癌
+    # 2021/3/1 rice/Gprotein/210301 G蛋白
+    #2021/4/16 ath/pi.absort.GaoCL2/SynCom 拟南芥磷吸引
+    #2021/4/19 ath/pi.absort.GaoCL2/SynComRef 拟南芥磷吸引
 
 
 ## 项目建立代码
-    wd=medicago/AMF4/SynCom1FlowPotDenovo
+    wd=ath/pi.absort.GaoCL2/SynComRef
     # 创建github目录，用于备份流程、文档
     cd ~
     mkdir -p ~/github/Work/$wd

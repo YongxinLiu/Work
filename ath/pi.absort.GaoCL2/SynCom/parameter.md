@@ -116,7 +116,7 @@ SHELL:=/bin/bash
 	# 按频率筛选，推荐十万分之一0.00001，范围千一至百分一0.001 - 0.000001之间
 	min_otu_freq=0.000001
 	# 抽样标准化的值，推荐最小10000，根据统计结果选择筛选后最小值或可保留大部分样品的值
-	sample_size=30000
+	sample_size=6938
 
 ## 1.12. tax_assign 物种注释
 
@@ -125,7 +125,7 @@ SHELL:=/bin/bash
 	# 可选gg, silva, rdp分别从官网下载并shell调整格式，gg较准但旧，silva全但不准，rdp少而准，比较通用
 	sintax_db=${usearch_rdp}
 	# 分类准确度阈值，默认0.8，注释太少最小可改0.6，发现有明显错误可最高上升为0.9，改为零为最大化显示物种注释
-	sintax_cutoff=0.8
+	sintax_cutoff=0
 
 ## 1.13. tax_sum 物种注释统计
 
@@ -165,10 +165,10 @@ SHELL:=/bin/bash
 	# 绘图通用参数
 	# 实验设计文件位置，全局，其它图默认调此变量，也可单独修改；并选择表中的组列和具体分组
 	# 设置子版本目录
-	sub=""
+	sub="groupID2"
 	doc=doc/${sub}
 	design=${wd}/doc/design.txt 
-	g1=GroupID
+	g1=groupID2
 	# tail -n+2 ${doc}/design.txt|cut -f 5|sort|uniq|awk '{print "\""$1"\""}'|tr "\n" ","
 	# 绘图使用的实验组，顺序即图中显示顺序；为空时使用所有组和默认顺序
 	#g1_list='"Col","ThasKO2","ThahKO","ThadKO","ACT2KO"'
@@ -190,7 +190,7 @@ SHELL:=/bin/bash
 	# 图中显示legend, 如taxonomy的数量，5，8(default)，10
 	legend_number=10
 	# 差异统计按丰度过滤 abundance filter，如丰度按万分之一过滤，减少计算量，提高OTU的FDR值，根据组数量多少可选十万5或万分之5
-	abundance_thre=0.01
+	abundance_thre=0.05
 	# 差异比较方法，默认是 edgeR ，可选 wilcox秩和检验、t.test 
 	compare_method="wilcox"
 	# 显著性P值过滤 threshold of P-value，可选0.05, 0.01, 0.001。采用FDR校正，此参数意义不大，即使0.001也没有FDR < 0.2过滤严格
@@ -201,9 +201,9 @@ SHELL:=/bin/bash
 	FC=1.2
 
 	# 统计绘图和网页报告版本控制
-	species="med"
-	keyword="SynCom1FlowPot_ref"
-	version=${species}_${keyword}_${sub}_v1
+	species="ath"
+	keyword="SynCom"
+	version=${species}_${keyword}_${sub}_v3
 
 
 ## 2.1 alpha_boxplot Alpha多样性指数箱线图 Alpha index in boxplot

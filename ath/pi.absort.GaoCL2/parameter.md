@@ -62,7 +62,7 @@ SHELL:=/bin/bash
 	# Remove redundancy
 	# 最小序列频率默认为8，去除低丰度，增加计算速度，整lane的序列推荐1/1M，即上一步最后一行的数据量
 	# 根据fq_qc输出结果判断，如最后一行输出数据据量53M，推荐阈值为50
-	minuniquesize=8
+	minuniquesize=76
 
 ## 1.7. otu_pick 挑选OTU
 
@@ -116,7 +116,7 @@ SHELL:=/bin/bash
 	# 按频率筛选，推荐十万分之一0.00001，范围千一至百分一0.001 - 0.000001之间
 	min_otu_freq=0.000001
 	# 抽样标准化的值，推荐最小10000，根据统计结果选择筛选后最小值或可保留大部分样品的值
-	sample_size=30000
+	sample_size=5844
 
 ## 1.12. tax_assign 物种注释
 
@@ -165,16 +165,16 @@ SHELL:=/bin/bash
 	# 绘图通用参数
 	# 实验设计文件位置，全局，其它图默认调此变量，也可单独修改；并选择表中的组列和具体分组
 	# 设置子版本目录
-	sub=""
+	sub="b2_14v2"
 	doc=doc/${sub}
 	design=${wd}/doc/design.txt 
-	g1=GroupID
+	g1=groupID
 	# tail -n+2 ${doc}/design.txt|cut -f 5|sort|uniq|awk '{print "\""$1"\""}'|tr "\n" ","
 	# 绘图使用的实验组，顺序即图中显示顺序；为空时使用所有组和默认顺序
 	#g1_list='"Col","ThasKO2","ThahKO","ThadKO","ACT2KO"'
 	# 从实验设计比较组中提取组名，自动获得目录组 (推荐)
 	g1_list=`cat doc/${sub}/compare.txt|tr '\t' '\n'|sort|uniq|awk '{print "\""$$1"\""}'|tr "\n" ","|sed 's/,$$//'`
-    # 从实验设计提取组(可选)
+	# 从实验设计提取组(可选)
 	# g1_list=`tail -n+2 ${doc}/design.txt|cut -f 5|sort|uniq|awk '{print "\""$$1"\""}'|tr "\n" ","|sed 's/,$$//'`
 
 	# 组间比较列表
@@ -201,8 +201,8 @@ SHELL:=/bin/bash
 	FC=1.2
 
 	# 统计绘图和网页报告版本控制
-	species="med"
-	keyword="SynCom1FlowPot_ref"
+	species="ath"
+	keyword="Pi2"
 	version=${species}_${keyword}_${sub}_v1
 
 

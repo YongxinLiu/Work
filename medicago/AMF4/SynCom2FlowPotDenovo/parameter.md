@@ -202,7 +202,7 @@ SHELL:=/bin/bash
 
 	# 统计绘图和网页报告版本控制
 	species="med"
-	keyword="SynCom1FlowPot_ref"
+	keyword="SynCom2FlowPot"
 	version=${species}_${keyword}_${sub}_v1
 
 

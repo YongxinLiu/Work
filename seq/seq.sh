@@ -7,19 +7,21 @@
     chmod +x Downloads/linuxnd/linuxnd
     sudo mv Downloads/linuxnd/linuxnd /usr/local/bin/
     # 登陆和查看
-    linuxnd login -u X101SC19070595-Z01-J011 -p 444h86p5
+    linuxnd login -u X101SC19070595-Z01-J015 -p ufb53j0t
     linuxnd list # 查看用户根目录，确定是否登陆成功
-    linuxnd list oss://gxxkeyan@126.com/H101SC19070595/RSCS0500/X101SC19070595-Z01/X101SC19070595-Z01-J011/  # 查看邮件路径文件
-    linuxnd cp -d oss://gxxkeyan@126.com/H101SC19070595/RSCS0500/X101SC19070595-Z01/X101SC19070595-Z01-J011/2.cleandata/ ~/seq/L${id}/ # 查看指定路径下的2.cleandata
-  
+    # 查看邮件路径文件
+    linuxnd list oss://gxxkeyan@126.com/H101SC19070595/RSCS0500/X101SC19070595-Z01/X101SC19070595-Z01-J015/
+    # 查看指定路径下的2.cleandata
+    linuxnd cp -d oss://gxxkeyan@126.com/H101SC19070595/RSCS0500/X101SC19070595-Z01/X101SC19070595-Z01-J015/2.cleandata/ ~/seq/L${id}/
+
     # md5校验，15G的文件要1分半
     cd 2.cleandata/
     # ll | grep -P '[^\.]/'| cut -f 10 -d ' ' > dir.list
     ls -F | grep "/$" > dir.list
-    cat dir.list
+    wc -l dir.list
     for i in `cat dir.list`; do
         cd $i
-        time md5sum -c MD5*.txt
+        md5sum -c MD5*.txt
         cd ..
     done
     cd ..
@@ -34,13 +36,19 @@
         /mnt/bai/yongxin/ref/culture/IlluminaIndex48.txt index > index.txt
     cat index.txt
     # 保存至库文件和登记 SeqLibraryList.xlsx
-  
 
     # 批量整理和改名，包括时间和索引值
-    find 2.cleandata/ .gz|grep '_1.clean.fq.gz'|sort|sed s/1.clean.fq.gz// # 填入第一列，注意排序与文库顺序一致，制作成表格rename.txt
+    find 2.cleandata/ .gz|grep '_1.clean.fq.gz'|sort|sed s/1.clean.fq.gz// 
+    # 填入第一列，注意排序与文库顺序一致，整理到rename/metadata.txt
     find 2.cleandata/ .gz|grep '_1.clean.fq.gz'|sort|sed s/1.clean.fq.gz//|cut -f 3 -d '/'|cut -f 1  -d '_'
-    awk 'BEGIN{OFS=FS="\t"}{system("ln "$1"_1.clean.fq.gz "$2"_1.fq.gz")}' rename.txt
-    awk 'BEGIN{OFS=FS="\t"}{system("ln "$1"_2.clean.fq.gz "$2"_2.fq.gz")}' rename.txt
+    # 方法1.根据路径改名
+    awk 'BEGIN{OFS=FS="\t"}{system("ln "$1"1.clean.fq.gz "$2"_1.fq.gz")}' rename.txt
+    awk 'BEGIN{OFS=FS="\t"}{system("ln "$1"2.clean.fq.gz "$2"_2.fq.gz")}' rename.txt
+    # 方法2.根据metadata改名
+    cut -f 1 metadata.txt|sort|uniq -d
+    awk 'BEGIN{OFS=FS="\t"}{system("ln -s /mnt/m2/data/meta/medicago/lyr4SzCpDb/2.cleandata/"$13"/"$13"_1.clean.fq.gz "$1"_1.fq.gz")}' <(tail -n+2 metadata.txt)
+    awk 'BEGIN{OFS=FS="\t"}{system("ln -s /mnt/m2/data/meta/medicago/lyr4SzCpDb/2.cleandata/"$13"/"$13"_2.clean.fq.gz "$1"_2.fq.gz")}' <(tail -n+2 metadata.txt)
+
 
     # 质控和报告汇总
     fastqc -t 48 L*.fq.gz
@@ -50,8 +58,8 @@
     cut -f 1,${l} multiqc_data/multiqc_fastqc.txt | sed 's/_.\t/\t/' | uniq > datasize.txt
     cat datasize.txt
     # 分双端统计md5值，登记 SeqLibraryList.xlsx
-    md5sum L*_1.fq.gz > /tmp/md5sum1.txt
-    md5sum L*_2.fq.gz > /tmp/md5sum2.txt
+    md5sum *_1.fq.gz > /tmp/md5sum1.txt
+    md5sum *_2.fq.gz > /tmp/md5sum2.txt
     paste /tmp/md5sum1.txt /tmp/md5sum2.txt | awk '{print $2"\t"$1"\t"$4"\t"$3}' > md5sum.txt
     cat md5sum.txt
     # 汇总至amplicon目录
@@ -59,16 +67,18 @@
     ls L*.gz|wc
     ln L*.gz ../amplicon/
 
-
-## 201130 拟南芥磷吸收补充实验
-
-    id=201130
+## 210416 拟南芥磷吸收SynCom实验
+    id=200416
     mkdir -p ~/seq/L${id}/
     cd ~/seq/L${id}/
 
 
-## 201030 钱景美苜蓿SynCom和单菌实验
+## 201130 拟南芥磷吸收补充实验
+    id=201130
+    mkdir -p ~/seq/L${id}/
+    cd ~/seq/L${id}/
 
+## 201030 钱景美苜蓿SynCom和单菌实验
     id=201030
     mkdir -p ~/seq/L${id}/
     cd ~/seq/L${id}/
@@ -581,9 +591,6 @@
     ls|wc # 库数据为1006个文件，503个库
 
 
-
-
-
 # meta 
 
     meta@meta:/mnt/m2/data/meta/
@@ -754,6 +761,80 @@
     paste /tmp/md5sum1.txt /tmp/md5sum2.txt | awk '{print $2"\t"$1"\t"$4"\t"$3}' > md5sum.txt
     cat md5sum.txt
 
+# 细菌基因组
+
+## 水稻细菌测序TSB培养625个 
+
+    species=rice
+    batch=G190710TSB
+    cd /mnt/m2/data/genome/${species}/${batch}
+	# 准备ID与目录和文件对应表，链接至目标
+	cut -f 1 metadata.txt|sort|uniq -d # check duplicate
+    awk 'BEGIN{OFS=FS="\t"}{system("ln -s "$2"_1.fq.gz "$1"_1.fq.gz")}' <(tail -n+2 metadata.txt)
+    awk 'BEGIN{OFS=FS="\t"}{system("ln -s "$2"_2.fq.gz "$1"_2.fq.gz")}' <(tail -n+2 metadata.txt)
+
+
+## 水稻细菌测序R2A培养586个 
+
+    species=rice
+    batch=G210325R2A
+    cd /mnt/m2/data/genome/${species}/${batch}
+
+## 玉米
+     
+    # 挂载硬盘
+    mkdir -p /mnt/udisk/
+    sudo fdisk -l | grep ^/dev/sd
+    sudo mount /dev/sdg1 /mnt/udisk/
+	# 方法1. 通过设备卸载
+    sudo umount /dev/sdg1
+	# 方法2. 通过挂载点卸载
+    sudo umount /mnt/udisk/
+
+    species=mazie
+    batch=G210507TSB
+    mkdir -p /mnt/m2/data/genome/${species}/${batch}
+    cd /mnt/m2/data/genome/${species}/${batch}
+    cp -r /mnt/udisk/wangrui27035/data_X101SC20092886-Z01-J010-B10-21/ ./
+
+## 苜蓿G191021 (测730个，返回727个)；G191105 补测8个
+    species=medicago
+    batch=G191021
+    cd /mnt/m2/data/genome/${species}/${batch}
+    # G191021分8个文件夹，中有各有一个压缩包；G191105中有一个压缩包。刘芳整理的结果见 
+    cd /mnt/m3/liufang/Medicago_genome/All_753_isolate_genomes/00_raw_fastq/submit_G191021_and_G191105
+
+## 苜蓿G200102
+    
+    # 在中24-中20个BMN为苜蓿，其他的14个为水稻
+    cd /mnt/m2/data/genome/medicago/G200102
+    # 人工核对顺序填入excel表，并保存rename.txt用于改名
+    find 10-MGBJ20190328A2C41B-2N/ .gz|grep '_1.fq.gz'|sort|sed s/1.fq.gz// 
+    find 24-MGBJ20190610A2C41B-7N/ .gz|grep '_1.fq.gz'|sort|sed s/1.fq.gz// 
+    # 检查是否名称唯一
+    cut -f 1 rename.txt|sort|uniq -d
+    awk 'BEGIN{OFS=FS="\t"}{system("ln "$2"1.fq.gz "$1"_1.fq.gz")}' rename.txt
+    awk 'BEGIN{OFS=FS="\t"}{system("ln "$2"2.fq.gz "$1"_2.fq.gz")}' rename.txt
+
+## 整合苜蓿目前所有菌保原始序列755个
+
+    /mnt/m2/data/genome/medicago/G210713All755
+    # 秦媛整理的ID与刘芳整理样本对应表：新ID与文件绝对路径列，
+    cut -f 2,3 /mnt/m1/qinyuan/wheat/20210419_cul_bac/Medicago/data01_735/seq/metadata.txt | \
+      grep '_1.fq.gz' | sed 's/_1.fq.gz//;s/_1.fq.clean.gz//' | awk '{print $0"\t"$1}'|csvtk -t replace -f 1 -p "\.|-" -r 'i'| sed '1 i SampleID\tFilename\tSampleIDold'|less -S \
+      > metadata735qinyuan.txt 
+    awk 'BEGIN{OFS=FS="\t"}{system("ln -s "$2"_1.fq.clean.gz "$1"_1.fq.gz")}' metadata735qinyuan.txt 
+    awk 'BEGIN{OFS=FS="\t"}{system("ln -s "$2"_2.fq.clean.gz "$1"_2.fq.gz")}' metadata735qinyuan.txt 
+    # 补测20个BMN1-20
+    ln -s /mnt/m2/data/genome/medicago/G200102/BMN*.fq.gz ./
+    # 追加信息
+    awk 'BEGIN{FS=OFS="\t"} NR==FNR {a[$1]=$0} NR>FNR {print a[$3]}' \
+        metadata730jingmei.txt metadata735qinyuan.txt 
+    # 按标准排序
+    export LC_ALL='C'
+    ls *_1.fq.gz|sed 's/_1.fq.gz//'|sort > idlist
+    awk 'BEGIN{FS=OFS="\t"} NR==FNR {a[$1]=$0} NR>FNR {print $1"\t"a[$1]}' \
+        metadata.txt idlist > metadata_sort.txt
 
 
 # 其它

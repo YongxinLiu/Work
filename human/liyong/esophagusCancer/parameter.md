@@ -46,10 +46,10 @@ SHELL:=/bin/bash
 
 ## 1.4. fq_trim 切除引物和标签
 
-	# Cut barcode 10bp + primer V5 19bp in left, and primer V7 18bp in right
+	# Cut barcode 5bp + primer 341F CCTAYGGGRBGCASCAG 17bp in left, and primer 806R GGACTACNNGGGTATCTAAT 20bp in right
 	# Cut barcode 10bp + ITS1F 22bp in left， and ITS2 20bp in right
-	stripleft=29
-	stripright=18
+	stripleft=23
+	stripright=20
 
 ## 1.5. fq_qc 质量控制
 	
@@ -62,7 +62,7 @@ SHELL:=/bin/bash
 	# Remove redundancy
 	# 最小序列频率默认为8，去除低丰度，增加计算速度，整lane的序列推荐1/1M，即上一步最后一行的数据量
 	# 根据fq_qc输出结果判断，如最后一行输出数据据量53M，推荐阈值为50
-	minuniquesize=8
+	minuniquesize=50
 
 ## 1.7. otu_pick 挑选OTU
 
@@ -116,7 +116,7 @@ SHELL:=/bin/bash
 	# 按频率筛选，推荐十万分之一0.00001，范围千一至百分一0.001 - 0.000001之间
 	min_otu_freq=0.000001
 	# 抽样标准化的值，推荐最小10000，根据统计结果选择筛选后最小值或可保留大部分样品的值
-	sample_size=30000
+	sample_size=50000
 
 ## 1.12. tax_assign 物种注释
 
@@ -165,10 +165,10 @@ SHELL:=/bin/bash
 	# 绘图通用参数
 	# 实验设计文件位置，全局，其它图默认调此变量，也可单独修改；并选择表中的组列和具体分组
 	# 设置子版本目录
-	sub=""
+	sub="Surgery2"
 	doc=doc/${sub}
 	design=${wd}/doc/design.txt 
-	g1=GroupID
+	g1=Surgery2
 	# tail -n+2 ${doc}/design.txt|cut -f 5|sort|uniq|awk '{print "\""$1"\""}'|tr "\n" ","
 	# 绘图使用的实验组，顺序即图中显示顺序；为空时使用所有组和默认顺序
 	#g1_list='"Col","ThasKO2","ThahKO","ThadKO","ACT2KO"'
@@ -201,8 +201,8 @@ SHELL:=/bin/bash
 	FC=1.2
 
 	# 统计绘图和网页报告版本控制
-	species="med"
-	keyword="SynCom1FlowPot_ref"
+	species="human"
+	keyword="esophagusCancer"
 	version=${species}_${keyword}_${sub}_v1
 
 

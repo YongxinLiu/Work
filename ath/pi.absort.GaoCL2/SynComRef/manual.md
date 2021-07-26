@@ -1,10 +1,12 @@
 
 	# 快速分析 Quick Start(所需文件准备好)
-	find . -name "*" -type f -size 0c | xargs -n 1 rm -f # 清理零字节文件，用于从头重新分析项目清空makefile点位文件
-	make library_split # 样本拆分、
-	make fq_qc # 合并、去接头和引物、质控，获得纯净扩增子序列temp/filtered.fa
-	make host_rm # 序列去冗余、去噪、挑选代表序列、去嵌合、去宿主，获得OTU代表序列result/otu.fa
-	make beta_calc # 生成OTU表、过滤、物种注释、建库和多样性统计
+
+    # 48条，缺少Root959，Root320，在Nature菌库中(/mnt/bai/yongxin/other/baiyang/16S_nature/Root_isolates_WGS.fasta)也没有
+    seqkit stat result/otu.fa 
+    # 13127200 / 22337214 mapped to OTUs (58.8%)，低于De novo的67.2%
+    make otutab_create
+
+    make beta_calc # 生成OTU表、过滤、物种注释、建库和多样性统计
 	# 清除统计绘图标记(重分析时使用)
 	rm -rf alpha_boxplot 
 	# make DA_compare # 绘制alpha、beta、taxonomy和差异OTU比较
@@ -29,7 +31,7 @@
 	## 0.1 准备流程配置文件
 
 	# 设置工作目录
-	wd=medicago/AMF4/SynCom1FlowPotDenovo
+	wd=ath/pi.absort.GaoCL2/SynComRef
 	# 创建环境代码见~/github/Work/initial_project.sh
 
 	## 准备实验设计
@@ -39,7 +41,6 @@
 	make init
 
 	# 保存模板中basic页中3. 测序文库列表library为doc/library.txt
-    cp ../SynCom2Sand/doc/library.txt doc/
 	# sed -i 's/\t/\tL171121_/' doc/library.txt # time check SeqLibraryList.xlsx
 	# 按library中第二列index准备测序文库，如果压缩要添加.gz，并用gunzip解压
 	awk 'BEGIN{OFS=FS="\t"}{system("ln -s /mnt/bai/yongxin/seq/amplicon/"$2"_1.fq.gz seq/"$1"_1.fq.gz");}' <(tail -n+2 doc/library.txt )
@@ -50,11 +51,14 @@
 	gunzip -f seq/*.gz
 
 	# 标准多文库实验设计拆分，保存模板中design页为doc/design_raw.txt
+	split_design.pl -i doc/design_raw.txt
+	# 从其它处复制实验设计
+	# cp ~/ath/jt.HuangAC/batch3/doc/L*.txt doc/
 	# 删除多余空格，windows换行符等(苹果用户勿用)
 	sed -i 's/ //g;s/\r//' doc/*.txt 
-	head -n3 doc/L4.txt
+	head -n3 doc/L1.txt
 	# 依据各文库L*.txt文件生成实验设计
-	cat <(head -n1 doc/L4.txt | sed 's/#//g') <(cat doc/L* |grep -v '#'|grep -v -P '^SampleID\t') > doc/design.txt
+	cat <(head -n1 doc/L1.txt | sed 's/#//g') <(cat doc/L* |grep -v '#'|grep -v -P '^SampleID\t') > doc/design.txt
 	# 检查是否相等
 	wc -l doc/design.txt
 	cut -f 1 doc/design.txt|sort|uniq|wc -l
@@ -64,18 +68,19 @@
 
 	# 按L1/2/3...txt拆分library为samples
 	# 输入为seq/L*.fq，输出为seq/sample/*.fq
-    PERL5LIB=~/miniconda2/envs/kraken2/lib/site_perl/5.26.2/x86_64-linux-thread-multi:~/miniconda2/envs/kraken2/lib/site_perl/5.26.2:~/miniconda2/envs/kraken2/lib/5.26.2/x86_64-linux-thread-multi:~/miniconda2/envs/kraken2/lib/5.26.2
+	# 调用perl时版本错误，parallel无法运行，手动调perl5lib即可
+	e=/mnt/bai/yongxin/miniconda2/envs/kraken2
+	PERL5LIB=${e}/lib/5.26.2:${e}/lib/5.26.2/x86_64-linux-thread-multi
+
 	make library_split
-    # 拆分结果可视化，需要设置g1参数的分组信息
+	# 拆分结果可视化，需要设置g1参数的分组信息
 	make library_split_stat
 	# 统计结果见result/split有txt/pdf/png，推荐看png方便快速查看每张位图
-	# 查看样本量排序
+	# 查看样本量排序，有6个样本异常低
 	sort -k2,2n result/sample_split.log|less
 
 	# 找不到perl模块，手动指定perl位置即可
 	# Fcntl.c: loadable library and perl binaries are mismatched (got handshake key 0xdb00080, needed 0xde00080)
-	e=/mnt/bai/yongxin/miniconda2/envs/kraken2
-	PERL5LIB=${e}/lib/5.26.2:${e}/lib/5.26.2/x86_64-linux-thread-multi
 
 ## 1.3. 样品双端合并、重命名、合并为单一文件
 
@@ -106,7 +111,7 @@
 
 
 
-    # (第一阶段结束，获得纯净扩增子序列temp/filtered.fa，可提供此文件从下面开始)
+	# (第一阶段结束，获得纯净扩增子序列temp/filtered.fa，可提供此文件从下面开始)
 
 
 ## 1.6. 序列去冗余
@@ -114,7 +119,7 @@
 	# Remove redundancy, get unique reads
 	# 输入为temp/filtered.fa，输出为temp/uniques.fa
 	# 推荐 minuniquesize 筛选标准最小为百万分之一(1/M)，如如最后一行输出数据量53M，阈值为53
-	make fa_unqiue
+	make fa_unique
 
 
 ## 1.7. 挑选OTU
@@ -138,8 +143,6 @@
 	# 根据SILVA注释去除线粒体、叶绿体、真核生物18S和未知序列(非rRNA)
 	make host_rm
 
-	cut -f 1,3 ../SynCom1Sand/doc/SynCom1.txt | tail -n+2 | sed 's/^/>/' | sed 's/\t/\n/' | less -S > result/otu.fa
-    grep '>' -c result/otu.fa # 34
 
     # (第二阶段结束，获得OTU代表序列result/otu.fa，可提供此文件和测序数据temp/filtered.fa从下方起始)
 	
@@ -147,6 +150,7 @@
 	
 	# Create OTUs table
 	# 默认使用vsearch更快10倍，可选usearch10，线程不可超48
+	# 15018601 / 22337214 mapped to OTUs (67.2%)；更新重测序的结果47条序列，59.2%，更低了
 	make otutab_create
 
 ## 1.11. 过滤样本和OTUs
@@ -171,7 +175,6 @@
 	# Taxonomy summary
 	# 必须所有物种有注释，否则有可能报错
 	make tax_sum
-
 
 ## 1.14. 多序列比对和进化树
 	
@@ -200,49 +203,6 @@
 	# otutab_gg 有参比对，如Greengenes，可用于picurst, bugbase分析
 	make otutab_gg
 
-## 准备venn和comapre文件
-
-    cp ../SynCom1Sand/doc/compare.txt doc/
-    sed -i 's/Sd/Fp/g' doc/compare.txt
-    cp ../SynCom1Sand/doc/venn.txt doc/
-    sed -i 's/Sd/Fp/' doc/venn.txt
-
-# 鉴定ASV与代表菌的对应关系
-
-    
-    cp ../SynCom1Sand/result/otu.fa result/ref.fa
-    sed -i 's/OTU/cOTU/' result/ref.fa
-    makeblastdb -in result/ref.fa -dbtype nucl
-    blastn -query result/otu.fa \
-    -db result/ref.fa \
-    -out temp/otu.blastn \
-    -outfmt 6 -num_alignments 1
-    # 反向比较，各均在其中的位置
-    makeblastdb -in result/otu.fa -dbtype nucl
-    blastn -query result/ref.fa \
-      -db result/otu.fa \
-      -out temp/ref.blastn \
-      -outfmt 6 -num_alignments 1
-    # 输出多结果查找
-    blastn -query result/ref.fa \
-      -db result/otu.fa \
-      -out temp/ref.blastnall \
-      -outfmt 6 -num_alignments 100
-    grep -c '>' result/ref.fa # 34
-    wc -l temp/ref.blastn # 34
-    # 计算OTU表相对丰度和均值
-    SynCom1SandDenovo.Rmd
-    # 添加菌对应的最优OTU和丰度
-    awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print a[$2]}' result/otutab_mean.txt temp/ref.blastn | sort|uniq > temp/ref.blastn.ra
-    awk '{a=a+$2} END {print a}' temp/ref.blastn.ra # 94.29%
-    # 34菌对应的OTU丰度超过100%，存在多对1的问题？查看1对多的菌
-    cut -f 2 temp/ref.blastn|sort|uniq -d # OTU_14。均有一个高一个低相似度。
-    # 查看非目标菌的丰度
-    sed -i 's/\r//' temp/ref.blastn.ra result/otutab_mean.txt
-    awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]="Ref"} NR>FNR{print $0,a[$1]}' temp/ref.blastn.ra result/otutab_mean.txt | sort -k3,3 -k2,2nr |less -S
-    # 最高OTU_9 3.19，OTU_23 0.45
-    grep -P "\tOTU_9\t" temp/ref.blastnall | sort -k3,3nr | head -n1 # less -S 
-    grep -P "\tOTU_23\t" temp/ref.blastnall | sort -k3,3nr | head -n1 #  less -S 
 
 
 # 2. 统计绘图 Statistics and plot

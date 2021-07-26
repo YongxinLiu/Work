@@ -149,7 +149,7 @@
 	
 	# 从这里开始
 	# Remove redundancy, get unique reads
-	ll temp/filtered.fa # 175 GB
+	ll temp/filtered.fa # 1.8G
 	make fa_unqiue
 	# 4亿条序列，100为164640条序列，97% OTU 12625；400为50167，97% OTU 6166，unoise 26756 太多
 

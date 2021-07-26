@@ -1,11 +1,12 @@
 # 水稻菌保库
 
-## 2020/1/3版本，新增近400个新菌保
-
-    cut -f 1,2 rice_stock_200604_full.txt|grep -v -P '\t0$'|tail -n+2|sed 's/^/>/;s/\t/\n/'|less > sequence.fa
+    # 每次修正后运行以下代码
+    i=210311
+    cd ~/culture/rice/stock
+    cut -f 1,2 rice_stock_${i}_full.txt|grep -v -P '\t0$'|tail -n+2|sed 's/^/>/;s/\t/\n/'|less > sequence.fa
     makeblastdb -in sequence.fa -dbtype nucl
-    # 物种注释
-    usearch10 --sintax sequence.fa --db /mnt/bai/public/ref/rdp/rdp_16s_v16_sp.udb  -strand both \
+    # 物种注释/mnt/bai/public/ref/rdp/rdp_16s_v16_sp.udb更新为/mnt/zhou/zhiwen/new_rdp/RDPClassifier_16S_trainsetNo18_rawtrainingdata/trainset18_062020_format_assign.udp
+    usearch10 --sintax sequence.fa --db /mnt/zhou/zhiwen/new_rdp/RDPClassifier_16S_trainsetNo18_rawtrainingdata/trainset18_062020_format_assign.udp  -strand both \
       --tabbedout temp/otus.sintax --sintax_cutoff 0
     cut -f 1,2 temp/otus.sintax \
       |sed 's/\td/\tk/;s/:/__/g;s/,/;/g;s/"//g;s/\/Chloroplast//' \
@@ -21,6 +22,7 @@
 	grep -c '>' sequenceV5-7.fa # 1626
 	grep -v '>' sequenceV5-7.fa | sort|uniq -c|wc -l # 806
 
+## 2021/3/11版本，修正R2828序列
 
 
 ## 2020/1/3版本，新增近400个新菌保

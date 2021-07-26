@@ -29,7 +29,7 @@
 	## 0.1 准备流程配置文件
 
 	# 设置工作目录
-	wd=medicago/AMF4/SynCom1FlowPotDenovo
+	wd=medicago/AMF4/SynCom2FlowPotDenovo
 	# 创建环境代码见~/github/Work/initial_project.sh
 
 	## 准备实验设计
@@ -52,9 +52,9 @@
 	# 标准多文库实验设计拆分，保存模板中design页为doc/design_raw.txt
 	# 删除多余空格，windows换行符等(苹果用户勿用)
 	sed -i 's/ //g;s/\r//' doc/*.txt 
-	head -n3 doc/L4.txt
+	head -n3 doc/L5.txt
 	# 依据各文库L*.txt文件生成实验设计
-	cat <(head -n1 doc/L4.txt | sed 's/#//g') <(cat doc/L* |grep -v '#'|grep -v -P '^SampleID\t') > doc/design.txt
+	cat <(head -n1 doc/L5.txt | sed 's/#//g') <(cat doc/L* |grep -v '#'|grep -v -P '^SampleID\t') > doc/design.txt
 	# 检查是否相等
 	wc -l doc/design.txt
 	cut -f 1 doc/design.txt|sort|uniq|wc -l
@@ -138,8 +138,6 @@
 	# 根据SILVA注释去除线粒体、叶绿体、真核生物18S和未知序列(非rRNA)
 	make host_rm
 
-	cut -f 1,3 ../SynCom1Sand/doc/SynCom1.txt | tail -n+2 | sed 's/^/>/' | sed 's/\t/\n/' | less -S > result/otu.fa
-    grep '>' -c result/otu.fa # 34
 
     # (第二阶段结束，获得OTU代表序列result/otu.fa，可提供此文件和测序数据temp/filtered.fa从下方起始)
 	
@@ -200,17 +198,12 @@
 	# otutab_gg 有参比对，如Greengenes，可用于picurst, bugbase分析
 	make otutab_gg
 
-## 准备venn和comapre文件
-
-    cp ../SynCom1Sand/doc/compare.txt doc/
+    cp ../SynCom2Sand/doc/compare.txt doc/
     sed -i 's/Sd/Fp/g' doc/compare.txt
-    cp ../SynCom1Sand/doc/venn.txt doc/
+    cp ../SynCom2Sand/doc/venn.txt doc/
     sed -i 's/Sd/Fp/' doc/venn.txt
 
-# 鉴定ASV与代表菌的对应关系
-
-    
-    cp ../SynCom1Sand/result/otu.fa result/ref.fa
+    cp ../SynCom2Sand/result/otu.fa result/ref.fa
     sed -i 's/OTU/cOTU/' result/ref.fa
     makeblastdb -in result/ref.fa -dbtype nucl
     blastn -query result/otu.fa \
@@ -229,20 +222,21 @@
       -out temp/ref.blastnall \
       -outfmt 6 -num_alignments 100
     grep -c '>' result/ref.fa # 34
-    wc -l temp/ref.blastn # 34
+    wc -l temp/ref.blastn # 24
     # 计算OTU表相对丰度和均值
     SynCom1SandDenovo.Rmd
     # 添加菌对应的最优OTU和丰度
     awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]=$0} NR>FNR{print a[$2]}' result/otutab_mean.txt temp/ref.blastn | sort|uniq > temp/ref.blastn.ra
-    awk '{a=a+$2} END {print a}' temp/ref.blastn.ra # 94.29%
+    awk '{a=a+$2} END {print a}' temp/ref.blastn.ra # 97.87%
     # 34菌对应的OTU丰度超过100%，存在多对1的问题？查看1对多的菌
     cut -f 2 temp/ref.blastn|sort|uniq -d # OTU_14。均有一个高一个低相似度。
     # 查看非目标菌的丰度
     sed -i 's/\r//' temp/ref.blastn.ra result/otutab_mean.txt
     awk 'BEGIN{FS=OFS="\t"} NR==FNR{a[$1]="Ref"} NR>FNR{print $0,a[$1]}' temp/ref.blastn.ra result/otutab_mean.txt | sort -k3,3 -k2,2nr |less -S
-    # 最高OTU_9 3.19，OTU_23 0.45
-    grep -P "\tOTU_9\t" temp/ref.blastnall | sort -k3,3nr | head -n1 # less -S 
-    grep -P "\tOTU_23\t" temp/ref.blastnall | sort -k3,3nr | head -n1 #  less -S 
+    # 最高OTU_13 1，OTU_14 0.86
+    grep -P "\tOTU_13\t" temp/ref.blastnall | sort -k3,3nr | head -n1 # less -S 
+    grep -P "\tOTU_14\t" temp/ref.blastnall | sort -k3,3nr | head -n1 #  less -S 
+
 
 
 # 2. 统计绘图 Statistics and plot
