@@ -59,8 +59,6 @@
     #2021/8/5 ath/pi.absort.GaoCL2/SynComRef2 拟南芥磷吸引
     #2021/9/29 rice/integrate16s/v2OTU/LN2 RiceSL中LN下重选样本
 
-
-
 ## 项目建立代码
     wd=rice/integrate16s/v2OTU/LN2
     # 创建github目录，用于备份流程、文档
@@ -73,6 +71,25 @@
     ln -s `pwd`/parameter.md ~/$wd/makefile
     ln -s `pwd`/manual.md ~/$wd/manual.sh
     cd ~/$wd
+
+# Metagenome project initial
+
+## 设置工作目录
+    #2021/10/11 ath/pi.absort.GaoCL2/M210915 拟南芥磷吸收，2样本测试
+
+## 项目建立代码
+    wd=ath/pi.absort.GaoCL2/M210915
+    # 创建github目录，用于备份流程、文档
+    mkdir -p ~/github/Work/$wd
+    cd ~/github/Work/$wd
+    cp /home/meta/soft/Metagenome/denovo1/parameter.md ./
+    cp /home/meta/soft/Metagenome/denovo1/manual.md ./
+    # 链接代码至工作区
+    mkdir -p ~/$wd
+    ln -s `pwd`/parameter.md ~/$wd/makefile
+    ln -s `pwd`/manual.md ~/$wd/manual.sh
+    cd ~/$wd
+
 
 
 
