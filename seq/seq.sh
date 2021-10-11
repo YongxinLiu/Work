@@ -4,15 +4,20 @@
 
     # novagene 下载客户端安装和使用 2019/9/11
     # 在bailab远程桌面上，从报告系统下载客户端至download目录并解压，添加可执行权限和移动至环境变量
-    chmod +x Downloads/linuxnd/linuxnd
-    sudo mv Downloads/linuxnd/linuxnd /usr/local/bin/
     # 登陆和查看
-    linuxnd login -u X101SC19070595-Z01-J015 -p ufb53j0t
-    linuxnd list # 查看用户根目录，确定是否登陆成功
+    lnd login --user X101SC19070595-Z01-J019 -p wg56rtt7
+    lnd list # 查看用户根目录，确定是否登陆成功
     # 查看邮件路径文件
-    linuxnd list oss://gxxkeyan@126.com/H101SC19070595/RSCS0500/X101SC19070595-Z01/X101SC19070595-Z01-J015/
-    # 查看指定路径下的2.cleandata
-    linuxnd cp -d oss://gxxkeyan@126.com/H101SC19070595/RSCS0500/X101SC19070595-Z01/X101SC19070595-Z01-J015/2.cleandata/ ~/seq/L${id}/
+    lnd list oss://gxxkeyan@126.com/H101SC19070595/RSCS0500/X101SC19070595-Z01/X101SC19070595-Z01-J019/
+    # 查看指定路径下的2.cleandata，有问题下1.rawdata
+    lnd cp -d oss://gxxkeyan@126.com/H101SC19070595/RSCS0500/X101SC19070595-Z01/X101SC19070595-Z01-J019/2.cleandata/ ./
+
+    lnd login --user X101SC20121280-Z01-J095 -p 37kpd9rx
+    lnd list # 查看用户根目录，确定是否登陆成功
+    # 查看邮件路径文件
+    lnd list oss://CP2018091212242/H101SC20121280/RSCS7000/X101SC20121280-Z01/X101SC20121280-Z01-J095/ 
+    # 查看指定路径下的2.cleandata，有问题下1.rawdata
+    lnd cp -d oss://CP2018091212242/H101SC20121280/RSCS7000/X101SC20121280-Z01/X101SC20121280-Z01-J095/2.cleandata/ ./
 
     # md5校验，15G的文件要1分半
     cd 2.cleandata/
@@ -67,11 +72,20 @@
     ls L*.gz|wc
     ln L*.gz ../amplicon/
 
-## 210416 拟南芥磷吸收SynCom实验
-    id=200416
+## 210916 西农杨珺小麦扩增子
+    id=210916
     mkdir -p ~/seq/L${id}/
     cd ~/seq/L${id}/
 
+## 210726 拟南芥磷吸收SynCom实验
+    id=210726
+    mkdir -p ~/seq/L${id}/
+    cd ~/seq/L${id}/
+
+## 210416 拟南芥磷吸收SynCom实验
+    id=210416
+    mkdir -p ~/seq/L${id}/
+    cd ~/seq/L${id}/
 
 ## 201130 拟南芥磷吸收补充实验
     id=201130
@@ -102,8 +116,8 @@
     id=200116
     mkdir ~/seq/L${id}/
     cd ~/seq/L${id}/
-    linuxnd login -u X101SC19070595-Z01-J003 -p h7t2mjtw
-    linuxnd cp -d oss://gxxkeyan@126.com/H101SC19070595/KY_kehu_JK/X101SC19070595-Z01/X101SC19070595-Z01-J003/2.cleandata/ ~/seq/L${id}/
+    lnd login -u X101SC19070595-Z01-J003 -p h7t2mjtw
+    lnd cp -d oss://gxxkeyan@126.com/H101SC19070595/KY_kehu_JK/X101SC19070595-Z01/X101SC19070595-Z01-J003/2.cleandata/ ~/seq/L${id}/
     # 上面的文件md5sum -c 校对出错，删除后重新下载timeout，改用windows版本地软件下载
 
 ## 191226 中农 卢讯丽 刘迪，张娜
@@ -111,44 +125,44 @@
     id=191226
     mkdir ~/seq/L${id}/
     cd ~/seq/L${id}/
-    linuxnd login -u X101SC19070595-Z01-J002 -p wcawcf63
-    linuxnd cp -d oss://gxxkeyan@126.com/H101SC19070595/KY_kehu_JK/X101SC19070595-Z01/X101SC19070595-Z01-J002/2.cleandata/ ~/seq/L${id}/
+    lnd login -u X101SC19070595-Z01-J002 -p wcawcf63
+    lnd cp -d oss://gxxkeyan@126.com/H101SC19070595/KY_kehu_JK/X101SC19070595-Z01/X101SC19070595-Z01-J002/2.cleandata/ ~/seq/L${id}/
 
 ## 191212 中农 卢讯丽 刘迪
 
     id=191212
     mkdir ~/seq/L${id}/
     cd ~/seq/L${id}/
-    linuxnd login -u X101SC19070595-Z01-J001 -p juz7r3sn
-    linuxnd cp -d oss://gxxkeyan@126.com/H101SC19070595/KY_kehu_JK/X101SC19070595-Z01/X101SC19070595-Z01-J001/2.cleandata/ ~/seq/L${id}/ # 查看指定路径下的2.cleandata
+    lnd login -u X101SC19070595-Z01-J001 -p juz7r3sn
+    lnd cp -d oss://gxxkeyan@126.com/H101SC19070595/KY_kehu_JK/X101SC19070595-Z01/X101SC19070595-Z01-J001/2.cleandata/ ~/seq/L${id}/ # 查看指定路径下的2.cleandata
 
 ## 191022 徐浩然 13个库 
     id=191022
     mkdir ~/seq/L${id}/
     cd ~/seq/L${id}/
-    linuxnd login -u X101SC19070595-Z01-F006 -p fehhcwkx 
-    linuxnd cp -d oss://gxxkeyan@126.com/H101SC19070595/KY_kehu_JK/X101SC19070595-Z01/X101SC19070595-Z01-F006/2.cleandata/ ~/seq/L${id}/ # 查看指定路径下的2.cleandata
+    lnd login -u X101SC19070595-Z01-F006 -p fehhcwkx 
+    lnd cp -d oss://gxxkeyan@126.com/H101SC19070595/KY_kehu_JK/X101SC19070595-Z01/X101SC19070595-Z01-F006/2.cleandata/ ~/seq/L${id}/ # 查看指定路径下的2.cleandata
 
 ## 190921 郭晓璇 8个库
     id=190921
     mkdir ~/seq/L${id}/
     cd ~/seq/L${id}/
-    linuxnd login -u X101SC19070595-Z01-F005 -p 4e4pjpug 
-    linuxnd cp -d oss://gxxkeyan@126.com/H101SC19070595/KY_kehu_JK/X101SC19070595-Z01/X101SC19070595-Z01-F005/2.cleandata/ ~/seq/L${id}/ # 查看指定路径下的2.cleandata
+    lnd login -u X101SC19070595-Z01-F005 -p 4e4pjpug 
+    lnd cp -d oss://gxxkeyan@126.com/H101SC19070595/KY_kehu_JK/X101SC19070595-Z01/X101SC19070595-Z01-F005/2.cleandata/ ~/seq/L${id}/ # 查看指定路径下的2.cleandata
 
 ## 190909 宝原7
     id=190909
     mkdir ~/seq/L${id}/
     cd ~/seq/L${id}/
-    linuxnd login -u X101SC19070595-Z01-F004 -p 3gy397n0
-    linuxnd cp -d oss://gxxkeyan@126.com/H101SC19070595/KY_kehu_JK/X101SC19070595-Z01/X101SC19070595-Z01-F004/2.cleandata/ ~/seq/L${id}/ # 查看指定路径下的2.cleandata
+    lnd login -u X101SC19070595-Z01-F004 -p 3gy397n0
+    lnd cp -d oss://gxxkeyan@126.com/H101SC19070595/KY_kehu_JK/X101SC19070595-Z01/X101SC19070595-Z01-F004/2.cleandata/ ~/seq/L${id}/ # 查看指定路径下的2.cleandata
 
 ## 190904 王超玉米时间序列5个库
     id=190904
     mkdir ~/seq/L${id}/
     cd ~/seq/L${id}/
-    linuxnd login -u X101SC19070595-Z01-F003 -p hn5hypc7
-    linuxnd cp -d oss://gxxkeyan@126.com/H101SC19070595/KY_kehu_JK/X101SC19070595-Z01/X101SC19070595-Z01-F003/2.cleandata/ ~/seq/L${id}/ # 查看指定路径下的2.cleandata
+    lnd login -u X101SC19070595-Z01-F003 -p hn5hypc7
+    lnd cp -d oss://gxxkeyan@126.com/H101SC19070595/KY_kehu_JK/X101SC19070595-Z01/X101SC19070595-Z01-F003/2.cleandata/ ~/seq/L${id}/ # 查看指定路径下的2.cleandata
     # 实验设计
     cp /mnt/zhou/zhiwen/mazie_16s_yajun/doc/library.txt ./
 
@@ -723,7 +737,22 @@
 
 # rna
 
+
     meta@meta:/mnt/m2/data/rna/
+
+## 2021/7/29 浩然SL第2批 /mnt/m2/data/rna/R210729RiceTillerBranch/
+
+    cd /mnt/m2/data/rna/R210729RiceTillerBranch
+    # 浩然整理的样本信息 metadata_haoran.txt
+    # 根据样本dir.list整理的样本名，筛选对应的metadata
+    awk 'BEGIN{FS=OFS="\t"} NR==FNR {a[$1]=$0} NR>FNR {print a[$2]}' \
+        metadata_haoran.txt metadata_filelist.txt | less -S > metadata_haoran2.txt
+    # 改名
+    cut -f1 metadata.txt|sort|uniq -d
+    awk 'BEGIN{OFS=FS="\t"}{system("ln 2.cleandata/"$3"/"$3"_1.clean.fq.gz "$1"_1.fq.gz")}' <(tail -n+2 metadata.txt)
+    awk 'BEGIN{OFS=FS="\t"}{system("ln 2.cleandata/"$3"/"$3"_2.clean.fq.gz "$1"_2.fq.gz")}' <(tail -n+2 metadata.txt)
+
+
 
 ## 2017/11/27 王鑫拟南芥无菌苗 /mnt/m2/data/rna/171127sterility/ 诺禾致源测序
 

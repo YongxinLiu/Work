@@ -1884,3 +1884,4 @@ alpha_boxplot.sh -i `pwd`/result/alpha/index.txt -m '"chao1","richness","shannon
     blastn -query ${i}/plan1.fa -db ${i}/plan1.fa -out ${i}/plan1.blastn -outfmt '6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qcovs' -num_alignments 100 -evalue 1 -num_threads 9
     grep 100.00 ${i}/plan1.blastn|less|wc -l # 153重复
     # 结果用wet/blast_self_heatmap.Rmd可视化
+    

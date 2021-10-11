@@ -56,12 +56,14 @@
     # 2021/3/1 rice/Gprotein/210301 G蛋白
     #2021/4/16 ath/pi.absort.GaoCL2/SynCom 拟南芥磷吸引
     #2021/4/19 ath/pi.absort.GaoCL2/SynComRef 拟南芥磷吸引
+    #2021/8/5 ath/pi.absort.GaoCL2/SynComRef2 拟南芥磷吸引
+    #2021/9/29 rice/integrate16s/v2OTU/LN2 RiceSL中LN下重选样本
+
 
 
 ## 项目建立代码
-    wd=ath/pi.absort.GaoCL2/SynComRef
+    wd=rice/integrate16s/v2OTU/LN2
     # 创建github目录，用于备份流程、文档
-    cd ~
     mkdir -p ~/github/Work/$wd
     cd ~/github/Work/$wd
     cp ~/github/Amplicon/16Sv2/parameter.md ./
