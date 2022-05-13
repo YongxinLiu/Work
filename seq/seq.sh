@@ -5,21 +5,14 @@
     # novagene 下载客户端安装和使用 2019/9/11
     # 在bailab远程桌面上，从报告系统下载客户端至download目录并解压，添加可执行权限和移动至环境变量
     # 登陆和查看
-    lnd login --user X101SC19070595-Z01-J019 -p wg56rtt7
+    lnd login --user X101SC22042236-Z01-J001 -p xyy31yfz 
     lnd list # 查看用户根目录，确定是否登陆成功
     # 查看邮件路径文件
-    lnd list oss://gxxkeyan@126.com/H101SC19070595/RSCS0500/X101SC19070595-Z01/X101SC19070595-Z01-J019/
+    lnd list oss://CP2020092100089/H101SC22042236/RSMD00104/X101SC22042236-Z01/X101SC22042236-Z01-J001/ 
     # 查看指定路径下的2.cleandata，有问题下1.rawdata
-    lnd cp -d oss://gxxkeyan@126.com/H101SC19070595/RSCS0500/X101SC19070595-Z01/X101SC19070595-Z01-J019/2.cleandata/ ./
+    lnd cp -d oss://CP2020092100089/H101SC22042236/RSMD00104/X101SC22042236-Z01/X101SC22042236-Z01-J001/01.CleanData/ ./
 
-    lnd login --user X101SC20121280-Z01-J095 -p 37kpd9rx
-    lnd list # 查看用户根目录，确定是否登陆成功
-    # 查看邮件路径文件
-    lnd list oss://CP2018091212242/H101SC20121280/RSCS7000/X101SC20121280-Z01/X101SC20121280-Z01-J095/ 
-    # 查看指定路径下的2.cleandata，有问题下1.rawdata
-    lnd cp -d oss://CP2018091212242/H101SC20121280/RSCS7000/X101SC20121280-Z01/X101SC20121280-Z01-J095/2.cleandata/ ./
-
-    # md5校验，15G的文件要1分半
+    # md5校验，15G的文件要1分半；新版数据没有md5值？
     cd 2.cleandata/
     # ll | grep -P '[^\.]/'| cut -f 10 -d ' ' > dir.list
     ls -F | grep "/$" > dir.list

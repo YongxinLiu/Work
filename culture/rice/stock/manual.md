@@ -199,3 +199,20 @@
     # 追加至菌库
     cat /mnt/bai/yongxin/culture/rice/stock/rice_stock_190731.fa ${batch}.fa > /mnt/bai/yongxin/culture/rice/stock/sequence.fa
     makeblastdb -in /mnt/bai/yongxin/culture/rice/stock/sequence.fa -dbtype nucl
+
+## 比较V5-7与全长的注释比较
+
+    # 物种注释/mnt/bai/public/ref/rdp/rdp_16s_v16_sp.udb更新为/mnt/zhou/zhiwen/new_rdp/RDPClassifier_16S_trainsetNo18_rawtrainingdata/trainset18_062020_format_assign.udp
+    usearch10 --sintax sequenceV5-7.fa --db /mnt/zhou/zhiwen/new_rdp/RDPClassifier_16S_trainsetNo18_rawtrainingdata/trainset18_062020_format_assign.udp  -strand both \
+      --tabbedout temp/otusV5-7.sintax --sintax_cutoff 0
+    # 在RDP18中，仍为g:Inhella(0.3500)
+
+    # 采用v16比较，则为Pelomonas
+    usearch10 --sintax sequenceV5-7.fa --db /mnt/bai/public/ref/rdp/rdp_16s_v16_sp.udb  -strand both \
+      --tabbedout temp/otusV5-7v16.sintax --sintax_cutoff 0
+    grep R2188 temp/otusV5-7v16.sintax
+    # R2188	d:Bacteria(1.0000),p:"Proteobacteria"(1.0000),c:Betaproteobacteria(1.0000),o:Burkholderiales(1.0000),f:Comamonadaceae(0.5200),g:Pelomonas(0.5000),s:Pelomonas_puraquae(0.4700)	+	d:Bacteria,p:"Proteobacteria",c:Betaproteobacteria,o:Burkholderiales,f:Comamonadaceae,g:Pelomonas,s:Pelomonas_puraquae
+
+    # 只用全长，则为 Inhella
+    # R2188	k__Bacteria(1.0000);p__Proteobacteria(1.0000);c__Betaproteobacteria(1.0000);o__Burkholderiales(1.0000);f__Burkholderiales_incertae_sedis(1.0000);g__Inhella(0.9700);s__Inhella_inkyongensis(0.8600)
+

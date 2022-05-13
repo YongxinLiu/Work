@@ -54,13 +54,16 @@
     # 2021/1/11 ath/pi.absort.GaoCL2 拟南芥磷吸引
     # 2021/1/25 human/liyong/esophagusCancer 食道癌
     # 2021/3/1 rice/Gprotein/210301 G蛋白
-    #2021/4/16 ath/pi.absort.GaoCL2/SynCom 拟南芥磷吸引
-    #2021/4/19 ath/pi.absort.GaoCL2/SynComRef 拟南芥磷吸引
-    #2021/8/5 ath/pi.absort.GaoCL2/SynComRef2 拟南芥磷吸引
-    #2021/9/29 rice/integrate16s/v2OTU/LN2 RiceSL中LN下重选样本
+    # 2021/4/16 ath/pi.absort.GaoCL2/SynCom 拟南芥磷吸引
+    # 2021/4/19 ath/pi.absort.GaoCL2/SynComRef 拟南芥磷吸引
+    # 2021/8/5 ath/pi.absort.GaoCL2/SynComRef2 拟南芥磷吸引
+    # 2021/9/29 rice/integrate16s/v2OTU/LN2 RiceSL中LN下重选样本
+    # 2021/12/10 rice/miniCore/submit miniCore重新拆分样品
+    # 2021/12/17 rice/integrate16s/v2/LN2 miniCore重新拆分样品
+    # 2022/2/15 rice/integrate16s/SLtiller 分蘖相关单菌/菌群的水培和田间实验
 
 ## 项目建立代码
-    wd=rice/integrate16s/v2OTU/LN2
+    wd=rice/integrate16s/SLtiller
     # 创建github目录，用于备份流程、文档
     mkdir -p ~/github/Work/$wd
     cd ~/github/Work/$wd
@@ -100,9 +103,11 @@
     # 2019/6/26 culture/rice/190626 水稻分菌测序R2A和厌氧
     # 2019/7/4 culture/wheat1907 小麦分菌测序
     # 2019/8/10 culture/maize/190810 玉米分菌3个index 1Nova+2BGI
+    # 2022/3/21 culture/ginseng/C220314L7 人参分菌7个库
+    # 2022/3/25 culture/tomato/C220314L6 番茄分菌6个库
 
 ## 项目建立代码
-    wd=culture/maize/190810
+    wd=culture/tomato/C220314L6
     # 创建github目录，用于备份流程、文档
     cd ~
     mkdir -p ~/github/Work/$wd
