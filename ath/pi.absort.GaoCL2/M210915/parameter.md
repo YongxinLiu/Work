@@ -32,7 +32,7 @@ SHELL:=/bin/bash
 	# 质控软件trimmomatic安装目录
 	trimmomatic_path=/conda/envs/meta/share/trimmomatic/
 	# 宿主基因组bowtie2索引，如人human_genome/Homo_sapiens, 拟南芥ath/水稻rice/水麦wheat/苜蓿medicago/bt2
-	host_bt2=/db/kneaddata/medicago/bt2
+	host_bt2=/db/kneaddata/ath/tair10
 	# 接头文件：通常cleandata已经去除接头，因无须指定接头文件。检查multiqc中Adapter Content 如有接头，则查找接头文件trimmomatic/adapters中文件，手动指定参数，如 ILLUMINACLIP:/conda/envs/meta/share/trimmomatic/adapters/TruSeq2-PE.fa:2:40:15
 
 	# Kraken2过滤方法，去除植物和人(nohost)或选择微生物(microbe)，包括细菌、古菌、病毒、真菌和原生动物

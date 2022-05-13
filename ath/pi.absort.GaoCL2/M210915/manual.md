@@ -16,15 +16,11 @@
 	# 0. 准备工作 Preparation
 
 	# 设置工作目录 Set work directory
-	wd=medicago/lyr4_210115b1/
+	wd=ath/pi.absort.GaoCL2/M210915
 	mkdir -p ~/${wd}
 	cd ~/$wd
 	
-	# 准备流程 Prepare makefile
-	ln -s /home/meta/soft/Metagenome/denovo1/parameter.md makefile
-	ln -s /home/meta/soft/Metagenome/denovo1/manual.md manual.sh
-	# cp /home/meta/soft/Metagenome/denovo1/manual.md manual.sh
-	
+	# 准备流程 Prepare makefile，见initial_project.sh
 	# 建立初始工作目录 Create initial working directory
 	# 代码预览、执行、保存
 	make -n -B init
@@ -34,7 +30,7 @@
 
 	# 准备原始数据 sequencing raw data (多样本合并和统计见附录1)
 	# 链接数据至工作目录
-	ln -s /mnt/m2/data/meta/$wd/*.gz seq/
+	ln -s //mnt/m2/data/meta/ath/M210915/2.cleandata/*.gz seq/
 
 	# 准备实验设计上传到result目录，至少有两列样本名和组名 Experiment design
 	# 方法1. 数据来源处复制实验设计
